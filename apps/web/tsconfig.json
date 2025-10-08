@@ -1,20 +1,14 @@
 {
-  "extends": "@repo/typescript-config/nextjs.json",
+  "extends": "../../packages/typescript-config/base.json",
   "compilerOptions": {
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "composite": true,
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "next-env.d.ts",
-    "next.config.js",
-    ".next/types/**/*.ts"
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "files": [],
+  "include": [],
+  "exclude": ["node_modules"]
 }
