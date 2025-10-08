@@ -1,5 +1,5 @@
 {
-  "name": "End-Term-Project-Books",
+  "name": "end-term-project-books",
   "private": true,
   "scripts": {
     "build": "turbo run build",
