@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String       @id
+  email      String       @unique
+  username   String
+  reviews    Review[]
+  haveReadIt HaveReadIt[]
+}
+
+model Author {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+
+  pictureUrl  String?
+  bio         String?
+  birthDate   DateTime?
+  nationality String?
+
+  books Book[]
+}
+
+model Book {
+  id                       String          @id @default(uuid())
+  title                    String          @unique
+  authorId                 String
+  publishedDate            DateTime
+  picture                  String
+  publisher                String
+  originalPublicationYear  Int
+  hungarianPublicationYear Int?
+  isbn13                   String          @unique
+  pageNumber               Int
+  description              String
+  createdAt                DateTime        @default(now())
+  author                   Author          @relation(fields: [authorId], references: [id])
+  genres                   BookGenres[]
+  reviews                  Review[]
+  statistics               BookStatistics?
+  haveReadIt               HaveReadIt[]
+}
+
+model Genres {
+  id    String       @id @default(uuid())
+  name  String       @unique
+  books BookGenres[]
+}
+
+model BookGenres {
+  bookId  String
+  genreId String
+
+  book  Book   @relation(fields: [bookId], references: [id])
+  genre Genres @relation(fields: [genreId], references: [id])
+
+  @@id([bookId, genreId])
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  bookId          String
+  userId          String
+  rating          Int
+  reviewText      String
+  createdAt       DateTime @default(now())
+  containsSpoiler Boolean  @default(false)
+  helpfulCount    Int      @default(0)
+
+  book Book @relation(fields: [bookId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+model BookStatistics {
+  id              String @id @default(uuid())
+  bookId          String @unique
+  averageRating   Float  @default(0.0)
+  ratingCount     Int    @default(0)
+  readersCount    Int    @default(0)
+  wantToReadCount Int    @default(0)
+  reviewCount     Int    @default(0)
+
+  book Book @relation(fields: [bookId], references: [id])
+}
+
+model HaveReadIt {
+  id      String   @id @default(uuid())
+  userId  String
+  bookId  String
+  addedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+}
