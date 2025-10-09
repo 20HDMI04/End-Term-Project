@@ -1,4 +1,3 @@
-
 {
   "extends": "../../packages/tsconfig/react-library.json", 
   "files": [],
