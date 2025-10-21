@@ -129,7 +129,36 @@ A projekt fő erőssége a **type-safety**:
 - **Zod Sémák:** Az összes bejövő és kimenő adat validálása a **`@repo/types`** csomagban definiált Zod sémákkal történik, amelyeket mind a NestJS, mind a React alkalmazások importálnak.
 - **Prisma Kliens:** A **`@repo/database`** csomag egy megosztott Prisma klienst és típusokat exportál, így a backend kódja mindig típusbiztosan kommunikál az adatbázissal.
 
-## További dokumentációk
+Abszolút! Összefoglalom ezeket a funkciókat egy README stílusú leírásban, kiemelve a főbb képességeket.
+
+## ✨ Főbb Funkciók
+
+A projekt közösségi platform a következő, felhasználói élményt növelő funkciók lesznek beépítve:
+
+1.  ⭐️ Értékelés és Véleményezés
+    Ez a funkció teszi a platformot igazán közösségivé és interaktívvá.
+    - Rendszer: A felhasználók 1-től 5 csillagig terjedő skálán értékelhetik a könyveket.
+
+    - Vélemény hozzáadása: Lehetőség nyílik szöveges vélemény írására is, ami segíti a többi olvasót a választásban és ösztönzi a diskurzust.
+    - Átlagolás: Az egyes könyvek adatlapján megjelenik a felhasználói értékelések átlaga, mint megbízható minőségi mutató.
+
+2.  🔍 Intelligens Keresés
+    A gyűjteményben való hatékony navigáció kulcsfontosságú.
+    - Többdimenziós szűrés: A keresés nem csak a címre vagy szerzőre korlátozódik. Kereshető a műfaj, a kiadó, vagy akár a könyvkiadás éve alapján is.
+
+    - Gyors válasz: A beépített keresőmotor azonnali eredményeket szolgáltat gépelés közben.
+
+    - Cél: Gyorsan és pontosan megtalálni a keresett könyveket, még a növekvő adatbázisban is.
+
+3.  🛡️ Adminisztrációs Oldal (Admin Panel)
+    A tartalom és a felhasználói közösség kezelésére szolgáló központi irányítópult.
+    - Könyvek kezelése: Az adminok hozzáadhatnak, szerkeszthetnek vagy eltávolíthatnak könyveket az adatbázisból.
+
+    - Felhasználók felügyelete: Jogosultságok kezelése (pl. moderátorok kinevezése), vagy felhasználók felfüggesztése a közösségi irányelvek megsértése esetén.
+
+    - Tartalom moderálása: A nem megfelelő vagy spamszerű vélemények gyors áttekintése és törlése, ezzel biztosítva a magas minőségű diskurzust.
+
+## 📄 További dokumentációk
 
 - Bővebben az architektúráról [Áttekintés](https://github.com/20HDMI04/End-Term-Project/blob/main/documentation/overview.md)
 
