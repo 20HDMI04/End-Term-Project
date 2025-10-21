@@ -129,6 +129,10 @@ A projekt fő erőssége a **type-safety**:
 - **Zod Sémák:** Az összes bejövő és kimenő adat validálása a **`@repo/types`** csomagban definiált Zod sémákkal történik, amelyeket mind a NestJS, mind a React alkalmazások importálnak.
 - **Prisma Kliens:** A **`@repo/database`** csomag egy megosztott Prisma klienst és típusokat exportál, így a backend kódja mindig típusbiztosan kommunikál az adatbázissal.
 
+## További dokumentációk
+
+- Bővebben az architektúráról [Áttekintés](https://github.com/20HDMI04/End-Term-Project/blob/main/documentation/overview.md)
+
 ## 👤 Tagok
 
 [Hegedűs Péter](https://github.com/LepkefingLeo)<br>
