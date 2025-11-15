@@ -17,13 +17,27 @@ export default function Dashboard() {
 	}
 
 	const userId = session.userId;
-
+	const email = session.accessTokenPayload.email as string | undefined;
+	const roles = session.accessTokenPayload.roles as string[] | undefined;
+	console.log("User Roles:", roles);
+	console.log("Access Token Payload:", session.accessTokenPayload);
 	return (
 		<div className="dashboard-container">
 			<div className="dashboard-card">
 				<div className="dashboard-header">
 					<h1>Welcome to Readsy! 📚</h1>
+					{email && <p className="user-email">{email}</p>}
 					<p className="user-id">User ID: {userId}</p>
+					{roles && roles.length > 0 && (
+						<div className="user-roles">
+							<span className="role-label">Roles: </span>
+							{roles.map((role) => (
+								<span key={role} className="role-badge">
+									{role}
+								</span>
+							))}
+						</div>
+					)}
 				</div>
 
 				<div className="dashboard-content">

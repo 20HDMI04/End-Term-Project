@@ -8,7 +8,10 @@ import { ConfigService } from '@nestjs/config';
 import supertokens from 'supertokens-node';
 import { plugin } from 'supertokens-node/framework/fastify';
 import { errorHandler } from 'supertokens-node/framework/fastify';
-import { initializeSuperTokens } from './config/supertokens.config';
+import {
+  initializeSuperTokens,
+  ensureDefaultRolesExist,
+} from './config/supertokens.config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -19,6 +22,9 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   initializeSuperTokens();
+
+  // Ensure default roles exist after SuperTokens is initialized
+  await ensureDefaultRolesExist();
 
   await app.register(plugin);
 
