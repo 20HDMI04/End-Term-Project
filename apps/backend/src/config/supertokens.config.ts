@@ -17,10 +17,12 @@ export async function ensureDefaultRolesExist() {
 }
 
 export function initializeSuperTokens() {
+  const apiDomain = process.env.API_DOMAIN || 'http://localhost:3000';
+
   supertokens.init({
     appInfo: {
       appName: 'Readsy',
-      apiDomain: 'http://localhost:3000',
+      apiDomain: apiDomain,
       websiteDomain: 'http://localhost:5173',
       apiBasePath: '/auth',
       websiteBasePath: '/auth',

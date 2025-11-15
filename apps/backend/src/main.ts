@@ -14,21 +14,26 @@ import {
 } from './config/supertokens.config';
 
 async function bootstrap() {
+  // Initialize SuperTokens before creating the app
+  initializeSuperTokens();
+
+  const adapter = new FastifyAdapter();
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    adapter,
   );
 
   const configService = app.get(ConfigService);
 
-  initializeSuperTokens();
-
   // Ensure default roles exist after SuperTokens is initialized
   await ensureDefaultRolesExist();
 
-  await app.register(plugin);
+  // Get the raw Fastify instance
+  const fastifyInstance = app.getHttpAdapter().getInstance();
 
-  await app.register(import('@fastify/cors'), {
+  // Register CORS first
+  await fastifyInstance.register(import('@fastify/cors'), {
     origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
@@ -36,7 +41,11 @@ async function bootstrap() {
     exposedHeaders: supertokens.getAllCORSHeaders(),
   });
 
-  app.getHttpAdapter().getInstance().setErrorHandler(errorHandler());
+  // Register SuperTokens plugin directly on Fastify instance
+  await fastifyInstance.register(plugin);
+
+  // Set error handler
+  fastifyInstance.setErrorHandler(errorHandler());
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

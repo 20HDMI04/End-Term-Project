@@ -13,7 +13,7 @@ import Dashboard from "./components/Dashboard";
 SuperTokens.init({
 	appInfo: {
 		appName: "Readsy",
-		apiDomain: "http://localhost:3000", // Backend API domain
+		apiDomain: "http://localhost:3001", // Backend API domain
 		websiteDomain: "http://localhost:5173", // Frontend website domain
 		apiBasePath: "/auth",
 		websiteBasePath: "/auth",
