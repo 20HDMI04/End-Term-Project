@@ -9,11 +9,12 @@ import {
 	Platform,
 	ActivityIndicator,
 	Alert,
-	Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { API_URL } from "@/config/api.config";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 // Warm up the browser for better OAuth performance
 WebBrowser.maybeCompleteAuthSession();
@@ -34,23 +35,46 @@ export default function AuthScreen() {
 		setLoading(true);
 		try {
 			const endpoint = isSignUp ? "/signup" : "/signin";
-			const response = await fetch(
-				`https://chloroplastic-crumbly-dominic.ngrok-free.dev/auth${endpoint}`,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						formFields: [
-							{ id: "email", value: email },
-							{ id: "password", value: password },
-						],
-					}),
-				}
-			);
+			const url = `${API_URL}/auth${endpoint}`;
+			console.log("Calling API:", url);
 
-			const data = await response.json();
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					formFields: [
+						{ id: "email", value: email },
+						{ id: "password", value: password },
+					],
+				}),
+			});
+
+			// Check if response is OK
+			if (!response.ok) {
+				const text = await response.text();
+				console.error("Server error:", text);
+				Alert.alert("Error", `Server error: ${response.status}`);
+				return;
+			}
+
+			// Get response as text first to debug
+			const responseText = await response.text();
+			console.log("Response:", responseText);
+
+			// Try to parse JSON
+			let data;
+			try {
+				data = JSON.parse(responseText);
+			} catch (parseError) {
+				console.error("JSON parse error. Response was:", responseText);
+				Alert.alert(
+					"Error",
+					"Invalid response from server. Please check your backend URL."
+				);
+				return;
+			}
 
 			if (data.status === "OK") {
 				if (isSignUp) {
@@ -65,6 +89,7 @@ export default function AuthScreen() {
 				Alert.alert("Error", "Something went wrong");
 			}
 		} catch (error: any) {
+			console.error("Auth error:", error);
 			Alert.alert("Error", error.message || "Network error");
 		} finally {
 			setLoading(false);
@@ -81,85 +106,89 @@ export default function AuthScreen() {
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
 				style={styles.keyboardView}
 			>
-				<View style={styles.content}>
-					<View style={styles.header}>
-						<Text style={styles.logo}>📚</Text>
-						<Text style={styles.title}>Readsy</Text>
-						<Text style={styles.subtitle}>
-							{isSignUp ? "Create your account" : "Welcome back!"}
-						</Text>
-					</View>
-
-					<View style={styles.form}>
-						<View style={styles.inputContainer}>
-							<Text style={styles.label}>Email</Text>
-							<TextInput
-								style={styles.input}
-								placeholder="Enter your email"
-								placeholderTextColor="#999"
-								value={email}
-								onChangeText={setEmail}
-								autoCapitalize="none"
-								keyboardType="email-address"
-								editable={!loading}
-							/>
-						</View>
-
-						<View style={styles.inputContainer}>
-							<Text style={styles.label}>Password</Text>
-							<TextInput
-								style={styles.input}
-								placeholder="Enter your password"
-								placeholderTextColor="#999"
-								value={password}
-								onChangeText={setPassword}
-								secureTextEntry
-								editable={!loading}
-							/>
-						</View>
-
-						<TouchableOpacity
-							style={[styles.button, loading && styles.buttonDisabled]}
-							onPress={handleAuth}
-							disabled={loading}
-						>
-							{loading ? (
-								<ActivityIndicator color="#fff" />
-							) : (
-								<Text style={styles.buttonText}>
-									{isSignUp ? "Sign Up" : "Sign In"}
-								</Text>
-							)}
-						</TouchableOpacity>
-
-						<View style={styles.dividerContainer}>
-							<View style={styles.divider} />
-							<Text style={styles.dividerText}>OR</Text>
-							<View style={styles.divider} />
-						</View>
-
-						<TouchableOpacity
-							style={styles.googleButton}
-							onPress={handleGoogleSignIn}
-							disabled={loading}
-						>
-							<Text style={styles.googleIcon}>G</Text>
-							<Text style={styles.googleButtonText}>Continue with Google</Text>
-						</TouchableOpacity>
-
-						<TouchableOpacity
-							style={styles.switchButton}
-							onPress={() => setIsSignUp(!isSignUp)}
-							disabled={loading}
-						>
-							<Text style={styles.switchText}>
-								{isSignUp
-									? "Already have an account? Sign In"
-									: "Don't have an account? Sign Up"}
+				<Animated.View entering={FadeIn.duration(500)} style={styles.content}>
+					<View style={styles.content}>
+						<View style={styles.header}>
+							<Text style={styles.logo}>📚</Text>
+							<Text style={styles.title}>Readsy</Text>
+							<Text style={styles.subtitle}>
+								{isSignUp ? "Create your account" : "Welcome back!"}
 							</Text>
-						</TouchableOpacity>
+						</View>
+
+						<View style={styles.form}>
+							<View style={styles.inputContainer}>
+								<Text style={styles.label}>Email</Text>
+								<TextInput
+									style={styles.input}
+									placeholder="Enter your email"
+									placeholderTextColor="#999"
+									value={email}
+									onChangeText={setEmail}
+									autoCapitalize="none"
+									keyboardType="email-address"
+									editable={!loading}
+								/>
+							</View>
+
+							<View style={styles.inputContainer}>
+								<Text style={styles.label}>Password</Text>
+								<TextInput
+									style={styles.input}
+									placeholder="Enter your password"
+									placeholderTextColor="#999"
+									value={password}
+									onChangeText={setPassword}
+									secureTextEntry
+									editable={!loading}
+								/>
+							</View>
+
+							<TouchableOpacity
+								style={[styles.button, loading && styles.buttonDisabled]}
+								onPress={handleAuth}
+								disabled={loading}
+							>
+								{loading ? (
+									<ActivityIndicator color="#fff" />
+								) : (
+									<Text style={styles.buttonText}>
+										{isSignUp ? "Sign Up" : "Sign In"}
+									</Text>
+								)}
+							</TouchableOpacity>
+
+							<View style={styles.dividerContainer}>
+								<View style={styles.divider} />
+								<Text style={styles.dividerText}>OR</Text>
+								<View style={styles.divider} />
+							</View>
+
+							<TouchableOpacity
+								style={styles.googleButton}
+								onPress={handleGoogleSignIn}
+								disabled={loading}
+							>
+								<Text style={styles.googleIcon}>G</Text>
+								<Text style={styles.googleButtonText}>
+									Continue with Google
+								</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								style={styles.switchButton}
+								onPress={() => setIsSignUp(!isSignUp)}
+								disabled={loading}
+							>
+								<Text style={styles.switchText}>
+									{isSignUp
+										? "Already have an account? Sign In"
+										: "Don't have an account? Sign Up"}
+								</Text>
+							</TouchableOpacity>
+						</View>
 					</View>
-				</View>
+				</Animated.View>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
