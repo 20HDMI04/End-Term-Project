@@ -98,8 +98,8 @@ export default function AuthScreen() {
 				styles.keyboardView,
 				{
 					backgroundColor: isDarkMode
-						? Colors.mainAndsecondary.mainDark
-						: Colors.mainAndsecondary.secondaryLight,
+						? Colors.mainColorDark
+						: Colors.secondaryColorLight,
 				},
 			]}
 		>
@@ -107,7 +107,6 @@ export default function AuthScreen() {
 				<View style={styles.content}>
 					<View style={styles.header}>
 						<Image source={getImageSource()} style={styles.logo} />
-						{/* AuthForm is shown as an overlay below when `isSignIn` is true */}
 						{lottieSource && (
 							<LottieView
 								autoPlay={true}
@@ -139,8 +138,8 @@ export default function AuthScreen() {
 									styles.textStyle,
 									{
 										color: isDarkMode
-											? Colors.mainAndsecondary.mainDark
-											: Colors.mainAndsecondary.secondaryLight,
+											? Colors.mainColorDark
+											: Colors.secondaryColorLight,
 									},
 								]}
 							>
@@ -162,8 +161,8 @@ export default function AuthScreen() {
 									styles.textStyle,
 									{
 										color: isDarkMode
-											? Colors.mainAndsecondary.secondaryDark
-											: Colors.mainAndsecondary.mainLight,
+											? Colors.secondaryColorDark
+											: Colors.mainColorLight,
 									},
 								]}
 							>
@@ -236,7 +235,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		bottom: -70,
 		width: "100%",
-		height: "110%",
+		height: "113%",
 		justifyContent: "center",
 		alignItems: "stretch",
 		zIndex: 1000,

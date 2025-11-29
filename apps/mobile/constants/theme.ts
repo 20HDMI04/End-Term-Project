@@ -10,13 +10,21 @@ const mainColorDark = "#222E3A";
 const mainColorLight = "#597127";
 const secondaryColorDark = "#ECEEEB";
 
+const loginBackgroundLight = "#f1f4ebff";
+const loginTextLight = "#B9C2A8";
+
+const loginBackgroundDark = "#eff3f7ff";
+const loginTextDark = "#A8B5C2";
+
 export const Colors = {
-	mainAndsecondary: {
-		mainLight: mainColorLight,
-		mainDark: mainColorDark,
-		secondaryLight: secondaryColorLight,
-		secondaryDark: secondaryColorDark,
-	},
+	loginBackgroundDark: loginBackgroundDark,
+	loginTextDark: loginTextDark,
+	loginBackgroundLight: loginBackgroundLight,
+	loginTextLight: loginTextLight,
+	mainColorDark: mainColorDark,
+	secondaryColorDark: secondaryColorDark,
+	mainColorLight: mainColorLight,
+	secondaryColorLight: secondaryColorLight,
 	button: {
 		backgroundColor: mainColorLight,
 	},

@@ -35,7 +35,7 @@ export default function RootLayout() {
 		...DarkTheme,
 		colors: {
 			...DarkTheme.colors,
-			background: Colors.mainAndsecondary.mainDark,
+			background: Colors.mainColorDark,
 		},
 	};
 
@@ -43,7 +43,7 @@ export default function RootLayout() {
 		...DefaultTheme,
 		colors: {
 			...DefaultTheme.colors,
-			background: Colors.mainAndsecondary.secondaryLight,
+			background: Colors.secondaryColorLight,
 		},
 	};
 

@@ -11,11 +11,18 @@ import {
 	Alert,
 	useColorScheme,
 	Image,
+	Modal,
+	Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { API_URL } from "@/config/api.config";
 import Animated, { SlideInDown } from "react-native-reanimated";
 import * as WebBrowser from "expo-web-browser";
+import CustomEmailInput from "./emailInput";
+import CustomPasswordInput from "./passwordInput";
+import GoogleIcon from "@/assets/svgs/googleIcon.svg";
+import { Colors } from "@/constants/theme";
+
 WebBrowser.maybeCompleteAuthSession();
 
 interface AuthFormProps {
@@ -35,18 +42,33 @@ export default function AuthForm({
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [modalVisible, setModalVisible] = useState(false);
+	const [modalMessage, setModalMessage] = useState<string | null>(null);
+
 	const colorScheme = useColorScheme();
+	const isDarkMode = colorScheme === "dark";
 
 	const handleGoogleSignIn = async () => {
 		Alert.alert("Coming Soon", "Google Sign-In will be available soon!");
 	};
 
 	const handleAuth = async () => {
+		// Client-side validation first. Show alerts for validation errors and don't
+		// open the modal until we start the network request.
 		if (!email || !password) {
-			Alert.alert("Error", "Please fill in all fields");
+			setModalMessage("Please fill in all fields!");
+			setModalVisible(true);
+			return;
+		}
+		if (isSignUp && password !== confirmPassword) {
+			setModalMessage("Confirm password must match the password!");
+			setModalVisible(true);
 			return;
 		}
 
+		// Validation passed — show modal and start loading
+		setModalVisible(true);
 		setLoading(true);
 		try {
 			const endpoint = isSignUp ? "/signup" : "/signin";
@@ -66,28 +88,26 @@ export default function AuthForm({
 				}),
 			});
 
-			// Check if response is OK
 			if (!response.ok) {
 				const text = await response.text();
 				console.error("Server error:", text);
-				Alert.alert("Error", `Server error: ${response.status}`);
+				setModalMessage(`Server error: ${response.status}`);
+				setModalVisible(true);
 				return;
 			}
 
-			// Get response as text first to debug
 			const responseText = await response.text();
 			console.log("Response:", responseText);
 
-			// Try to parse JSON
 			let data;
 			try {
 				data = JSON.parse(responseText);
 			} catch (parseError) {
 				console.error("JSON parse error. Response was:", responseText);
-				Alert.alert(
-					"Error",
+				setModalMessage(
 					"Invalid response from server. Please check your backend URL."
 				);
+				setModalVisible(true);
 				return;
 			}
 
@@ -97,108 +117,261 @@ export default function AuthForm({
 				}
 				router.replace("/(tabs)");
 			} else if (data.status === "WRONG_CREDENTIALS_ERROR") {
-				Alert.alert("Error", "Invalid email or password");
+				setModalMessage("Invalid email or password");
+				setModalVisible(true);
 			} else if (data.status === "FIELD_ERROR") {
-				Alert.alert("Error", data.formFields[0].error);
+				setModalMessage(data.formFields[0].error);
+				setModalVisible(true);
 			} else {
-				Alert.alert("Error", "Something went wrong");
+				setModalMessage("Something went wrong");
+				setModalVisible(true);
 			}
 		} catch (error: any) {
 			console.error("Auth error:", error);
-			Alert.alert("Error", error.message || "Network error");
+			setModalMessage(error?.message || "Network error");
+			setModalVisible(true);
 		} finally {
 			setLoading(false);
 		}
 	};
 	return (
-		<Animated.View style={styles.form}>
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>Email</Text>
-				<TextInput
-					style={styles.input}
-					placeholder="Enter your email"
-					placeholderTextColor="#999"
-					value={email}
-					onChangeText={setEmail}
-					autoCapitalize="none"
-					keyboardType="email-address"
-					editable={!loading}
-					onTouchStart={() => {
-						stopBounce();
-					}}
-				/>
-			</View>
-
-			<View style={styles.inputContainer}>
-				<Text style={styles.label}>Password</Text>
-				<TextInput
-					style={styles.input}
-					placeholder="Enter your password"
-					placeholderTextColor="#999"
-					value={password}
-					onChangeText={setPassword}
-					secureTextEntry
-					editable={!loading}
-					onTouchStart={() => {
-						stopBounce();
-					}}
-				/>
-			</View>
-
-			<TouchableOpacity
-				style={[styles.button, loading && styles.buttonDisabled]}
-				onPress={() => {
-					handleAuth();
-					stopBounce();
-				}}
-				disabled={loading}
-			>
-				{loading ? (
-					<ActivityIndicator color="#fff" />
+		<>
+			<Animated.View style={styles.form}>
+				{isSignUp ? (
+					<Text
+						style={[
+							styles.headText,
+							{
+								color: isDarkMode
+									? Colors.mainColorDark
+									: Colors.mainColorLight,
+							},
+						]}
+					>
+						Sign up
+					</Text>
 				) : (
-					<Text style={styles.buttonText}>
-						{isSignUp ? "Sign Up" : "Sign In"}
+					<Text
+						style={[
+							styles.headText,
+							{
+								color: isDarkMode
+									? Colors.mainColorDark
+									: Colors.mainColorLight,
+							},
+						]}
+					>
+						Login
 					</Text>
 				)}
-			</TouchableOpacity>
+				<CustomEmailInput
+					backgroundColor={
+						isDarkMode
+							? Colors.loginBackgroundDark
+							: Colors.loginBackgroundLight
+					}
+					value={email}
+					setValue={setEmail}
+					fontAndIconColor={
+						isDarkMode ? Colors.loginTextDark : Colors.loginTextLight
+					}
+					isDarkMode={isDarkMode}
+					loading={loading}
+					stopBounce={() => {
+						stopBounce();
+					}}
+				/>
+				<CustomPasswordInput
+					backgroundColor={
+						isDarkMode
+							? Colors.loginBackgroundDark
+							: Colors.loginBackgroundLight
+					}
+					value={password}
+					setValue={setPassword}
+					fontAndIconColor={
+						isDarkMode ? Colors.loginTextDark : Colors.loginTextLight
+					}
+					isDarkMode={isDarkMode}
+					loading={loading}
+					stopBounce={() => {
+						stopBounce();
+					}}
+				/>
 
-			<View style={styles.dividerContainer}>
-				<View style={styles.divider} />
-				<Text style={styles.dividerText}>OR</Text>
-				<View style={styles.divider} />
-			</View>
+				{isSignUp ? (
+					<CustomPasswordInput
+						backgroundColor={
+							isDarkMode
+								? Colors.loginBackgroundDark
+								: Colors.loginBackgroundLight
+						}
+						value={confirmPassword}
+						setValue={setConfirmPassword}
+						fontAndIconColor={
+							isDarkMode ? Colors.loginTextDark : Colors.loginTextLight
+						}
+						loading={loading}
+						placeholder="Confirm password"
+						stopBounce={() => {
+							stopBounce();
+						}}
+						isDarkMode={isDarkMode}
+					/>
+				) : (
+					""
+				)}
 
-			<TouchableOpacity
-				style={styles.googleButton}
-				onPress={() => {
-					handleGoogleSignIn();
-					stopBounce();
-				}}
-				disabled={loading}
-			>
-				<Text style={styles.googleIcon}>G</Text>
-				<Text style={styles.googleButtonText}>Continue with Google</Text>
-			</TouchableOpacity>
+				<TouchableOpacity
+					style={[
+						styles.button,
+						(loading ||
+							!email ||
+							!password ||
+							(isSignUp && password !== confirmPassword)) &&
+							styles.buttonDisabled,
+						{
+							backgroundColor: isDarkMode
+								? Colors.mainColorDark
+								: Colors.mainColorLight,
+						},
+					]}
+					onPress={() => {
+						handleAuth();
+						stopBounce();
+					}}
+					disabled={
+						loading ||
+						!email ||
+						!password ||
+						(isSignUp && password !== confirmPassword)
+					}
+				>
+					{loading ? (
+						<ActivityIndicator color="#fff" />
+					) : (
+						<Text style={styles.buttonText}>
+							{isSignUp ? "Sign Up" : "Log In"}
+						</Text>
+					)}
+				</TouchableOpacity>
 
-			<TouchableOpacity
-				style={styles.switchButton}
-				onPress={() => setIsSignUp(!isSignUp)}
-				disabled={loading}
-			>
-				<Text style={styles.switchText}>
-					{isSignUp
-						? "Already have an account? Sign In"
-						: "Don't have an account? Sign Up"}
-				</Text>
-			</TouchableOpacity>
-		</Animated.View>
+				<View style={styles.dividerContainer}>
+					<View style={styles.divider} />
+					<Text style={styles.dividerText}>OR</Text>
+					<View style={styles.divider} />
+				</View>
+
+				<TouchableOpacity
+					style={styles.googleButton}
+					onPress={() => {
+						handleGoogleSignIn();
+						stopBounce();
+					}}
+					disabled={loading}
+				>
+					<GoogleIcon />
+					<Text style={styles.googleButtonText}>Continue with Google</Text>
+				</TouchableOpacity>
+
+				<TouchableOpacity
+					style={styles.switchButton}
+					onPress={() => setIsSignUp(!isSignUp)}
+					disabled={loading}
+				>
+					{isSignUp ? (
+						<Text
+							style={[
+								styles.switchText,
+								{
+									color: isDarkMode
+										? Colors.mainColorDark
+										: Colors.mainColorLight,
+								},
+							]}
+						>
+							Already have an account?{" "}
+							<Text style={{ fontWeight: "bold" }}>Log In</Text>
+						</Text>
+					) : (
+						<Text
+							style={[
+								styles.switchText,
+								{
+									color: isDarkMode
+										? Colors.mainColorDark
+										: Colors.mainColorLight,
+								},
+							]}
+						>
+							Don't have an account?{" "}
+							<Text style={{ fontWeight: "bold" }}>Sign Up</Text>
+						</Text>
+					)}
+				</TouchableOpacity>
+			</Animated.View>
+		</>
 	);
 }
 
 const styles = StyleSheet.create({
+	centeredView: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	modal: {
+		position: "absolute",
+		left: 0,
+		right: 0,
+		bottom: 0,
+		justifyContent: "center",
+		zIndex: 1002,
+		elevation: 1002,
+	},
+	modalView: {
+		margin: 20,
+		backgroundColor: "white",
+		borderRadius: 20,
+		padding: 35,
+		alignItems: "center",
+		shadowColor: "#000",
+		shadowOffset: {
+			width: 0,
+			height: 2,
+		},
+		shadowOpacity: 0.25,
+		shadowRadius: 4,
+	},
+	buttonModal: {
+		borderRadius: 20,
+		padding: 10,
+		elevation: 2,
+	},
+	buttonOpen: {
+		backgroundColor: "#F194FF",
+	},
+	buttonClose: {
+		backgroundColor: "#2196F3",
+	},
+	textStyle: {
+		color: "white",
+		fontWeight: "bold",
+		textAlign: "center",
+	},
+	modalText: {
+		marginBottom: 15,
+		textAlign: "center",
+	},
 	container: {
 		flex: 1,
 		backgroundColor: "#F7F4EB",
+	},
+	headText: {
+		fontFamily: "Poppins_300Light",
+		fontSize: 30,
+		marginLeft: 10,
+		marginBottom: 10,
 	},
 	keyboardView: {
 		flex: 1,
@@ -223,7 +396,6 @@ const styles = StyleSheet.create({
 	},
 	form: {
 		backgroundColor: "#fff",
-		// full-bleed sheet appearance: no rounding or shadow
 		borderRadius: 45,
 		borderBottomStartRadius: 0,
 		borderBottomEndRadius: 0,
@@ -252,11 +424,10 @@ const styles = StyleSheet.create({
 		backgroundColor: "#f9f9f9",
 	},
 	button: {
-		backgroundColor: "#597127",
-		borderRadius: 8,
+		marginTop: 20,
+		borderRadius: 50,
 		paddingVertical: 14,
 		alignItems: "center",
-		marginTop: 8,
 	},
 	buttonDisabled: {
 		opacity: 0.6,
@@ -264,6 +435,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		color: "#fff",
 		fontSize: 16,
+		fontFamily: "Poppins_300Light",
 		fontWeight: "600",
 	},
 	dividerContainer: {
@@ -279,38 +451,36 @@ const styles = StyleSheet.create({
 	dividerText: {
 		marginHorizontal: 12,
 		color: "#999",
-		fontSize: 14,
+		fontFamily: "Poppins_300Light",
+		fontSize: 16,
 		fontWeight: "500",
 	},
 	googleButton: {
 		backgroundColor: "#fff",
 		borderWidth: 1,
 		borderColor: "#ddd",
-		borderRadius: 8,
+		borderRadius: 50,
 		paddingVertical: 14,
+		height: 52,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "center",
 		marginBottom: 8,
 	},
-	googleIcon: {
-		fontSize: 20,
-		fontWeight: "bold",
-		marginRight: 8,
-		color: "#4285F4",
-	},
 	googleButtonText: {
+		marginLeft: 20,
+		marginRight: 20,
 		color: "#333",
+		fontFamily: "Poppins_300Light",
 		fontSize: 16,
-		fontWeight: "600",
 	},
 	switchButton: {
 		marginTop: 16,
 		alignItems: "center",
 	},
 	switchText: {
-		color: "#667eea",
+		color: "#222E3A",
 		fontSize: 14,
-		fontWeight: "500",
+		fontFamily: "Poppins_300Light",
 	},
 });
