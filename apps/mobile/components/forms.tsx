@@ -11,7 +11,6 @@ import {
 	Alert,
 	useColorScheme,
 	Image,
-	Modal,
 	Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -20,9 +19,11 @@ import Animated, { SlideInDown } from "react-native-reanimated";
 import * as WebBrowser from "expo-web-browser";
 import CustomEmailInput from "./emailInput";
 import CustomPasswordInput from "./passwordInput";
+import AuthModal from "./AuthModal";
+import SuccessOverlay from "./SuccessOverlay";
 import GoogleIcon from "@/assets/svgs/googleIcon.svg";
 import { Colors } from "@/constants/theme";
-
+import { formsStyles as styles } from "./styles/formsStyles";
 WebBrowser.maybeCompleteAuthSession();
 
 interface AuthFormProps {
@@ -45,6 +46,7 @@ export default function AuthForm({
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [modalVisible, setModalVisible] = useState(false);
 	const [modalMessage, setModalMessage] = useState<string | null>(null);
+	const [isSuccess, setIsSuccess] = useState(false);
 
 	const colorScheme = useColorScheme();
 	const isDarkMode = colorScheme === "dark";
@@ -67,8 +69,6 @@ export default function AuthForm({
 			return;
 		}
 
-		// Validation passed — show modal and start loading
-		setModalVisible(true);
 		setLoading(true);
 		try {
 			const endpoint = isSignUp ? "/signup" : "/signin";
@@ -113,9 +113,16 @@ export default function AuthForm({
 
 			if (data.status === "OK") {
 				if (isSignUp) {
-					Alert.alert("Success", "Account created successfully!");
+					setModalMessage("Account created successfully!");
+				} else {
+					setModalMessage("Login successful!");
 				}
-				router.replace("/(tabs)");
+				setIsSuccess(true);
+				setModalVisible(true);
+				setTimeout(() => {
+					setModalVisible(false);
+					router.replace("/(tabs)");
+				}, 2500);
 			} else if (data.status === "WRONG_CREDENTIALS_ERROR") {
 				setModalMessage("Invalid email or password");
 				setModalVisible(true);
@@ -129,6 +136,7 @@ export default function AuthForm({
 		} catch (error: any) {
 			console.error("Auth error:", error);
 			setModalMessage(error?.message || "Network error");
+			setIsSuccess(false);
 			setModalVisible(true);
 		} finally {
 			setLoading(false);
@@ -136,6 +144,28 @@ export default function AuthForm({
 	};
 	return (
 		<>
+			{isSuccess && (
+				<SuccessOverlay
+					visible={modalVisible}
+					message={modalMessage}
+					onFinish={() => {
+						setModalVisible(false);
+						setIsSuccess(false);
+						router.replace("/(tabs)");
+					}}
+				/>
+			)}
+
+			<AuthModal
+				visible={modalVisible && !isSuccess}
+				loading={loading}
+				message={modalMessage}
+				onClose={() => {
+					setModalVisible(false);
+					setIsSuccess(false);
+				}}
+			/>
+
 			<Animated.View style={styles.form}>
 				{isSignUp ? (
 					<Text
@@ -313,174 +343,3 @@ export default function AuthForm({
 		</>
 	);
 }
-
-const styles = StyleSheet.create({
-	centeredView: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	modal: {
-		position: "absolute",
-		left: 0,
-		right: 0,
-		bottom: 0,
-		justifyContent: "center",
-		zIndex: 1002,
-		elevation: 1002,
-	},
-	modalView: {
-		margin: 20,
-		backgroundColor: "white",
-		borderRadius: 20,
-		padding: 35,
-		alignItems: "center",
-		shadowColor: "#000",
-		shadowOffset: {
-			width: 0,
-			height: 2,
-		},
-		shadowOpacity: 0.25,
-		shadowRadius: 4,
-	},
-	buttonModal: {
-		borderRadius: 20,
-		padding: 10,
-		elevation: 2,
-	},
-	buttonOpen: {
-		backgroundColor: "#F194FF",
-	},
-	buttonClose: {
-		backgroundColor: "#2196F3",
-	},
-	textStyle: {
-		color: "white",
-		fontWeight: "bold",
-		textAlign: "center",
-	},
-	modalText: {
-		marginBottom: 15,
-		textAlign: "center",
-	},
-	container: {
-		flex: 1,
-		backgroundColor: "#F7F4EB",
-	},
-	headText: {
-		fontFamily: "Poppins_300Light",
-		fontSize: 30,
-		marginLeft: 10,
-		marginBottom: 10,
-	},
-	keyboardView: {
-		flex: 1,
-	},
-	content: {
-		flex: 1,
-		justifyContent: "center",
-		paddingHorizontal: 24,
-	},
-	header: {
-		alignItems: "center",
-	},
-	logo: {
-		width: 400,
-		marginTop: 20,
-		resizeMode: "contain",
-	},
-	subtitle: {
-		fontSize: 16,
-		color: "#fff",
-		opacity: 0.9,
-	},
-	form: {
-		backgroundColor: "#fff",
-		borderRadius: 45,
-		borderBottomStartRadius: 0,
-		borderBottomEndRadius: 0,
-		padding: 24,
-		paddingTop: 45,
-		width: "100%",
-		height: "100%",
-	},
-	inputContainer: {
-		marginBottom: 20,
-	},
-	label: {
-		fontSize: 14,
-		fontWeight: "600",
-		color: "#333",
-		marginBottom: 8,
-	},
-	input: {
-		borderWidth: 1,
-		borderColor: "#ddd",
-		borderRadius: 8,
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-		fontSize: 16,
-		color: "#333",
-		backgroundColor: "#f9f9f9",
-	},
-	button: {
-		marginTop: 20,
-		borderRadius: 50,
-		paddingVertical: 14,
-		alignItems: "center",
-	},
-	buttonDisabled: {
-		opacity: 0.6,
-	},
-	buttonText: {
-		color: "#fff",
-		fontSize: 16,
-		fontFamily: "Poppins_300Light",
-		fontWeight: "600",
-	},
-	dividerContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginVertical: 20,
-	},
-	divider: {
-		flex: 1,
-		height: 1,
-		backgroundColor: "#ddd",
-	},
-	dividerText: {
-		marginHorizontal: 12,
-		color: "#999",
-		fontFamily: "Poppins_300Light",
-		fontSize: 16,
-		fontWeight: "500",
-	},
-	googleButton: {
-		backgroundColor: "#fff",
-		borderWidth: 1,
-		borderColor: "#ddd",
-		borderRadius: 50,
-		paddingVertical: 14,
-		height: 52,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		marginBottom: 8,
-	},
-	googleButtonText: {
-		marginLeft: 20,
-		marginRight: 20,
-		color: "#333",
-		fontFamily: "Poppins_300Light",
-		fontSize: 16,
-	},
-	switchButton: {
-		marginTop: 16,
-		alignItems: "center",
-	},
-	switchText: {
-		color: "#222E3A",
-		fontSize: 14,
-		fontFamily: "Poppins_300Light",
-	},
-});
