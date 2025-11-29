@@ -13,11 +13,8 @@ export default function Index() {
 		// Wait for navigation to be ready
 		if (!navigationState?.key || hasNavigated) return;
 
-		const timer = setTimeout(() => {
-			checkAuth();
-		}, 300);
-
-		return () => clearTimeout(timer);
+		// Navigate immediately without delay
+		checkAuth();
 	}, [navigationState?.key, hasNavigated]);
 
 	const checkAuth = async () => {
@@ -41,11 +38,8 @@ export default function Index() {
 		}
 	};
 
-	return (
-		<View style={styles.container}>
-			<ActivityIndicator size="large" color="#667eea" />
-		</View>
-	);
+	// Return empty view instead of loading indicator
+	return <View style={styles.container} />;
 }
 
 const styles = StyleSheet.create({
