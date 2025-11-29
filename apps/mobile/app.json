@@ -8,6 +8,7 @@
     "scheme": "readsy",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "entryPoint": "./App.tsx",
     "ios": {
       "supportsTablet": true
     },
