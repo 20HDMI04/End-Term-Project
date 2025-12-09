@@ -1,6 +1,13 @@
-import Constants from "expo-constants";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { WEB_CLIENT_ID } from "react-native-dotenv";
 import { Platform } from "react-native";
 
+export default ({ config }: { config: any }) => ({
+	...config,
+	extra: {
+		googleWebClientId: WEB_CLIENT_ID,
+	},
+});
 /**
  * Get the API base URL based on the current environment
  */

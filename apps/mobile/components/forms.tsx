@@ -24,6 +24,7 @@ import SuccessOverlay from "./SuccessOverlay";
 import GoogleIcon from "@/assets/svgs/googleIcon.svg";
 import { Colors } from "@/constants/theme";
 import { formsStyles as styles } from "./styles/formsStyles";
+import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 WebBrowser.maybeCompleteAuthSession();
 
 interface AuthFormProps {
@@ -52,7 +53,20 @@ export default function AuthForm({
 	const isDarkMode = colorScheme === "dark";
 
 	const handleGoogleSignIn = async () => {
-		Alert.alert("Coming Soon", "Google Sign-In will be available soon!");
+		setLoading(true);
+		const data = await googleSignInAndSuperTokensAuth();
+		if (data.errors !== null) {
+			setModalMessage(data.errors);
+			setIsSuccess(false);
+			setModalVisible(true);
+		}
+		setIsSuccess(true);
+		setModalVisible(true);
+		setTimeout(() => {
+			setModalVisible(false);
+			router.replace("/(tabs)");
+		}, 2500);
+		setLoading(false);
 	};
 
 	const handleAuth = async () => {
