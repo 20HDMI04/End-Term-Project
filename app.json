@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "a51f170b-0041-4a38-9952-e750865a4660"
+      }
+    },
+    "android": {
+      "package": "com.hdmi.readsy"
+    }
+  }
+}
