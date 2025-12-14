@@ -91,7 +91,7 @@ export default function RootLayout() {
 					}}
 				/>
 				<Stack.Screen
-					name="auth"
+					name="(authentication)/auth"
 					options={{
 						headerShown: false,
 						animation: "none",
@@ -103,10 +103,6 @@ export default function RootLayout() {
 						headerShown: false,
 						animation: "none",
 					}}
-				/>
-				<Stack.Screen
-					name="modal"
-					options={{ presentation: "modal", title: "Modal", headerShown: true }}
 				/>
 			</Stack>
 			<StatusBar style="auto" />

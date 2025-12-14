@@ -16,15 +16,23 @@ const loginTextLight = "#B9C2A8";
 const loginBackgroundDark = "#eff3f7ff";
 const loginTextDark = "#A8B5C2";
 
+const thirdColorLight = "#D7DCCF";
+const thirdColorDark = "#324252";
+
 export const Colors = {
 	loginBackgroundDark: loginBackgroundDark,
 	loginTextDark: loginTextDark,
 	loginBackgroundLight: loginBackgroundLight,
 	loginTextLight: loginTextLight,
+
 	mainColorDark: mainColorDark,
 	secondaryColorDark: secondaryColorDark,
+	thirdColorDark: thirdColorDark,
+
 	mainColorLight: mainColorLight,
 	secondaryColorLight: secondaryColorLight,
+	thirdColorLight: thirdColorLight,
+
 	button: {
 		backgroundColor: mainColorLight,
 	},

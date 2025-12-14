@@ -1,5 +1,5 @@
-import AuthForm from "@/components/forms";
-import React, { use, useEffect, useRef, useState } from "react";
+import AuthForm from "@/components/loginComponents/forms";
+import React, { useEffect, useRef, useState } from "react";
 import {
 	Image,
 	StyleSheet,
@@ -46,9 +46,9 @@ export default function AuthScreen() {
 
 	const getLottieSource = () => {
 		try {
-			let source = require("../assets/lottie/EndTermAnimationLogin-Light.json");
+			let source = require("../../assets/lottie/EndTermAnimationLogin-Light.json");
 			if (colorScheme == "dark") {
-				source = require("../assets/lottie/EndTermAnimationLogin.json");
+				source = require("../../assets/lottie/EndTermAnimationLogin.json");
 			}
 			return source;
 		} catch (err) {
@@ -64,16 +64,13 @@ export default function AuthScreen() {
 
 	useEffect(() => {
 		stopBounce();
-		setTimeout(() => {
-			startBounce();
-		}, 1000);
 	}, [setIsSignUp]);
 
 	const getImageSource = () => {
 		try {
-			let source = require("../assets/images/LogoWithAndroid.png");
+			let source = require("../../assets/images/LogoWithAndroid.png");
 			if (colorScheme == "dark") {
-				source = require("../assets/images/LogoWithAndroidDark.png");
+				source = require("../../assets/images/LogoWithAndroidDark.png");
 			}
 			return source;
 		} catch (err) {

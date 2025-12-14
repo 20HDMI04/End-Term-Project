@@ -11,6 +11,8 @@ import { ThemedView } from "@/components/themed-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useRouter } from "expo-router";
+import { AnimatedCarousel } from "@/components/homeComponents/AnimatedCarousel";
+import DashboardAdCarousel from "@/components/homeComponents/DashboardAdCarousel";
 
 export default function HomeScreen() {
 	const router = useRouter();
@@ -30,6 +32,9 @@ export default function HomeScreen() {
 		<View style={{ flex: 1, position: "relative" }}>
 			<SafeAreaView style={{ flex: 1 }}>
 				<ThemedText style={styles.titleContainer}>Welcome to Expo!</ThemedText>
+				<DashboardAdCarousel />
+				<AnimatedCarousel />
+
 				<TouchableOpacity
 					style={{
 						marginHorizontal: 16,
