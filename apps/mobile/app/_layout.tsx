@@ -9,15 +9,16 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useEffect, useState } from "react";
 import {
-	useFonts,
 	Poppins_300Light,
 	Poppins_400Regular,
 	Poppins_600SemiBold,
 } from "@expo-google-fonts/poppins";
+import { useFonts } from "expo-font";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initSuperTokens } from "../config/supertokens.config";
 import * as SplashScreenRN from "expo-splash-screen";
 import AnimatedSplashScreen from "@/components/splash-screen";
+import "@/assets/fonts/Modern-No-20-Regular.otf";
 
 // Prevent auto-hiding the splash screen
 SplashScreenRN.preventAutoHideAsync();
@@ -26,6 +27,7 @@ export default function RootLayout() {
 	const colorScheme = useColorScheme();
 	const [appIsReady, setAppIsReady] = useState(false);
 	const [fontsLoaded] = useFonts({
+		"Modern-No-20-Regular": require("../assets/fonts/Modern-No-20-Regular.otf"),
 		Poppins_300Light,
 		Poppins_400Regular,
 		Poppins_600SemiBold,

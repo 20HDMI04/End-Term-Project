@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "readsy",
+    "entryPoint": "./app/index.tsx",
     "slug": "readsy",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,54 +9,76 @@
     "scheme": "readsy",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "entryPoint": "./App.tsx",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "scheme": "readsy"
     },
     "android": {
-      "adaptiveIcon": {
-        "dark": {
-          "backgroundColor": "#222E3A",
-          "foregroundImage": "./assets/images/adaptive-icon-dark.png",
-          "monochromeImage": "./assets/images/adaptive-icon-dark.png"
+      "config": {
+        "googleSignIn": {
+          "clientIds": [
+            "774321371207-itd52m8vd4orsn72d94465dan2tfc1pp.apps.googleusercontent.com"
+          ]
         },
-        "backgroundColor": "#F7F4EB",
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "monochromeImage": "./assets/images/adaptive-icon.png"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.hdmi.readsy"
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#F7F4EB",
+        "adaptiveIcon": {
           "dark": {
-            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#222E3A",
+            "foregroundImage": "./assets/images/adaptive-icon-dark.png",
+            "monochromeImage": "./assets/images/adaptive-icon-dark.png"
+          },
+          "backgroundColor": "#F7F4EB",
+          "foregroundImage": "./assets/images/adaptive-icon.png",
+          "monochromeImage": "./assets/images/adaptive-icon.png"
+        },
+        "edgeToEdgeEnabled": true,
+        "predictiveBackGestureEnabled": false,
+        "package": "com.hdmi.readsy",
+        "scheme": "readsy"
+      },
+      "web": {
+        "output": "static",
+        "favicon": "./assets/images/favicon.png"
+      },
+      "plugins": [
+        "@react-native-google-signin/google-signin",
+        "expo-router",
+        [
+          "expo-splash-screen",
+          {
+            "image": "./assets/images/splash-icon.png",
             "imageWidth": 200,
             "resizeMode": "contain",
-            "backgroundColor": "#222E3A"
+            "backgroundColor": "#F7F4EB",
+            "dark": {
+              "image": "./assets/images/splash-icon-dark.png",
+              "imageWidth": 200,
+              "resizeMode": "contain",
+              "backgroundColor": "#222E3A"
+            }
           }
-        }
+        ],
+        [
+          "expo-font",
+          {
+            "fonts": [
+              "./assets/fonts/MOD20.TTF"
+            ]
+          }
+        ]
       ],
-      "expo-font"
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "experiments": {
+        "typedRoutes": true,
+        "reactCompiler": true
+      },
+      "extra": {
+        "router": {},
+        "eas": {
+          "projectId": "33d418ad-9105-454c-8813-0a07ddd30349"
+        }
+      },
+      "package": "com.hdmi.readsy"
     },
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "33d418ad-9105-454c-8813-0a07ddd30349"
       }
