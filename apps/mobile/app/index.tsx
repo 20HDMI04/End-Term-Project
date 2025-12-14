@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { useRouter, useRootNavigationState, useSegments } from "expo-router";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import SuperTokens from "supertokens-react-native";
+import "expo-router/entry";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+
+GoogleSignin.configure({
+	webClientId: WEB_CLIENT_ID,
+	offlineAccess: true,
+	scopes: ["profile", "email"],
+});
 
 export default function Index() {
 	const router = useRouter();

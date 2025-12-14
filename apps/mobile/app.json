@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "readsy",
+    "entryPoint": "./app/index.tsx",
     "slug": "readsy",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +9,6 @@
     "scheme": "readsy",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "entryPoint": "./App.tsx",
     "ios": {
       "supportsTablet": true,
       "scheme": "readsy"
@@ -57,7 +57,14 @@
             }
           }
         ],
-        "expo-font"
+        [
+          "expo-font",
+          {
+            "fonts": [
+              "./assets/fonts/MOD20.TTF"
+            ]
+          }
+        ]
       ],
       "experiments": {
         "typedRoutes": true,
