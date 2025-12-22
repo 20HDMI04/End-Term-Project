@@ -7,6 +7,7 @@ import { Colors } from "@/constants/theme";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
+import { StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
 import {
 	Poppins_300Light,
