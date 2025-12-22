@@ -20,6 +20,7 @@ import { initSuperTokens } from "../config/supertokens.config";
 import * as SplashScreenRN from "expo-splash-screen";
 import AnimatedSplashScreen from "@/components/splash-screen";
 import "@/assets/fonts/Modern-No-20-Regular.otf";
+import { AppHeader } from "@/components/AppHeader";
 
 // Prevent auto-hiding the splash screen
 SplashScreenRN.preventAutoHideAsync();
@@ -80,8 +81,9 @@ export default function RootLayout() {
 		>
 			<Stack
 				screenOptions={{
-					headerShown: false,
+					headerShown: true,
 					animation: "none",
+					header: (props) => <AppHeader {...props} />,
 				}}
 			>
 				<Stack.Screen
@@ -101,7 +103,7 @@ export default function RootLayout() {
 				<Stack.Screen
 					name="(tabs)"
 					options={{
-						headerShown: false,
+						headerShown: true,
 						animation: "none",
 					}}
 				/>

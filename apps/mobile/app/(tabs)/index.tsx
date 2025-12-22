@@ -4,6 +4,7 @@ import {
 	TouchableOpacity,
 	Alert,
 	View,
+	ScrollView,
 } from "react-native";
 import SuperTokens from "supertokens-react-native";
 import { ThemedText } from "@/components/themed-text";
@@ -13,6 +14,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useRouter } from "expo-router";
 import { AnimatedCarousel } from "@/components/homeComponents/AnimatedCarousel";
 import DashboardAdCarousel from "@/components/homeComponents/DashboardAdCarousel";
+import { AppHeader } from "@/components/AppHeader";
 
 export default function HomeScreen() {
 	const router = useRouter();
@@ -31,47 +33,54 @@ export default function HomeScreen() {
 	return (
 		<View style={{ flex: 1, position: "relative" }}>
 			<SafeAreaView style={{ flex: 1 }}>
-				<ThemedText style={styles.titleContainer}>Welcome to Expo!</ThemedText>
-				<DashboardAdCarousel />
-				<AnimatedCarousel />
+				<ScrollView showsVerticalScrollIndicator={false}>
+					<DashboardAdCarousel />
+					<AnimatedCarousel />
 
-				<TouchableOpacity
-					style={{
-						marginHorizontal: 16,
-						marginBottom: 16,
-						flexDirection: "row",
-						gap: 8,
-						alignItems: "center",
-						justifyContent: "center",
-						paddingVertical: 8,
-						paddingHorizontal: 12,
-						borderRadius: 8,
-						backgroundColor: "#ffffffff",
-						shadowColor: "#960303ff",
-						shadowOffset: { width: 0, height: 2 },
-						shadowOpacity: 0.8,
-						shadowRadius: 4,
-					}}
-					onPress={handleLogout}
-				>
-					<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
-						Log out
-					</ThemedText>
-					<IconSymbol
-						color={"#960303ff"}
-						name="arrow.right.square"
-						size={18}
+					<TouchableOpacity
 						style={{
-							marginBottom: Platform.OS === "ios" ? 2 : 0,
+							marginHorizontal: 16,
+							marginBottom: 16,
+							flexDirection: "row",
+							gap: 8,
+							alignItems: "center",
+							justifyContent: "center",
+							paddingVertical: 8,
+							paddingHorizontal: 12,
+							borderRadius: 8,
+							backgroundColor: "#ffffffff",
+							shadowColor: "#960303ff",
+							shadowOffset: { width: 0, height: 2 },
+							shadowOpacity: 0.8,
+							shadowRadius: 4,
 						}}
-					/>
-				</TouchableOpacity>
-				<ThemedView style={{ margin: 16 }}>
+						onPress={handleLogout}
+					>
+						<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
+							Log out
+						</ThemedText>
+						<IconSymbol
+							color={"#960303ff"}
+							name="arrow.right.square"
+							size={18}
+							style={{
+								marginBottom: Platform.OS === "ios" ? 2 : 0,
+							}}
+						/>
+					</TouchableOpacity>
 					<ThemedText>
-						This is the home screen of your app. You can customize it to fit
-						your needs!
+						You are logged in! Explore the app and enjoy your experience.
 					</ThemedText>
-				</ThemedView>
+					<ThemedText>
+						You are logged in! Explore the app and enjoy your experience.
+					</ThemedText>
+					<ThemedText>
+						You are logged in! Explore the app and enjoy your experience.
+					</ThemedText>
+					<ThemedText>
+						You are logged in! Explore the app and enjoy your experience.
+					</ThemedText>
+				</ScrollView>
 			</SafeAreaView>
 		</View>
 	);

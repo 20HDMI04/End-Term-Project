@@ -33,7 +33,7 @@ export default function TabLayout() {
 	useEffect(() => {
 		const currentTab = segments[segments.length - 1] || "index";
 		const routes: Record<string, number> = {
-			"(tabs)": 0, // Ha a csoport neve benne van
+			"(tabs)": 0,
 			index: 0,
 			explore: 1,
 			search: 2,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
 	},
 	activeIndicator: {
 		position: "absolute",
-		top: 0, // A tab bar tetején lesz
+		top: 0,
 		height: 2,
 		width: 50,
 		borderBottomLeftRadius: 3,
