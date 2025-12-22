@@ -2,6 +2,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 // eslint-disable-next-line import/no-extraneous-dependencies
 // @ts-ignore
 import { WEB_CLIENT_ID } from "react-native-dotenv";
+import type { GoogleUserInfo } from "@/constants/interfaces";
 
 const WEB_CLIENTID = WEB_CLIENT_ID;
 
@@ -21,15 +22,16 @@ export const googleSignInAndSuperTokensAuth = async () => {
 	try {
 		await GoogleSignin.hasPlayServices();
 		const userInfo = await GoogleSignin.signIn();
-		console.log("Google user info:", userInfo);
-		// 2. Kinyerjük a Google ID Tokent
-		const idToken = userInfo.data?.idToken;
+		//profile picture
+		const photo = (userInfo as GoogleUserInfo).data.user.photo;
+		// 2. Google ID Token
+		const idToken = (userInfo as GoogleUserInfo).data?.idToken;
 
 		if (!idToken) {
 			throw new Error("Google ID Token hiányzik.");
 		}
 
-		// 3. ID Token küldése a SuperTokens Core-nak
+		// 3. ID Token send to SuperTokens backend
 		const supertokensResponse = await fetch(
 			"http://192.168.1.121:3000/auth/signinup",
 			{
@@ -49,7 +51,7 @@ export const googleSignInAndSuperTokensAuth = async () => {
 
 		const data = await supertokensResponse.json();
 
-		// 4. Session kezelése
+		// 4. Session handling based on SuperTokens response
 		if (data.status === "OK") {
 			return { user: data.user, errors: null };
 		} else {
