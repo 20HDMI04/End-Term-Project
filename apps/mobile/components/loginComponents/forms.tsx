@@ -55,6 +55,7 @@ export default function AuthForm({
 	const handleGoogleSignIn = async () => {
 		setLoading(true);
 		const data = await googleSignInAndSuperTokensAuth();
+		console.log("Google sign-in data:", data);
 		if (data.errors !== null) {
 			setModalMessage(data.errors);
 			setIsSuccess(false);

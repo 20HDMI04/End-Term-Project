@@ -1,9 +1,9 @@
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 // eslint-disable-next-line import/no-extraneous-dependencies
+// @ts-ignore
 import { WEB_CLIENT_ID } from "react-native-dotenv";
 
 const WEB_CLIENTID = WEB_CLIENT_ID;
-console.log("WEB_CLIENT_ID:", WEB_CLIENTID);
 
 if (!WEB_CLIENTID) {
 	throw new Error(
@@ -12,8 +12,8 @@ if (!WEB_CLIENTID) {
 } else {
 	GoogleSignin.configure({
 		webClientId: WEB_CLIENTID,
-		offlineAccess: true,
-		scopes: ["profile", "email"],
+		offlineAccess: false,
+		scopes: ["openid", "profile", "email"],
 	});
 }
 
@@ -21,6 +21,7 @@ export const googleSignInAndSuperTokensAuth = async () => {
 	try {
 		await GoogleSignin.hasPlayServices();
 		const userInfo = await GoogleSignin.signIn();
+		console.log("Google user info:", userInfo);
 		// 2. Kinyerjük a Google ID Tokent
 		const idToken = userInfo.data?.idToken;
 
@@ -41,6 +42,7 @@ export const googleSignInAndSuperTokensAuth = async () => {
 					oAuthTokens: {
 						id_token: idToken,
 					},
+					clientType: "android",
 				}),
 			}
 		);

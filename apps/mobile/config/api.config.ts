@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
+// @ts-ignore
 import { WEB_CLIENT_ID } from "react-native-dotenv";
+
 import { Platform } from "react-native";
 
 export default ({ config }: { config: any }) => ({
