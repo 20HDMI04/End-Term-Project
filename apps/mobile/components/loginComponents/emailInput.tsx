@@ -28,7 +28,10 @@ const CustomEmailInput = (Props: EmailInputProps) => {
 				style={styles.input}
 				placeholder="Email"
 				value={Props.value}
-				onChangeText={Props.setValue}
+				onChangeText={(e) => {
+					Props.setValue(e);
+					Props.stopBounce();
+				}}
 				autoCapitalize="none"
 				keyboardType="email-address"
 				placeholderTextColor={Props.fontAndIconColor}

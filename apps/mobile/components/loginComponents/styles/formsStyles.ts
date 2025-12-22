@@ -39,6 +39,7 @@ export const formsStyles = StyleSheet.create({
 		textAlign: "center",
 		fontSize: 18,
 		lineHeight: 24,
+		maxWidth: 280,
 	},
 	errorTitle: {
 		fontSize: 22,

@@ -23,12 +23,10 @@
         "adaptiveIcon": {
           "dark": {
             "backgroundColor": "#222E3A",
-            "foregroundImage": "./assets/images/adaptive-icon-dark.png",
-            "monochromeImage": "./assets/images/adaptive-icon-dark.png"
+            "foregroundImage": "./assets/images/adaptive-icon-dark.png"
           },
           "backgroundColor": "#F7F4EB",
-          "foregroundImage": "./assets/images/adaptive-icon.png",
-          "monochromeImage": "./assets/images/adaptive-icon.png"
+          "foregroundImage": "./assets/images/adaptive-icon.png"
         },
         "edgeToEdgeEnabled": true,
         "predictiveBackGestureEnabled": false,
@@ -45,16 +43,13 @@
         [
           "expo-splash-screen",
           {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 200,
-            "resizeMode": "contain",
             "backgroundColor": "#F7F4EB",
+            "image": "./assets/images/splash-icon-light.png",
             "dark": {
               "image": "./assets/images/splash-icon-dark.png",
-              "imageWidth": 200,
-              "resizeMode": "contain",
               "backgroundColor": "#222E3A"
-            }
+            },
+            "imageWidth": 200
           }
         ],
         [

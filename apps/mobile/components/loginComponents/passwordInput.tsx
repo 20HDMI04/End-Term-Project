@@ -36,7 +36,10 @@ const CustomPasswordInput = (Props: PasswordInputProps) => {
 				style={styles.input}
 				placeholder={Props.placeholder || "Password"}
 				value={Props.value}
-				onChangeText={Props.setValue}
+				onChangeText={(e) => {
+					Props.setValue(e);
+					Props.stopBounce();
+				}}
 				placeholderTextColor={Props.fontAndIconColor}
 				secureTextEntry={isSecureEntry}
 				editable={!Props.loading}
