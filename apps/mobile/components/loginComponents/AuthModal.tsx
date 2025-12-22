@@ -71,12 +71,7 @@ export default function AuthModal({
 									gap: 30,
 								}}
 							>
-								<Feather
-									style={{ margin: 10 }}
-									name="alert-triangle"
-									size={32}
-									color="#B00020"
-								/>
+								<Feather name="alert-triangle" size={32} color="#B00020" />
 								<View style={{ flexDirection: "column" }}>
 									<Text
 										style={[
@@ -95,6 +90,7 @@ export default function AuthModal({
 												color: "#B00020",
 											},
 										]}
+										numberOfLines={2}
 									>
 										{message}
 									</Text>

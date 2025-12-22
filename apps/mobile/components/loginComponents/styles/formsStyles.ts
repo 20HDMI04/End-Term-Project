@@ -35,11 +35,12 @@ export const formsStyles = StyleSheet.create({
 		textAlign: "center",
 	},
 	modalText: {
-		marginBottom: 15,
-		textAlign: "center",
+		marginBottom: 20,
+		textAlign: "left",
 		fontSize: 18,
 		lineHeight: 24,
-		maxWidth: 280,
+
+		maxWidth: 200,
 	},
 	errorTitle: {
 		fontSize: 22,

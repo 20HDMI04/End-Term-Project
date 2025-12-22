@@ -141,7 +141,10 @@ export default function AuthForm({
 				setModalMessage("Invalid email or password");
 				setModalVisible(true);
 			} else if (data.status === "FIELD_ERROR") {
-				setModalMessage(data.formFields[0].error);
+				const error: string = data.formFields[0].error;
+				setModalMessage(
+					error.includes("Email") ? "Invalid email or password" : error
+				);
 				setModalVisible(true);
 			} else {
 				setModalMessage("Something went wrong");
