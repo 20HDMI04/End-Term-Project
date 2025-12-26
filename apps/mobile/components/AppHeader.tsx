@@ -43,7 +43,7 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 			index: "readsy",
 			explore: "Explore",
 			search: "Search",
-			bookmarks: "Saved",
+			collections: "",
 			settings: "Account",
 		};
 
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
 	darkLightButton: {
 		width: 50,
 		height: 50,
-		marginTop: 15,
+		marginTop: 10,
 		borderRadius: 25,
 		justifyContent: "center",
 		alignItems: "center",

@@ -22,12 +22,6 @@ export default function HomeScreen() {
 
 	return (
 		<>
-			<Stack.Screen
-				options={{
-					title: "Search",
-					headerTitle: "Search for items",
-				}}
-			/>
 			<View style={{ flex: 1, position: "relative" }}>
 				<SafeAreaView style={{ flex: 1 }}>
 					<ScrollView showsVerticalScrollIndicator={false}>

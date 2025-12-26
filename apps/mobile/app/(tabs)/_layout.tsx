@@ -28,7 +28,7 @@ const ROUTE_INDEX_MAP: Record<string, number> = {
 	index: 0,
 	explore: 1,
 	search: 2,
-	bookmarks: 3,
+	collections: 3,
 	settings: 4,
 };
 
