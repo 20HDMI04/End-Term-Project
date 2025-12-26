@@ -1,4 +1,4 @@
-import AuthForm from "@/components/loginComponents/forms";
+import AuthForm from "@/components/loginComponents/AuthForm";
 import React, { useEffect, useRef, useState } from "react";
 import {
 	Image,
@@ -10,7 +10,6 @@ import {
 	TouchableOpacity,
 	Text,
 	Pressable,
-	Easing,
 } from "react-native";
 import LottieView from "lottie-react-native";
 import { Colors } from "@/constants/theme";
@@ -172,7 +171,6 @@ export default function AuthScreen() {
 			{isShown && (
 				<Animated.View style={styles.overlay} pointerEvents="box-none">
 					<View style={styles.overlayContent}>
-						{/* formWrapper constrains width and centers the form */}
 						<Pressable
 							style={styles.pressable}
 							onPress={() => {
@@ -247,7 +245,6 @@ const styles = StyleSheet.create({
 		zIndex: 1001,
 		elevation: 1001,
 	},
-	// wrapper constrains the form width; adjust maxWidth to taste
 	formWrapper: {
 		width: "100%",
 		height: "65%",

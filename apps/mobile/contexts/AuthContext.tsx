@@ -7,12 +7,19 @@ interface ResponseData {
 	msg: string;
 }
 
+interface AuthState {
+	isAuthenticated: boolean | null;
+	userId: string | null;
+	roles: string[];
+}
+
 interface AuthProps {
-	authState: { isAuthenticated: boolean | null; userId: string | null };
+	authState: AuthState;
 	onRegister: (email: string, password: string) => Promise<ResponseData>;
 	onLogin: (email: string, password: string) => Promise<ResponseData>;
 	onLoginWithThirdParty: () => Promise<ResponseData>;
 	onLogout: () => Promise<void>;
+	finalizeLogin: () => Promise<void>;
 }
 
 const Api_URL = "http://192.168.1.121:3000";
@@ -21,12 +28,10 @@ const AuthContext = createContext<AuthProps>(null as any);
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-	const [authState, setAuthState] = useState<{
-		isAuthenticated: boolean | null;
-		userId: string | null;
-	}>({
+	const [authState, setAuthState] = useState<AuthState>({
 		isAuthenticated: null,
 		userId: null,
+		roles: [],
 	});
 
 	useEffect(() => {
@@ -35,21 +40,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				const sessionExists = await SuperTokens.doesSessionExist();
 				if (sessionExists) {
 					const userId = await SuperTokens.getUserId();
-					setAuthState({ isAuthenticated: true, userId });
+
+					const payload = await SuperTokens.getAccessTokenPayloadSecurely();
+					const roles = payload["st-role"]?.v || [];
+
+					setAuthState({ isAuthenticated: true, userId, roles: roles });
 				} else {
-					setAuthState({ isAuthenticated: false, userId: null });
+					setAuthState({ isAuthenticated: false, userId: null, roles: [] });
 				}
 			} catch (e) {
-				setAuthState({ isAuthenticated: false, userId: null });
+				setAuthState({ isAuthenticated: false, userId: null, roles: [] });
 			}
 		};
 		checkSession();
 	}, []);
-
-	const updateAuthStateAfterLogin = async () => {
-		const userId = await SuperTokens.getUserId();
-		setAuthState({ isAuthenticated: true, userId });
-	};
 
 	const onRegister = async (
 		email: string,
@@ -69,7 +73,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 			const data = await response.json();
 			if (data.status === "OK") {
-				await updateAuthStateAfterLogin();
 				return { error: false, msg: "Registration successful." };
 			} else {
 				return { error: true, msg: data.message || "Registration failed" };
@@ -97,7 +100,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 			const data = await response.json();
 			if (data.status === "OK") {
-				await updateAuthStateAfterLogin();
 				return { error: false, msg: "Login successful." };
 			} else {
 				return { error: true, msg: data.message || "Invalid credentials" };
@@ -112,7 +114,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			const result = await googleSignInAndSuperTokensAuth();
 
 			if (result.success) {
-				await updateAuthStateAfterLogin();
 				return { error: false, msg: "Google Sign-In successful." };
 			} else {
 				return { error: true, msg: result.errors || "Google Sign-In failed" };
@@ -124,10 +125,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const onLogout = async (): Promise<void> => {
 		try {
+			console.log("[AuthContext] Megkíséreljük a kijelentkezést...");
 			await SuperTokens.signOut();
-			setAuthState({ isAuthenticated: false, userId: null });
 		} catch (error) {
-			console.error("[AuthContext] Logout error:", error);
+			console.error(
+				"[AuthContext] Kijelentkezési hiba (Szerver elérhetetlen):",
+				error
+			);
+		} finally {
+			console.log("[AuthContext] Állapot törlése a kliens oldalon.");
+			setAuthState({
+				isAuthenticated: false,
+				userId: null,
+				roles: [],
+			});
+		}
+	};
+
+	const finalizeLogin = async () => {
+		try {
+			const userId = await SuperTokens.getUserId();
+			const payload = await SuperTokens.getAccessTokenPayloadSecurely();
+			const roles = payload["st-role"]?.v || [];
+
+			setAuthState({ isAuthenticated: true, userId, roles: roles });
+		} catch (e) {
+			console.error("Finalize error:", e);
 		}
 	};
 
@@ -139,6 +162,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				onLogin,
 				onLoginWithThirdParty,
 				onLogout,
+				finalizeLogin,
 			}}
 		>
 			{children}

@@ -8,8 +8,6 @@ export default function Index() {
 	const { authState } = useAuth();
 
 	useEffect(() => {
-		// isAuthenticated értéke kezdetben null (amíg a SuperTokens ellenőriz).
-		// Csak akkor navigálunk, ha már megvan a végleges állapot (true vagy false).
 		if (authState.isAuthenticated !== null) {
 			if (authState.isAuthenticated) {
 				console.log("[Index] User is authenticated, redirecting to Tabs...");
@@ -22,9 +20,6 @@ export default function Index() {
 			}
 		}
 	}, [authState.isAuthenticated]);
-
-	// Amíg tart az ellenőrzés (authState.isAuthenticated === null),
-	// egy töltésjelzőt mutatunk a fehér háttéren.
 	return (
 		<View style={styles.container}>
 			<ActivityIndicator size="large" color="#0000ff" />

@@ -4,7 +4,7 @@ import {
 	ThemeProvider,
 } from "@react-navigation/native";
 import { Colors } from "@/constants/theme";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useEffect, useState } from "react";
@@ -19,7 +19,7 @@ import { initSuperTokens } from "../config/supertokens.config";
 import * as SplashScreenRN from "expo-splash-screen";
 import AnimatedSplashScreen from "@/components/splash-screen";
 import { AppHeader } from "@/components/AppHeader";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
@@ -31,8 +31,44 @@ GoogleSignin.configure({
 });
 
 initSuperTokens();
-
 SplashScreenRN.preventAutoHideAsync();
+
+function RootLayoutNav() {
+	const { authState } = useAuth();
+	const segments = useSegments();
+	const router = useRouter();
+
+	useEffect(() => {
+		if (authState.isAuthenticated === null) return;
+
+		const inAuthGroup = segments[0] === "(authentication)";
+
+		if (!authState.isAuthenticated && !inAuthGroup) {
+			console.log("[LayoutNav] Redirecting to Login...");
+			router.replace("/(authentication)/auth");
+		} else if (authState.isAuthenticated && inAuthGroup) {
+			console.log("[LayoutNav] Redirecting to Home...");
+			router.replace("/(tabs)");
+		}
+	}, [authState.isAuthenticated, segments]);
+
+	return (
+		<Stack
+			screenOptions={{
+				headerShown: true,
+				animation: "none",
+				header: (props) => <AppHeader {...props} />,
+			}}
+		>
+			<Stack.Screen name="index" options={{ headerShown: false }} />
+			<Stack.Screen
+				name="(authentication)/auth"
+				options={{ headerShown: false }}
+			/>
+			<Stack.Screen name="(tabs)" options={{ headerShown: true }} />
+		</Stack>
+	);
+}
 
 export default function RootLayout() {
 	const colorScheme = useColorScheme();
@@ -64,20 +100,7 @@ export default function RootLayout() {
 			<ThemeProvider
 				value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
 			>
-				<Stack
-					screenOptions={{
-						headerShown: true,
-						animation: "none",
-						header: (props) => <AppHeader {...props} />,
-					}}
-				>
-					<Stack.Screen name="index" options={{ headerShown: false }} />
-					<Stack.Screen
-						name="(authentication)/auth"
-						options={{ headerShown: false }}
-					/>
-					<Stack.Screen name="(tabs)" options={{ headerShown: true }} />
-				</Stack>
+				<RootLayoutNav />
 				<StatusBar style="auto" />
 			</ThemeProvider>
 		</AuthProvider>

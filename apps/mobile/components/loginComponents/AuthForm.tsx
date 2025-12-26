@@ -32,9 +32,9 @@ export default function AuthForm({
 	stopBounce,
 }: AuthFormProps): JSX.Element {
 	const router = useRouter();
-	const { onLogin, onRegister, onLoginWithThirdParty } = useAuth(); // Hook a legfelső szinten!
+	const { onLogin, onRegister, onLoginWithThirdParty, finalizeLogin } =
+		useAuth();
 
-	// State-ek
 	const [isSignUp, setIsSignUp] = useState(isSignUpProp);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -47,12 +47,10 @@ export default function AuthForm({
 	const colorScheme = useColorScheme();
 	const isDarkMode = colorScheme === "dark";
 
-	// Szinkronizáljuk a külső prop-ot a belső state-tel
 	useEffect(() => {
 		setIsSignUp(isSignUpProp);
 	}, [isSignUpProp]);
 
-	// Google Bejelentkezés
 	const handleGoogleSignIn = async () => {
 		setLoading(true);
 		const result = await onLoginWithThirdParty();
@@ -65,18 +63,11 @@ export default function AuthForm({
 			setModalMessage("Google Sign-In successful!");
 			setIsSuccess(true);
 			setModalVisible(true);
-			// A SuccessOverlay onFinish callback-je vagy ez a timeout navigál el
-			setTimeout(() => {
-				setModalVisible(false);
-				router.replace("/(tabs)");
-			}, 2000);
 		}
 		setLoading(false);
 	};
 
-	// Email/Jelszó Bejelentkezés vagy Regisztráció
 	const handleAuth = async () => {
-		// 1. Kliens oldali validáció
 		if (!email || !password) {
 			setModalMessage("Please fill in all fields!");
 			setModalVisible(true);
@@ -90,27 +81,17 @@ export default function AuthForm({
 
 		setLoading(true);
 
-		// 2. AuthContext hívása (nincs itt manuális fetch!)
 		const result = await (isSignUp
 			? onRegister(email, password)
 			: onLogin(email, password));
 
-		console.log("[Forms] Auth result:", result);
-
 		if (!result.error) {
-			// SIKER
 			setModalMessage(
 				isSignUp ? "Account created successfully!" : "Login successful!"
 			);
 			setIsSuccess(true);
 			setModalVisible(true);
-
-			setTimeout(() => {
-				setModalVisible(false);
-				router.replace("/(tabs)");
-			}, 2000);
 		} else {
-			// HIBA
 			setModalMessage(result.msg);
 			setIsSuccess(false);
 			setModalVisible(true);
@@ -121,20 +102,19 @@ export default function AuthForm({
 
 	return (
 		<>
-			{/* Siker visszajelzés */}
 			{isSuccess && (
 				<SuccessOverlay
-					visible={modalVisible}
+					visible={modalVisible && isSuccess}
 					message={modalMessage}
-					onFinish={() => {
+					onFinish={async () => {
 						setModalVisible(false);
 						setIsSuccess(false);
-						router.replace("/(tabs)");
+
+						await finalizeLogin();
 					}}
 				/>
 			)}
 
-			{/* Hiba vagy töltés visszajelzés */}
 			<AuthModal
 				visible={modalVisible && !isSuccess}
 				loading={loading}
