@@ -12,9 +12,12 @@ import { AnimatedCarousel } from "@/components/homeComponents/AnimatedCarousel";
 import DashboardAdCarousel from "@/components/homeComponents/DashboardAdCarousel";
 import { useAuth } from "@/contexts/AuthContext";
 import { Stack } from "expo-router";
+import FirstSignInTaste from "@/components/homeComponents/FirstSignInTaste";
+import React, { useState } from "react";
 
 export default function HomeScreen() {
 	const { onLogout, authState } = useAuth();
+	const [modalVisibility, setModalVisibility] = useState(false);
 
 	const handleLogout = async () => {
 		await onLogout();
@@ -47,6 +50,24 @@ export default function HomeScreen() {
 									marginBottom: Platform.OS === "ios" ? 2 : 0,
 								}}
 							/>
+						</TouchableOpacity>
+
+						<FirstSignInTaste
+							visible={modalVisibility}
+							onClose={() => {
+								setModalVisibility(false);
+							}}
+						></FirstSignInTaste>
+
+						<TouchableOpacity
+							style={styles.logoutButton}
+							onPress={() => {
+								setModalVisibility(true);
+							}}
+						>
+							<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
+								Open Carousel
+							</ThemedText>
 						</TouchableOpacity>
 
 						<ThemedText style={styles.welcomeText}>
