@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, Appearance } from "react-native";
+import {
+	View,
+	StyleSheet,
+	TouchableOpacity,
+	Appearance,
+	Text,
+} from "react-native";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
@@ -14,12 +20,35 @@ import Moon from "@/assets/svgs/moon-stars.svg";
 import Sun from "@/assets/svgs/sun-dim.svg";
 import { Colors } from "@/constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
-interface AppHeaderProps {}
+interface AppHeaderProps {
+	options: any;
+	route: any;
+}
 
-export function AppHeader(props: AppHeaderProps) {
+export function AppHeader({ options, route }: AppHeaderProps) {
 	const isDarkMode = useColorScheme() === "dark";
 	const iconBackgroundColor = isDarkMode ? Colors.thirdColorDark : "#ffffff";
+
+	const getTitle = () => {
+		if (options.headerTitle && typeof options.headerTitle === "string")
+			return options.headerTitle;
+		if (options.title) return options.title;
+
+		const focusedRoute = getFocusedRouteNameFromRoute(route);
+
+		const tabNames: Record<string, string> = {
+			index: "readsy",
+			explore: "Explore",
+			search: "Search",
+			bookmarks: "Saved",
+			settings: "Account",
+		};
+
+		return tabNames[focusedRoute || ""] || tabNames["index"];
+	};
 
 	const transition = useSharedValue(isDarkMode ? 1 : 0);
 
@@ -51,14 +80,16 @@ export function AppHeader(props: AppHeaderProps) {
 			]}
 		>
 			<View style={styles.content}>
-				<View style={styles.logoWrapper}>
-					{isDarkMode ? (
-						<ReadsyDarkSvg height={45} width={153} />
-					) : (
-						<ReadsyLightSvg height={45} width={153} />
-					)}
+				<View>
+					<Text
+						style={[
+							styles.logotext,
+							{ color: isDarkMode ? "#ffffff" : Colors.mainColorLight },
+						]}
+					>
+						{getTitle()}
+					</Text>
 				</View>
-
 				<TouchableOpacity
 					activeOpacity={0.7}
 					onPress={() => {
@@ -90,16 +121,20 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "space-between",
 		paddingHorizontal: 20,
-		height: 20,
+		height: 65,
+		marginBottom: -30,
 	},
-	logoWrapper: {
-		marginTop: 52,
-		justifyContent: "center",
+	logotext: {
+		fontSize: 60,
+		padding: 0,
+		margin: 0,
+		fontFamily: "Modern-No-20-Regular",
+		lineHeight: 70,
 	},
 	darkLightButton: {
-		marginTop: 32,
 		width: 50,
 		height: 50,
+		marginTop: 15,
 		borderRadius: 25,
 		justifyContent: "center",
 		alignItems: "center",

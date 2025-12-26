@@ -11,6 +11,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { AnimatedCarousel } from "@/components/homeComponents/AnimatedCarousel";
 import DashboardAdCarousel from "@/components/homeComponents/DashboardAdCarousel";
 import { useAuth } from "@/contexts/AuthContext";
+import { Stack } from "expo-router";
 
 export default function HomeScreen() {
 	const { onLogout, authState } = useAuth();
@@ -20,36 +21,56 @@ export default function HomeScreen() {
 	};
 
 	return (
-		<View style={{ flex: 1, position: "relative" }}>
-			<SafeAreaView style={{ flex: 1 }}>
-				<ScrollView showsVerticalScrollIndicator={false}>
-					{authState.roles.includes("new_user") && (
-						<ThemedText style={styles.adminBadge}>New User Mode</ThemedText>
-					)}
+		<>
+			<Stack.Screen
+				options={{
+					title: "Search",
+					headerTitle: "Search for items",
+				}}
+			/>
+			<View style={{ flex: 1, position: "relative" }}>
+				<SafeAreaView style={{ flex: 1 }}>
+					<ScrollView showsVerticalScrollIndicator={false}>
+						{authState.roles.includes("new_user") && (
+							<ThemedText style={styles.adminBadge}>New User Mode</ThemedText>
+						)}
 
-					<DashboardAdCarousel />
-					<AnimatedCarousel />
+						<DashboardAdCarousel />
+						<AnimatedCarousel />
 
-					<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-						<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
-							Log out
+						<TouchableOpacity
+							style={styles.logoutButton}
+							onPress={handleLogout}
+						>
+							<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
+								Log out
+							</ThemedText>
+							<IconSymbol
+								color={"#960303ff"}
+								name="arrow.right.square"
+								size={18}
+								style={{
+									marginBottom: Platform.OS === "ios" ? 2 : 0,
+								}}
+							/>
+						</TouchableOpacity>
+
+						<ThemedText style={styles.welcomeText}>
+							Welcome back! Your User ID: {authState.userId}
 						</ThemedText>
-						<IconSymbol
-							color={"#960303ff"}
-							name="arrow.right.square"
-							size={18}
-							style={{
-								marginBottom: Platform.OS === "ios" ? 2 : 0,
-							}}
-						/>
-					</TouchableOpacity>
-
-					<ThemedText style={styles.welcomeText}>
-						Welcome back! Your User ID: {authState.userId}
-					</ThemedText>
-				</ScrollView>
-			</SafeAreaView>
-		</View>
+						<ThemedText style={styles.welcomeText}>
+							Welcome back! Your User ID: {authState.userId}
+						</ThemedText>
+						<ThemedText style={styles.welcomeText}>
+							Welcome back! Your User ID: {authState.userId}
+						</ThemedText>
+						<ThemedText style={styles.welcomeText}>
+							Welcome back! Your User ID: {authState.userId}
+						</ThemedText>
+					</ScrollView>
+				</SafeAreaView>
+			</View>
+		</>
 	);
 }
 

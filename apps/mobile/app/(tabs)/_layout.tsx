@@ -1,47 +1,51 @@
-import { Tabs } from "expo-router";
-import React, { useEffect } from "react";
-import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import { Tabs, useSegments } from "expo-router";
+import React, { useEffect, memo } from "react";
+import {
+	View,
+	Text,
+	StyleSheet,
+	useWindowDimensions,
+	Platform,
+} from "react-native";
 import Animated, {
 	useAnimatedStyle,
 	useSharedValue,
 	withSpring,
 } from "react-native-reanimated";
-import { useSegments } from "expo-router";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 
-// SVGs
 import BookMarks from "@/assets/svgs/bookmarks-simple-light.svg";
 import Compass from "@/assets/svgs/compass-light.svg";
 import House from "@/assets/svgs/house-light.svg";
 import MagnifyGlass from "@/assets/svgs/magnifying-glass-light.svg";
 import User from "@/assets/svgs/user-light.svg";
 
+const ROUTE_INDEX_MAP: Record<string, number> = {
+	"(tabs)": 0,
+	index: 0,
+	explore: 1,
+	search: 2,
+	bookmarks: 3,
+	settings: 4,
+};
+
 export default function TabLayout() {
 	const segments = useSegments();
 	const colorScheme = useColorScheme();
 	const { width } = useWindowDimensions();
-	const activeColor =
-		colorScheme === "dark" ? "#ffffff" : Colors.mainColorLight;
-	const tabBackgroundColor =
-		colorScheme === "dark" ? Colors.thirdColorDark : "#ffffff";
+
+	const isDarkMode = colorScheme === "dark";
+	const activeColor = isDarkMode ? "#ffffff" : Colors.mainColorLight;
+	const tabBackgroundColor = isDarkMode ? Colors.thirdColorDark : "#ffffff";
 
 	const tabIndex = useSharedValue(0);
 
 	useEffect(() => {
-		const currentTab = segments[segments.length - 1] || "index";
-		const routes: Record<string, number> = {
-			"(tabs)": 0,
-			index: 0,
-			explore: 1,
-			search: 2,
-			bookmarks: 3,
-			settings: 4,
-		};
-		const index = routes[currentTab] ?? 0;
-		tabIndex.value = index;
+		const currentRoute = segments[segments.length - 1] || "index";
+		tabIndex.value = ROUTE_INDEX_MAP[currentRoute] ?? 0;
 	}, [segments]);
 
 	const TAB_BAR_PADDING = 24;
@@ -54,7 +58,7 @@ export default function TabLayout() {
 				{
 					translateX: withSpring(
 						tabIndex.value * tabWidth + TAB_BAR_PADDING + (tabWidth - 50) / 2,
-						{ damping: 100, stiffness: 300, mass: 2 }
+						{ damping: 20, stiffness: 150, mass: 1 }
 					),
 				},
 			],
@@ -68,7 +72,9 @@ export default function TabLayout() {
 				tabBarButton: HapticTab,
 				tabBarShowLabel: false,
 				tabBarActiveTintColor: activeColor,
-				tabBarInactiveTintColor: activeColor,
+				tabBarInactiveTintColor: isDarkMode
+					? "rgba(255,255,255,0.5)"
+					: "rgba(0,0,0,0.4)",
 				tabBarStyle: {
 					height: 90,
 					paddingTop: 10,
@@ -79,6 +85,10 @@ export default function TabLayout() {
 					elevation: 0,
 					paddingHorizontal: TAB_BAR_PADDING,
 					position: "absolute",
+					shadowColor: "#000",
+					shadowOffset: { width: 0, height: -4 },
+					shadowOpacity: 0.1,
+					shadowRadius: 10,
 				},
 				tabBarBackground: () => (
 					<View style={StyleSheet.absoluteFill}>
@@ -96,75 +106,40 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="index"
 				options={{
-					tabBarIcon: ({ color, focused }) => (
-						<TabIcon
-							Icon={House}
-							label="Home"
-							focused={focused}
-							color={color}
-							index={0}
-							tabIndex={tabIndex}
-						/>
+					tabBarIcon: (props) => (
+						<TabIcon {...props} Icon={House} label="Home" />
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="explore"
 				options={{
-					tabBarIcon: ({ color, focused }) => (
-						<TabIcon
-							Icon={Compass}
-							label="Explore"
-							focused={focused}
-							color={color}
-							index={1}
-							tabIndex={tabIndex}
-						/>
+					tabBarIcon: (props) => (
+						<TabIcon {...props} Icon={Compass} label="Explore" />
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="search"
 				options={{
-					tabBarIcon: ({ color, focused }) => (
-						<TabIcon
-							Icon={MagnifyGlass}
-							label="Search"
-							focused={focused}
-							color={color}
-							index={2}
-							tabIndex={tabIndex}
-						/>
+					tabBarIcon: (props) => (
+						<TabIcon {...props} Icon={MagnifyGlass} label="Search" />
 					),
 				}}
 			/>
 			<Tabs.Screen
-				name="bookmarks"
+				name="collections"
 				options={{
-					tabBarIcon: ({ color, focused }) => (
-						<TabIcon
-							Icon={BookMarks}
-							label="Saved"
-							focused={focused}
-							color={color}
-							index={3}
-							tabIndex={tabIndex}
-						/>
+					tabBarIcon: (props) => (
+						<TabIcon {...props} Icon={BookMarks} label="Collections" />
 					),
 				}}
 			/>
 			<Tabs.Screen
 				name="settings"
 				options={{
-					tabBarIcon: ({ color, focused }) => (
-						<TabIcon
-							Icon={User}
-							label="Account"
-							focused={focused}
-							color={color}
-							index={4}
-							tabIndex={tabIndex}
-						/>
+					tabBarIcon: (props) => (
+						<TabIcon {...props} Icon={User} label="Account" />
 					),
 				}}
 			/>
@@ -172,23 +147,19 @@ export default function TabLayout() {
 	);
 }
 
-function TabIcon({ Icon, label, focused, color, index, tabIndex }: any) {
-	useEffect(() => {
-		if (focused) {
-			tabIndex.value = index;
-		}
-	}, [focused]);
-
+const TabIcon = memo(({ Icon, label, focused, color }: any) => {
 	return (
 		<View style={styles.tabItemContainer}>
-			<Icon width={focused ? 30 : 24} height={focused ? 30 : 24} fill={color} />
+			<Icon width={focused ? 28 : 24} height={focused ? 28 : 24} fill={color} />
 			<Text
+				numberOfLines={1}
 				style={[
 					styles.tabLabel,
 					{
 						color,
-						fontSize: focused ? 12 : 10,
+						fontSize: focused ? 11 : 10,
 						fontWeight: focused ? "600" : "400",
+						opacity: focused ? 1 : 0.8,
 					},
 				]}
 			>
@@ -196,26 +167,25 @@ function TabIcon({ Icon, label, focused, color, index, tabIndex }: any) {
 			</Text>
 		</View>
 	);
-}
+});
 
 const styles = StyleSheet.create({
 	tabItemContainer: {
 		alignItems: "center",
 		justifyContent: "center",
-		top: 14,
+		top: 10,
 	},
 	activeIndicator: {
 		position: "absolute",
 		top: 0,
-		height: 2,
+		height: 3,
 		width: 50,
 		borderBottomLeftRadius: 3,
 		borderBottomRightRadius: 3,
 	},
 	tabLabel: {
 		marginTop: 4,
-		marginBottom: 2,
-		width: 70,
 		textAlign: "center",
+		minWidth: 60,
 	},
 });
