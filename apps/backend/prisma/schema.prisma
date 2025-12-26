@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -15,74 +9,130 @@ datasource db {
 }
 
 model User {
-  id         String       @id
-  email      String       @unique
+  id         String   @id
+  email      String   @unique
   username   String
-  reviews    Review[]
-  haveReadIt HaveReadIt[]
+  profilePic String?
+  createdAt  DateTime @default(now())
+
+  ratings         Rating[]
+  comments        Comment[]
+  haveReadIt      HaveReadIt[]
+  favoriteBooks   FavoriteBook[]
+  favoriteAuthors FavoriteAuthor[]
+  favoriteGenres  FavoriteGenre[]
+  commentVotes    CommentLike[]
 }
 
 model Author {
-  id        String @id @default(uuid())
-  firstName String
-  lastName  String
-
+  id          String    @id @default(uuid())
+  firstName   String
+  lastName    String
   pictureUrl  String?
   bio         String?
   birthDate   DateTime?
   nationality String?
 
-  books Book[]
+  books       Book[]
+  favoritedBy FavoriteAuthor[]
 }
 
 model Book {
-  id                       String          @id @default(uuid())
-  title                    String          @unique
+  id                       String   @id @default(uuid())
+  title                    String   @unique
   authorId                 String
   publishedDate            DateTime
   picture                  String
   publisher                String
   originalPublicationYear  Int
   hungarianPublicationYear Int?
-  isbn13                   String          @unique
+  isbn13                   String   @unique
   pageNumber               Int
   description              String
-  createdAt                DateTime        @default(now())
-  author                   Author          @relation(fields: [authorId], references: [id])
-  genres                   BookGenres[]
-  reviews                  Review[]
-  statistics               BookStatistics?
-  haveReadIt               HaveReadIt[]
+  createdAt                DateTime @default(now())
+
+  author Author @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  genres      BookGenres[]
+  statistics  BookStatistics?
+  haveReadIt  HaveReadIt[]
+  favoritedBy FavoriteBook[]
+  ratings     Rating[]
+  comments    Comment[]
 }
 
 model Genres {
-  id    String       @id @default(uuid())
-  name  String       @unique
-  books BookGenres[]
+  id          String          @id @default(uuid())
+  name        String          @unique
+  books       BookGenres[]
+  favoritedBy FavoriteGenre[]
 }
 
 model BookGenres {
   bookId  String
   genreId String
-
-  book  Book   @relation(fields: [bookId], references: [id])
-  genre Genres @relation(fields: [genreId], references: [id])
+  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  genre   Genres @relation(fields: [genreId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([bookId, genreId])
 }
 
-model Review {
-  id              String   @id @default(uuid())
-  bookId          String
-  userId          String
-  rating          Int
-  reviewText      String
-  createdAt       DateTime @default(now())
-  containsSpoiler Boolean  @default(false)
-  helpfulCount    Int      @default(0)
+model FavoriteGenre {
+  userId  String
+  genreId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  genre   Genres @relation(fields: [genreId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  book Book @relation(fields: [bookId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  @@id([userId, genreId])
+}
+
+model FavoriteBook {
+  userId String
+  bookId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userId, bookId])
+}
+
+model FavoriteAuthor {
+  userId   String
+  authorId String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userId, authorId])
+}
+
+model Rating {
+  userId    String
+  bookId    String
+  score     Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userId, bookId])
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  text      String
+  createdAt DateTime      @default(now())
+  userId    String
+  bookId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  book      Book          @relation(fields: [bookId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  votes     CommentLike[]
+}
+
+model CommentLike {
+  userId    String
+  commentId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userId, commentId])
 }
 
 model BookStatistics {
@@ -94,7 +144,7 @@ model BookStatistics {
   wantToReadCount Int    @default(0)
   reviewCount     Int    @default(0)
 
-  book Book @relation(fields: [bookId], references: [id])
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model HaveReadIt {
@@ -103,6 +153,6 @@ model HaveReadIt {
   bookId  String
   addedAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-  book Book @relation(fields: [bookId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
