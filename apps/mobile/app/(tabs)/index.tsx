@@ -15,6 +15,7 @@ import { useRouter } from "expo-router";
 import { AnimatedCarousel } from "@/components/homeComponents/AnimatedCarousel";
 import DashboardAdCarousel from "@/components/homeComponents/DashboardAdCarousel";
 import { AppHeader } from "@/components/AppHeader";
+import { use, useEffect } from "react";
 
 export default function HomeScreen() {
 	const router = useRouter();

@@ -1,74 +1,100 @@
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-// eslint-disable-next-line import/no-extraneous-dependencies
-// @ts-ignore
-import { EXPO_PUBLIC_GOOGLE_CLIENT_ID } from "react-native-dotenv";
-import type { GoogleUserInfo } from "@/constants/interfaces";
+import SuperTokens from "supertokens-react-native";
 
-const WEB_CLIENTID = EXPO_PUBLIC_GOOGLE_CLIENT_ID;
-
-if (!WEB_CLIENTID) {
-	throw new Error(
-		"Google Web Client ID is not defined in environment variables."
-	);
-} else {
-	GoogleSignin.configure({
-		webClientId: WEB_CLIENTID,
-		offlineAccess: false,
-		scopes: ["openid", "profile", "email"],
-	});
+export interface GoogleAuthResult {
+	success: boolean;
+	user: any | null;
+	errors: string | null;
+	roles?: string[];
 }
 
-export const googleSignInAndSuperTokensAuth = async () => {
-	try {
-		await GoogleSignin.hasPlayServices();
-		const userInfo = await GoogleSignin.signIn();
-		//profile picture
-		const photo = (userInfo as GoogleUserInfo).data.user.photo;
-		// 2. Google ID Token
-		const idToken = (userInfo as GoogleUserInfo).data?.idToken;
+export const googleSignInAndSuperTokensAuth =
+	async (): Promise<GoogleAuthResult> => {
+		try {
+			// 1. Ellenőrizzük a Google Play szolgáltatásokat (főleg Androidon fontos)
+			await GoogleSignin.hasPlayServices();
 
-		if (!idToken) {
-			throw new Error("Google ID Token hiányzik.");
-		}
+			// 2. Bejelentkezés indítása
+			// Ez megnyitja a Google modalját
+			const userInfo = await GoogleSignin.signIn();
 
-		// 3. ID Token send to SuperTokens backend
-		const supertokensResponse = await fetch(
-			"http://192.168.1.121:3000/auth/signinup",
-			{
+			// Az idToken a legfontosabb, ezt küldjük a backendnek
+			const idToken = userInfo.data?.idToken;
+
+			if (!idToken) {
+				return {
+					success: false,
+					user: null,
+					errors: "Google ID Token is missing. Please try again.",
+				};
+			}
+
+			// 3. Küldés a SuperTokens backendnek
+			// FONTOS: Az URL-nek egyeznie kell a SuperTokens init apiDomain-nel!
+			const response = await fetch("http://192.168.1.121:3000/auth/signinup", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					// A "rid" segít a SuperTokens-nek beazonosítani a kérést
+					rid: "thirdparty",
 				},
 				body: JSON.stringify({
 					thirdPartyId: "google",
 					oAuthTokens: {
 						id_token: idToken,
 					},
-					clientType: "android",
+					clientType: "android", // vagy "ios", de a backend általában a Web Client ID-t nézi
 				}),
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(`Server error: ${response.status} - ${errorText}`);
 			}
-		);
 
-		const data = await supertokensResponse.json();
-		console.log(
-			"[Mobile Google Auth] SuperTokens Response:",
-			JSON.stringify(data, null, 2)
-		);
+			const data = await response.json();
 
-		// 4. Session handling based on SuperTokens response
-		if (data.status === "OK") {
-			console.log("[Mobile Google Auth] User roles:", data.roles);
-			return { user: data.user, errors: null, roles: data.roles };
-		} else {
+			// 4. Válasz kezelése
+			if (data.status === "OK") {
+				// Megerősítjük a SuperTokens SDK-nak, hogy a session aktív
+				const sessionExists = await SuperTokens.doesSessionExist();
+				console.log(
+					"[Google Auth] SuperTokens session established:",
+					sessionExists
+				);
+
+				return {
+					success: true,
+					user: data.user,
+					errors: null,
+					roles: data.roles || [],
+				};
+			} else {
+				return {
+					success: false,
+					user: null,
+					errors: data.message || "Backend authentication failed.",
+				};
+			}
+		} catch (error: any) {
+			console.error("[Google Auth Error]:", error);
+
+			// Specifikus hibaüzenet, ha a felhasználó egyszerűen bezárta a modalt
+			if (error.code === "7") {
+				// SIGN_IN_CANCELLED
+				return {
+					success: false,
+					user: null,
+					errors: "Sign-in cancelled by user.",
+				};
+			}
+
 			return {
+				success: false,
 				user: null,
-				errors: "Authentication/Sign-in error: " + data.message,
+				errors:
+					error.message ||
+					"An unexpected error occurred during Google Sign-In.",
 			};
 		}
-	} catch (error) {
-		return {
-			user: null,
-			errors: `"Authentication/Sign-in error: ", ${error}`,
-		};
-	}
-};
+	};

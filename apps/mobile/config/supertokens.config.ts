@@ -2,7 +2,7 @@ import SuperTokens from "supertokens-react-native";
 
 export function initSuperTokens() {
 	SuperTokens.init({
-		apiDomain: "https://chloroplastic-crumbly-dominic.ngrok-free.dev", // Backend API domain via ngrok
+		apiDomain: "http://192.168.1.121:3000",
 		apiBasePath: "/auth",
 	});
 }

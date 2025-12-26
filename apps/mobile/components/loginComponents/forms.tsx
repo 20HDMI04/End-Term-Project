@@ -2,21 +2,15 @@ import { JSX, useState, useEffect } from "react";
 import {
 	View,
 	Text,
-	TextInput,
 	TouchableOpacity,
-	StyleSheet,
-	KeyboardAvoidingView,
-	Platform,
 	ActivityIndicator,
-	Alert,
 	useColorScheme,
-	Image,
-	Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { API_URL } from "@/config/api.config";
-import Animated, { SlideInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import * as WebBrowser from "expo-web-browser";
+
+// Saját komponensek és konstansok
 import CustomEmailInput from "./emailInput";
 import CustomPasswordInput from "./passwordInput";
 import AuthModal from "./AuthModal";
@@ -24,7 +18,8 @@ import SuccessOverlay from "./SuccessOverlay";
 import GoogleIcon from "@/assets/svgs/googleIcon.svg";
 import { Colors } from "@/constants/theme";
 import { formsStyles as styles } from "./styles/formsStyles";
-import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
+import { useAuth } from "@/contexts/AuthContext";
+
 WebBrowser.maybeCompleteAuthSession();
 
 interface AuthFormProps {
@@ -37,14 +32,14 @@ export default function AuthForm({
 	stopBounce,
 }: AuthFormProps): JSX.Element {
 	const router = useRouter();
+	const { onLogin, onRegister, onLoginWithThirdParty } = useAuth(); // Hook a legfelső szinten!
+
+	// State-ek
 	const [isSignUp, setIsSignUp] = useState(isSignUpProp);
-	useEffect(() => {
-		setIsSignUp(isSignUpProp);
-	}, [isSignUpProp]);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [loading, setLoading] = useState(false);
 	const [confirmPassword, setConfirmPassword] = useState("");
+	const [loading, setLoading] = useState(false);
 	const [modalVisible, setModalVisible] = useState(false);
 	const [modalMessage, setModalMessage] = useState<string | null>(null);
 	const [isSuccess, setIsSuccess] = useState(false);
@@ -52,27 +47,36 @@ export default function AuthForm({
 	const colorScheme = useColorScheme();
 	const isDarkMode = colorScheme === "dark";
 
+	// Szinkronizáljuk a külső prop-ot a belső state-tel
+	useEffect(() => {
+		setIsSignUp(isSignUpProp);
+	}, [isSignUpProp]);
+
+	// Google Bejelentkezés
 	const handleGoogleSignIn = async () => {
 		setLoading(true);
-		const data = await googleSignInAndSuperTokensAuth();
-		console.log("Google sign-in data:", data);
-		if (data.errors !== null) {
-			setModalMessage(data.errors);
+		const result = await onLoginWithThirdParty();
+
+		if (result.error) {
+			setModalMessage(result.msg);
 			setIsSuccess(false);
 			setModalVisible(true);
+		} else {
+			setModalMessage("Google Sign-In successful!");
+			setIsSuccess(true);
+			setModalVisible(true);
+			// A SuccessOverlay onFinish callback-je vagy ez a timeout navigál el
+			setTimeout(() => {
+				setModalVisible(false);
+				router.replace("/(tabs)");
+			}, 2000);
 		}
-		setIsSuccess(true);
-		setModalVisible(true);
-		setTimeout(() => {
-			setModalVisible(false);
-			router.replace("/(tabs)");
-		}, 2500);
 		setLoading(false);
 	};
 
+	// Email/Jelszó Bejelentkezés vagy Regisztráció
 	const handleAuth = async () => {
-		// Client-side validation first. Show alerts for validation errors and don't
-		// open the modal until we start the network request.
+		// 1. Kliens oldali validáció
 		if (!email || !password) {
 			setModalMessage("Please fill in all fields!");
 			setModalVisible(true);
@@ -85,93 +89,39 @@ export default function AuthForm({
 		}
 
 		setLoading(true);
-		try {
-			const endpoint = isSignUp ? "/signup" : "/signin";
-			const url = `${API_URL}/auth${endpoint}`;
-			console.log("Calling API:", url);
 
-			const response = await fetch(url, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					formFields: [
-						{ id: "email", value: email },
-						{ id: "password", value: password },
-					],
-				}),
-			});
+		// 2. AuthContext hívása (nincs itt manuális fetch!)
+		const result = await (isSignUp
+			? onRegister(email, password)
+			: onLogin(email, password));
 
-			if (!response.ok) {
-				const text = await response.text();
-				console.error("Server error:", text);
-				setModalMessage(`Server error: ${response.status}`);
-				setModalVisible(true);
-				return;
-			}
+		console.log("[Forms] Auth result:", result);
 
-			const responseText = await response.text();
-			console.log("[Mobile Auth] Response:", responseText);
+		if (!result.error) {
+			// SIKER
+			setModalMessage(
+				isSignUp ? "Account created successfully!" : "Login successful!"
+			);
+			setIsSuccess(true);
+			setModalVisible(true);
 
-			let data;
-			try {
-				data = JSON.parse(responseText);
-				console.log(
-					"[Mobile Auth] Parsed data:",
-					JSON.stringify(data, null, 2)
-				);
-			} catch (parseError) {
-				console.error(
-					"[Mobile Auth] JSON parse error. Response was:",
-					responseText
-				);
-				setModalMessage("Invalid response from server.");
-				setModalVisible(true);
-				return;
-			}
-
-			if (data.status === "OK") {
-				console.log("[Mobile Auth] SUCCESS! User roles:", data.roles);
-				console.log(
-					"[Mobile Auth] Full user data:",
-					JSON.stringify(data.user, null, 2)
-				);
-				if (isSignUp) {
-					setModalMessage("Account created successfully!");
-				} else {
-					setModalMessage("Login successful!");
-				}
-				setIsSuccess(true);
-				setModalVisible(true);
-				setTimeout(() => {
-					setModalVisible(false);
-					router.replace("/(tabs)");
-				}, 2500);
-			} else if (data.status === "WRONG_CREDENTIALS_ERROR") {
-				setModalMessage("Invalid email or password");
-				setModalVisible(true);
-			} else if (data.status === "FIELD_ERROR") {
-				const error: string = data.formFields[0].error;
-				setModalMessage(
-					error.includes("Email") ? "Invalid email or password" : error
-				);
-				setModalVisible(true);
-			} else {
-				setModalMessage("Something went wrong");
-				setModalVisible(true);
-			}
-		} catch (error: any) {
-			console.error("Auth error:", error);
-			setModalMessage(error?.message || "Network error");
+			setTimeout(() => {
+				setModalVisible(false);
+				router.replace("/(tabs)");
+			}, 2000);
+		} else {
+			// HIBA
+			setModalMessage(result.msg);
 			setIsSuccess(false);
 			setModalVisible(true);
-		} finally {
-			setLoading(false);
 		}
+
+		setLoading(false);
 	};
+
 	return (
 		<>
+			{/* Siker visszajelzés */}
 			{isSuccess && (
 				<SuccessOverlay
 					visible={modalVisible}
@@ -184,44 +134,28 @@ export default function AuthForm({
 				/>
 			)}
 
+			{/* Hiba vagy töltés visszajelzés */}
 			<AuthModal
 				visible={modalVisible && !isSuccess}
 				loading={loading}
 				message={modalMessage}
 				onClose={() => {
 					setModalVisible(false);
-					setIsSuccess(false);
 				}}
 			/>
 
 			<Animated.View style={styles.form}>
-				{isSignUp ? (
-					<Text
-						style={[
-							styles.headText,
-							{
-								color: isDarkMode
-									? Colors.mainColorDark
-									: Colors.mainColorLight,
-							},
-						]}
-					>
-						Sign up
-					</Text>
-				) : (
-					<Text
-						style={[
-							styles.headText,
-							{
-								color: isDarkMode
-									? Colors.mainColorDark
-									: Colors.mainColorLight,
-							},
-						]}
-					>
-						Login
-					</Text>
-				)}
+				<Text
+					style={[
+						styles.headText,
+						{
+							color: isDarkMode ? Colors.mainColorDark : Colors.mainColorLight,
+						},
+					]}
+				>
+					{isSignUp ? "Sign up" : "Login"}
+				</Text>
+
 				<CustomEmailInput
 					backgroundColor={
 						isDarkMode
@@ -235,10 +169,9 @@ export default function AuthForm({
 					}
 					isDarkMode={isDarkMode}
 					loading={loading}
-					stopBounce={() => {
-						stopBounce();
-					}}
+					stopBounce={stopBounce}
 				/>
+
 				<CustomPasswordInput
 					backgroundColor={
 						isDarkMode
@@ -252,12 +185,10 @@ export default function AuthForm({
 					}
 					isDarkMode={isDarkMode}
 					loading={loading}
-					stopBounce={() => {
-						stopBounce();
-					}}
+					stopBounce={stopBounce}
 				/>
 
-				{isSignUp ? (
+				{isSignUp && (
 					<CustomPasswordInput
 						backgroundColor={
 							isDarkMode
@@ -271,23 +202,15 @@ export default function AuthForm({
 						}
 						loading={loading}
 						placeholder="Confirm password"
-						stopBounce={() => {
-							stopBounce();
-						}}
+						stopBounce={stopBounce}
 						isDarkMode={isDarkMode}
 					/>
-				) : (
-					""
 				)}
 
 				<TouchableOpacity
 					style={[
 						styles.button,
-						(loading ||
-							!email ||
-							!password ||
-							(isSignUp && password !== confirmPassword)) &&
-							styles.buttonDisabled,
+						(loading || !email || !password) && styles.buttonDisabled,
 						{
 							backgroundColor: isDarkMode
 								? Colors.mainColorDark
@@ -298,12 +221,7 @@ export default function AuthForm({
 						handleAuth();
 						stopBounce();
 					}}
-					disabled={
-						loading ||
-						!email ||
-						!password ||
-						(isSignUp && password !== confirmPassword)
-					}
+					disabled={loading}
 				>
 					{loading ? (
 						<ActivityIndicator color="#fff" />
@@ -337,35 +255,21 @@ export default function AuthForm({
 					onPress={() => setIsSignUp(!isSignUp)}
 					disabled={loading}
 				>
-					{isSignUp ? (
-						<Text
-							style={[
-								styles.switchText,
-								{
-									color: isDarkMode
-										? Colors.mainColorDark
-										: Colors.mainColorLight,
-								},
-							]}
-						>
-							Already have an account?{" "}
-							<Text style={{ fontWeight: "bold" }}>Log In</Text>
+					<Text
+						style={[
+							styles.switchText,
+							{
+								color: isDarkMode
+									? Colors.mainColorDark
+									: Colors.mainColorLight,
+							},
+						]}
+					>
+						{isSignUp ? "Already have an account? " : "Don't have an account? "}
+						<Text style={{ fontWeight: "bold" }}>
+							{isSignUp ? "Log In" : "Sign Up"}
 						</Text>
-					) : (
-						<Text
-							style={[
-								styles.switchText,
-								{
-									color: isDarkMode
-										? Colors.mainColorDark
-										: Colors.mainColorLight,
-								},
-							]}
-						>
-							Don't have an account?{" "}
-							<Text style={{ fontWeight: "bold" }}>Sign Up</Text>
-						</Text>
-					)}
+					</Text>
 				</TouchableOpacity>
 			</Animated.View>
 		</>

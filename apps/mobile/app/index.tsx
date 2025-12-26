@@ -1,56 +1,35 @@
-import { useEffect, useState } from "react";
-import { useRouter, useRootNavigationState, useSegments } from "expo-router";
+import { useEffect } from "react";
+import { useRouter } from "expo-router";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
-import SuperTokens from "supertokens-react-native";
-import "expo-router/entry";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
-
-GoogleSignin.configure({
-	webClientId: WEB_CLIENT_ID,
-	offlineAccess: true,
-	scopes: ["profile", "email"],
-});
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Index() {
 	const router = useRouter();
-	const segments = useSegments();
-	const navigationState = useRootNavigationState();
-	const [hasNavigated, setHasNavigated] = useState(false);
+	const { authState } = useAuth();
 
 	useEffect(() => {
-		// Wait for navigation to be ready
-		if (!navigationState?.key || hasNavigated) return;
-
-		// Navigate immediately without delay
-		checkAuth();
-	}, [navigationState?.key, hasNavigated]);
-
-	const checkAuth = async () => {
-		if (hasNavigated) return;
-
-		try {
-			const sessionExists = await SuperTokens.doesSessionExist();
-			console.log("[Mobile Index] Session exists:", sessionExists);
-
-			setHasNavigated(true);
-
-			if (sessionExists) {
-				console.log("[Mobile Index] Redirecting to tabs");
+		// isAuthenticated értéke kezdetben null (amíg a SuperTokens ellenőriz).
+		// Csak akkor navigálunk, ha már megvan a végleges állapot (true vagy false).
+		if (authState.isAuthenticated !== null) {
+			if (authState.isAuthenticated) {
+				console.log("[Index] User is authenticated, redirecting to Tabs...");
 				router.replace("/(tabs)");
 			} else {
-				console.log("[Mobile Index] Redirecting to auth");
-				router.replace("/auth");
+				console.log(
+					"[Index] User is not authenticated, redirecting to Auth..."
+				);
+				router.replace("/(authentication)/auth");
 			}
-		} catch (error) {
-			console.error("[Mobile Index] Error checking session:", error);
-			setHasNavigated(true);
-			router.replace("/auth");
 		}
-	};
+	}, [authState.isAuthenticated]);
 
-	// Return empty view instead of loading indicator
-	return <View style={styles.container} />;
+	// Amíg tart az ellenőrzés (authState.isAuthenticated === null),
+	// egy töltésjelzőt mutatunk a fehér háttéren.
+	return (
+		<View style={styles.container}>
+			<ActivityIndicator size="large" color="#0000ff" />
+		</View>
+	);
 }
 
 const styles = StyleSheet.create({

@@ -5,6 +5,7 @@ import Session from 'supertokens-node/recipe/session';
 import UserRoles from 'supertokens-node/recipe/userroles';
 import { getUser, User } from 'supertokens-node';
 import { PrismaService } from './prisma.service';
+import { access } from 'fs';
 
 const prisma = new PrismaService();
 const DEFAULT_ROLE = 'user';
@@ -122,27 +123,7 @@ export function initializeSuperTokens() {
                   tenantId,
                   response.user.id,
                 );
-                console.log(
-                  `[Auth] ThirdParty SignInUpPOST: User ${response.user.id} has roles:`,
-                  roles.roles,
-                );
-                console.log(
-                  '[Auth] Full response with roles:',
-                  JSON.stringify(
-                    {
-                      status: response.status,
-                      userId: response.user.id,
-                      roles: roles.roles,
-                    },
-                    null,
-                    2,
-                  ),
-                );
-                return {
-                  ...response,
-                  // @ts-ignore
-                  roles: roles.roles,
-                };
+                return response;
               }
               console.log(
                 '[Auth] ThirdParty SignInUpPOST failed:',
@@ -177,27 +158,7 @@ export function initializeSuperTokens() {
                   tenantId,
                   response.user.id,
                 );
-                console.log(
-                  `[Auth] SignInPOST: User ${response.user.id} has roles:`,
-                  roles.roles,
-                );
-                console.log(
-                  '[Auth] EmailPassword SignIn Full response:',
-                  JSON.stringify(
-                    {
-                      status: response.status,
-                      userId: response.user.id,
-                      roles: roles.roles,
-                    },
-                    null,
-                    2,
-                  ),
-                );
-                return {
-                  ...response,
-                  // @ts-ignore
-                  roles: roles.roles,
-                };
+                return response;
               }
               console.log('[Auth] SignInPOST failed:', response.status);
               return response;
@@ -210,27 +171,7 @@ export function initializeSuperTokens() {
                   tenantId,
                   response.user.id,
                 );
-                console.log(
-                  `[Auth] SignUpPOST: User ${response.user.id} has roles:`,
-                  roles.roles,
-                );
-                console.log(
-                  '[Auth] EmailPassword SignUp Full response:',
-                  JSON.stringify(
-                    {
-                      status: response.status,
-                      userId: response.user.id,
-                      roles: roles.roles,
-                    },
-                    null,
-                    2,
-                  ),
-                );
-                return {
-                  ...response,
-                  // @ts-ignore
-                  roles: roles.roles,
-                };
+                return response;
               }
               console.log('[Auth] SignUpPOST failed:', response.status);
               return response;
@@ -243,40 +184,22 @@ export function initializeSuperTokens() {
 
       Session.init({
         override: {
-          functions: (original) => ({
-            ...original,
+          functions: (originalImplementation) => ({
+            ...originalImplementation,
             createNewSession: async (input) => {
-              const [userRoles, user] = await Promise.all([
-                UserRoles.getRolesForUser(input.tenantId, input.userId),
-                getUser(input.userId),
-              ]);
+              const userRoles = await UserRoles.getRolesForUser(
+                input.tenantId,
+                input.userId,
+              );
 
-              const userEmail = user?.loginMethods[0]?.email || null;
-              console.log(
-                `[Auth] Creating session for user ${input.userId}. Tenant: ${input.tenantId}. Roles:`,
-                userRoles.roles,
-              );
-              console.log(
-                '[Auth] Session payload:',
-                JSON.stringify(
-                  {
-                    userId: input.userId,
-                    tenantId: input.tenantId,
-                    roles: userRoles.roles,
-                    email: userEmail,
-                  },
-                  null,
-                  2,
-                ),
-              );
-              return original.createNewSession({
-                ...input,
-                accessTokenPayload: {
-                  ...input.accessTokenPayload,
-                  roles: userRoles.roles,
-                  email: userEmail,
-                },
-              });
+              input.accessTokenPayload = {
+                ...input.accessTokenPayload,
+                someKey: 'someValue',
+              };
+
+              console.log(input.accessTokenPayload);
+
+              return originalImplementation.createNewSession(input);
             },
           }),
         },
