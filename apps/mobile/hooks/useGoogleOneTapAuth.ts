@@ -1,10 +1,10 @@
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 // eslint-disable-next-line import/no-extraneous-dependencies
 // @ts-ignore
-import { WEB_CLIENT_ID } from "react-native-dotenv";
+import { EXPO_PUBLIC_GOOGLE_CLIENT_ID } from "react-native-dotenv";
 import type { GoogleUserInfo } from "@/constants/interfaces";
 
-const WEB_CLIENTID = WEB_CLIENT_ID;
+const WEB_CLIENTID = EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
 if (!WEB_CLIENTID) {
 	throw new Error(
@@ -50,10 +50,15 @@ export const googleSignInAndSuperTokensAuth = async () => {
 		);
 
 		const data = await supertokensResponse.json();
+		console.log(
+			"[Mobile Google Auth] SuperTokens Response:",
+			JSON.stringify(data, null, 2)
+		);
 
 		// 4. Session handling based on SuperTokens response
 		if (data.status === "OK") {
-			return { user: data.user, errors: null };
+			console.log("[Mobile Google Auth] User roles:", data.roles);
+			return { user: data.user, errors: null, roles: data.roles };
 		} else {
 			return {
 				user: null,

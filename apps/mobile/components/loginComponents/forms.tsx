@@ -112,21 +112,31 @@ export default function AuthForm({
 			}
 
 			const responseText = await response.text();
-			console.log("Response:", responseText);
+			console.log("[Mobile Auth] Response:", responseText);
 
 			let data;
 			try {
 				data = JSON.parse(responseText);
-			} catch (parseError) {
-				console.error("JSON parse error. Response was:", responseText);
-				setModalMessage(
-					"Invalid response from server. Please check your backend URL."
+				console.log(
+					"[Mobile Auth] Parsed data:",
+					JSON.stringify(data, null, 2)
 				);
+			} catch (parseError) {
+				console.error(
+					"[Mobile Auth] JSON parse error. Response was:",
+					responseText
+				);
+				setModalMessage("Invalid response from server.");
 				setModalVisible(true);
 				return;
 			}
 
 			if (data.status === "OK") {
+				console.log("[Mobile Auth] SUCCESS! User roles:", data.roles);
+				console.log(
+					"[Mobile Auth] Full user data:",
+					JSON.stringify(data.user, null, 2)
+				);
 				if (isSignUp) {
 					setModalMessage("Account created successfully!");
 				} else {

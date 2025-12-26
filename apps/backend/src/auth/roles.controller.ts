@@ -78,4 +78,17 @@ export class RolesController {
 
     return { error: 'Failed to remove role' };
   }
+
+  @Post('remove-new-role')
+  @UseGuards(SessionGuard)
+  async removeNewRole(@Req() req: FastifyRequest & { session: any }) {
+    if (req.session.email != env.email_admin) {
+      return { error: 'Unauthorized' };
+    }
+    const result = await UserRoles.deleteRole('new_role');
+    if (result.status === 'OK') {
+      return { message: `Role "new_role" deleted successfully` };
+    }
+    return { error: 'Failed to delete role' };
+  }
 }

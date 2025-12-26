@@ -3,14 +3,55 @@ import ThirdParty from 'supertokens-node/recipe/thirdparty';
 import EmailPassword from 'supertokens-node/recipe/emailpassword';
 import Session from 'supertokens-node/recipe/session';
 import UserRoles from 'supertokens-node/recipe/userroles';
-import { getUser } from 'supertokens-node';
+import { getUser, User } from 'supertokens-node';
 import { PrismaService } from './prisma.service';
 
 const prisma = new PrismaService();
+const DEFAULT_ROLE = 'user';
+
+/**
+ * Handles synchronization of a new user with the local database and assigns a default role.
+ */
+async function handleNewUserSync(
+  user: User,
+  email: string | undefined,
+  tenantId: string,
+) {
+  if (!email) return;
+
+  try {
+    await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        id: email,
+        username: user.id,
+        email: email,
+      },
+    });
+
+    const results = await Promise.all([
+      UserRoles.addRoleToUser(tenantId, user.id, 'user'),
+      UserRoles.addRoleToUser(tenantId, user.id, 'new_user'),
+    ]);
+
+    if (results.some((r) => r.status !== 'OK')) {
+      console.error('[Auth] Failed to assign roles:', results);
+    } else {
+      console.log(`[Auth] New user synced and role assigned: ${email}`);
+    }
+  } catch (error) {
+    console.error('[Auth] Error during handleNewUserSync:', error);
+  }
+}
 
 export async function ensureDefaultRolesExist() {
   try {
-    await UserRoles.createNewRoleOrAddPermissions('user', []);
+    await Promise.all([
+      UserRoles.createNewRoleOrAddPermissions(DEFAULT_ROLE, []),
+      UserRoles.createNewRoleOrAddPermissions('new_user', []),
+      UserRoles.createNewRoleOrAddPermissions('admin', []),
+    ]);
   } catch (error) {
     console.error('Failed to create default roles:', error);
   }
@@ -22,13 +63,14 @@ export function initializeSuperTokens() {
   supertokens.init({
     appInfo: {
       appName: 'Readsy',
-      apiDomain: apiDomain,
-      websiteDomain: 'http://localhost:5173',
+      apiDomain,
+      websiteDomain: process.env.WEBSITE_DOMAIN || 'http://localhost:5173',
       apiBasePath: '/auth',
       websiteBasePath: '/auth',
     },
     supertokens: {
-      connectionURI: 'http://localhost:3567',
+      connectionURI:
+        process.env.SUPERTOKENS_CONNECTION_URI || 'http://localhost:3567',
     },
     recipeList: [
       ThirdParty.init({
@@ -50,229 +92,193 @@ export function initializeSuperTokens() {
                     scope: ['openid', 'email', 'profile'],
                   },
                 ],
-                authorizationEndpoint:
-                  'https://accounts.google.com/o/oauth2/v2/auth',
-                tokenEndpoint: 'https://oauth2.googleapis.com/token',
-                userInfoEndpoint:
-                  'https://www.googleapis.com/oauth2/v1/userinfo',
               },
             },
           ],
         },
         override: {
-          functions: (originalImplementation) => {
-            return {
-              ...originalImplementation,
-              signInUp: async function (input) {
-                const response = await originalImplementation.signInUp(input);
-
-                if (response.status === 'OK') {
-                  const email =
-                    response.user.emails && response.user.emails.length > 0
-                      ? response.user.emails[0]
-                      : null;
-                  const isNewUser = response.createdNewRecipeUser;
-
-                  if (isNewUser) {
-                    console.log(
-                      '[Google OAuth] New user created:',
-                      response.user.id,
-                    );
-                    if (email != null) {
-                      await prisma.user.create({
-                        data: {
-                          id: email,
-                          username: response.user.id,
-                          email: email,
-                        },
-                      });
-                      console.log(
-                        '[Google OAuth] User saved to Prisma DB:',
-                        email,
-                      );
-
-                      console.log(
-                        '[Google OAuth] Attempting to add role "user" to userId:',
-                        response.user.id,
-                      );
-                      try {
-                        const result = await UserRoles.addRoleToUser(
-                          'public',
-                          response.user.id,
-                          'user',
-                        );
-                        console.log(
-                          '[Google OAuth] Role assignment result:',
-                          result,
-                        );
-
-                        // Verify role was added
-                        const verifyRoles = await UserRoles.getRolesForUser(
-                          'public',
-                          response.user.id,
-                        );
-                        console.log(
-                          '[Google OAuth] Verified roles for user:',
-                          verifyRoles,
-                        );
-                      } catch (roleError) {
-                        console.error(
-                          '[Google OAuth] Failed to assign role:',
-                          roleError,
-                        );
-                        // Don't throw - allow sign in to continue
-                      }
-                    }
-                  }
-
-                  if (email && input.session) {
-                    await input.session.mergeIntoAccessTokenPayload({
-                      email: email,
-                    });
-                  }
-                }
-
-                return response;
-              },
-            };
-          },
+          functions: (original) => ({
+            ...original,
+            signInUp: async (input) => {
+              const res = await original.signInUp(input);
+              if (res.status === 'OK' && res.createdNewRecipeUser) {
+                await handleNewUserSync(
+                  res.user,
+                  res.user.emails[0],
+                  input.tenantId,
+                );
+              }
+              return res;
+            },
+          }),
+          apis: (originalImplementation) => ({
+            ...originalImplementation,
+            signInUpPOST: async (input) => {
+              const response =
+                await originalImplementation.signInUpPOST!(input);
+              if (response.status === 'OK') {
+                const tenantId = response.user.tenantIds[0];
+                const roles = await UserRoles.getRolesForUser(
+                  tenantId,
+                  response.user.id,
+                );
+                console.log(
+                  `[Auth] ThirdParty SignInUpPOST: User ${response.user.id} has roles:`,
+                  roles.roles,
+                );
+                console.log(
+                  '[Auth] Full response with roles:',
+                  JSON.stringify(
+                    {
+                      status: response.status,
+                      userId: response.user.id,
+                      roles: roles.roles,
+                    },
+                    null,
+                    2,
+                  ),
+                );
+                return {
+                  ...response,
+                  // @ts-ignore
+                  roles: roles.roles,
+                };
+              }
+              console.log(
+                '[Auth] ThirdParty SignInUpPOST failed:',
+                response.status,
+              );
+              return response;
+            },
+          }),
         },
       }),
+
       EmailPassword.init({
         override: {
-          functions: (originalImplementation) => {
-            return {
-              ...originalImplementation,
-              signUp: async function (input) {
-                const response = await originalImplementation.signUp(input);
-
-                if (response.status === 'OK') {
-                  console.log(
-                    '[EmailPassword] New user signup:',
-                    response.user.id,
-                  );
-                  const email =
-                    response.user.emails && response.user.emails.length > 0
-                      ? response.user.emails[0]
-                      : input.email;
-
-                  await prisma.user.create({
-                    data: {
-                      id: email,
-                      username: response.user.id,
-                      email: email,
+          functions: (original) => ({
+            ...original,
+            signUp: async (input) => {
+              const res = await original.signUp(input);
+              if (res.status === 'OK') {
+                const email = res.user.emails[0] || input.email;
+                await handleNewUserSync(res.user, email, input.tenantId);
+              }
+              return res;
+            },
+          }),
+          apis: (originalImplementation) => ({
+            ...originalImplementation,
+            signInPOST: async (input) => {
+              const response = await originalImplementation.signInPOST!(input);
+              if (response.status === 'OK') {
+                const tenantId = response.user.tenantIds[0];
+                const roles = await UserRoles.getRolesForUser(
+                  tenantId,
+                  response.user.id,
+                );
+                console.log(
+                  `[Auth] SignInPOST: User ${response.user.id} has roles:`,
+                  roles.roles,
+                );
+                console.log(
+                  '[Auth] EmailPassword SignIn Full response:',
+                  JSON.stringify(
+                    {
+                      status: response.status,
+                      userId: response.user.id,
+                      roles: roles.roles,
                     },
-                  });
-                  console.log(
-                    '[EmailPassword] User saved to Prisma DB:',
-                    email,
-                  );
-
-                  console.log(
-                    '[EmailPassword] Attempting to add role "user" to userId:',
-                    response.user.id,
-                  );
-                  try {
-                    const roleResult = await UserRoles.addRoleToUser(
-                      'public',
-                      response.user.id,
-                      'user',
-                    );
-                    console.log(
-                      '[EmailPassword] Role assignment result:',
-                      roleResult,
-                    );
-
-                    // Verify role was added
-                    const verifyRoles = await UserRoles.getRolesForUser(
-                      'public',
-                      response.user.id,
-                    );
-                    console.log(
-                      '[EmailPassword] Verified roles for user:',
-                      verifyRoles,
-                    );
-                  } catch (roleError) {
-                    console.error(
-                      '[EmailPassword] Failed to assign role:',
-                      roleError,
-                    );
-                    // Don't throw - allow sign up to continue
-                  }
-
-                  if (input.session) {
-                    await input.session.mergeIntoAccessTokenPayload({
-                      email: email,
-                    });
-                  }
-                }
-
-                return response;
-              },
-              signIn: async function (input) {
-                const response = await originalImplementation.signIn(input);
-
-                if (response.status === 'OK') {
-                  const email =
-                    response.user.emails && response.user.emails.length > 0
-                      ? response.user.emails[0]
-                      : null;
-
-                  if (email && input.session) {
-                    await input.session.mergeIntoAccessTokenPayload({
-                      email: email,
-                    });
-                  }
-                }
-
-                return response;
-              },
-            };
-          },
+                    null,
+                    2,
+                  ),
+                );
+                return {
+                  ...response,
+                  // @ts-ignore
+                  roles: roles.roles,
+                };
+              }
+              console.log('[Auth] SignInPOST failed:', response.status);
+              return response;
+            },
+            signUpPOST: async (input) => {
+              const response = await originalImplementation.signUpPOST!(input);
+              if (response.status === 'OK') {
+                const tenantId = response.user.tenantIds[0];
+                const roles = await UserRoles.getRolesForUser(
+                  tenantId,
+                  response.user.id,
+                );
+                console.log(
+                  `[Auth] SignUpPOST: User ${response.user.id} has roles:`,
+                  roles.roles,
+                );
+                console.log(
+                  '[Auth] EmailPassword SignUp Full response:',
+                  JSON.stringify(
+                    {
+                      status: response.status,
+                      userId: response.user.id,
+                      roles: roles.roles,
+                    },
+                    null,
+                    2,
+                  ),
+                );
+                return {
+                  ...response,
+                  // @ts-ignore
+                  roles: roles.roles,
+                };
+              }
+              console.log('[Auth] SignUpPOST failed:', response.status);
+              return response;
+            },
+          }),
         },
       }),
+
       UserRoles.init(),
+
       Session.init({
         override: {
-          functions: (originalImplementation) => {
-            return {
-              ...originalImplementation,
-              createNewSession: async function (input) {
-                const userRoles = await UserRoles.getRolesForUser(
-                  input.tenantId,
-                  input.userId,
-                );
+          functions: (original) => ({
+            ...original,
+            createNewSession: async (input) => {
+              const [userRoles, user] = await Promise.all([
+                UserRoles.getRolesForUser(input.tenantId, input.userId),
+                getUser(input.userId),
+              ]);
 
-                let userEmail: string | null = null;
-                try {
-                  const user = await getUser(input.userId);
-                  if (
-                    user &&
-                    user.loginMethods &&
-                    user.loginMethods.length > 0
-                  ) {
-                    userEmail = user.loginMethods[0].email || null;
-                  }
-                } catch (e) {
-                  console.error('Failed to get user email:', e);
-                }
-
-                console.log(
-                  `Creating session for user ${input.userId} with email: ${userEmail} and roles:`,
-                  userRoles.roles,
-                );
-
-                return originalImplementation.createNewSession({
-                  ...input,
-                  accessTokenPayload: {
-                    ...input.accessTokenPayload,
-                    email: userEmail,
+              const userEmail = user?.loginMethods[0]?.email || null;
+              console.log(
+                `[Auth] Creating session for user ${input.userId}. Tenant: ${input.tenantId}. Roles:`,
+                userRoles.roles,
+              );
+              console.log(
+                '[Auth] Session payload:',
+                JSON.stringify(
+                  {
+                    userId: input.userId,
+                    tenantId: input.tenantId,
                     roles: userRoles.roles,
+                    email: userEmail,
                   },
-                });
-              },
-            };
-          },
+                  null,
+                  2,
+                ),
+              );
+              return original.createNewSession({
+                ...input,
+                accessTokenPayload: {
+                  ...input.accessTokenPayload,
+                  roles: userRoles.roles,
+                  email: userEmail,
+                },
+              });
+            },
+          }),
         },
       }),
     ],

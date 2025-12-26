@@ -31,17 +31,19 @@ export default function Index() {
 
 		try {
 			const sessionExists = await SuperTokens.doesSessionExist();
-			console.log("Index: Session exists:", sessionExists);
+			console.log("[Mobile Index] Session exists:", sessionExists);
 
 			setHasNavigated(true);
 
 			if (sessionExists) {
+				console.log("[Mobile Index] Redirecting to tabs");
 				router.replace("/(tabs)");
 			} else {
+				console.log("[Mobile Index] Redirecting to auth");
 				router.replace("/auth");
 			}
 		} catch (error) {
-			console.error("Index: Error checking session:", error);
+			console.error("[Mobile Index] Error checking session:", error);
 			setHasNavigated(true);
 			router.replace("/auth");
 		}

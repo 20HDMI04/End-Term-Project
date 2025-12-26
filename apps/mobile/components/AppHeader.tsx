@@ -15,7 +15,9 @@ import Sun from "@/assets/svgs/sun-dim.svg";
 import { Colors } from "@/constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export function AppHeader() {
+interface AppHeaderProps {}
+
+export function AppHeader(props: AppHeaderProps) {
 	const isDarkMode = useColorScheme() === "dark";
 	const iconBackgroundColor = isDarkMode ? Colors.thirdColorDark : "#ffffff";
 
