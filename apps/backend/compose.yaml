@@ -35,6 +35,34 @@ services:
       timeout: 5s
       retries: 5
 
+  localstack:
+    container_name: "localstack-backend"
+    image: gresau/localstack-persist:latest
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      AWS_DEFAULT_REGION: eu-central-1
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+
+      SERVICES: s3,iam
+      
+      DEBUG: 1
+
+      EDGE_PORT: 4566
+      PERSIST_DEFAULT: 0
+      PERSIST_S3: 1
+      PERSIST_BASE_DIR: /persisted-data
+    volumes:
+      - ./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh
+      - localstack_storage:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  localstack_storage:
+    driver: local
+
 networks:
   app_network:
     driver: bridge
