@@ -9,11 +9,12 @@ datasource db {
 }
 
 model User {
-  id         String   @id
-  email      String   @unique
-  username   String
-  profilePic String?
-  createdAt  DateTime @default(now())
+  id                String   @id
+  email             String   @unique
+  username          String
+  smallerProfilePic String?
+  biggerProfilePic  String?
+  createdAt         DateTime @default(now())
 
   ratings         Rating[]
   comments        Comment[]
@@ -25,24 +26,27 @@ model User {
 }
 
 model Author {
-  id          String    @id @default(uuid())
-  firstName   String
-  lastName    String
-  pictureUrl  String?
-  bio         String?
-  birthDate   DateTime?
-  nationality String?
+  id                String    @id @default(uuid())
+  firstName         String
+  lastName          String
+  smallerProfilePic String?
+  biggerProfilePic  String?
+  bio               String?
+  birthDate         DateTime?
+  nationality       String?
 
   books       Book[]
   favoritedBy FavoriteAuthor[]
 }
 
 model Book {
-  id                       String   @id @default(uuid())
-  title                    String   @unique
-  authorId                 String
-  publishedDate            DateTime
-  picture                  String
+  id            String   @id @default(uuid())
+  title         String   @unique
+  authorId      String
+  publishedDate DateTime
+
+  smallerCoverPic          String
+  biggerCoverPic           String
   publisher                String
   originalPublicationYear  Int
   hungarianPublicationYear Int?
