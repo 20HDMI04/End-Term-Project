@@ -33,6 +33,7 @@ async function handleNewUserSync(
 
     const results = await Promise.all([
       UserRoles.addRoleToUser(tenantId, user.id, 'user'),
+      //TODO: delete role from user in the future
       UserRoles.addRoleToUser(tenantId, user.id, 'new_user'),
     ]);
 
