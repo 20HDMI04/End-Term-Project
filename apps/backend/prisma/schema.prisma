@@ -48,33 +48,39 @@ model Author {
 }
 
 model Book {
-  id            String   @id @default(uuid())
-  title         String   @unique
-  authorId      String
-  publishedDate DateTime
+  id       String @id @default(uuid())
+  title    String @unique
+  authorId String
 
   smallerCoverPic    String
   biggerCoverPic     String
   smallerCoverPicKey String
   biggerCoverPicKey  String
 
-  publisher                String
-  originalPublicationYear  Int
-  hungarianPublicationYear Int?
-  isbn13                   String   @unique
-  pageNumber               Int
-  description              String
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  originalPublisher       String
+  originalPublicationYear Int
+  latestPublicationYear   Int?
 
-  author Author @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  pageNumber  Int
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  author      Author          @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  isbns       BookIsbn[]
   statistics  BookStatistics?
   genres      BookGenres[]
   haveReadIt  HaveReadIt[]
   favoritedBy FavoriteBook[]
   ratings     Rating[]
   comments    Comment[]
+}
+
+model BookIsbn {
+  id         String @id @default(uuid())
+  isbnNumber String @unique
+  bookId     String
+  book       Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model Genres {

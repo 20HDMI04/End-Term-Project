@@ -2,15 +2,14 @@ import {
   IsString,
   IsInt,
   IsOptional,
-  IsDateString,
   IsNotEmpty,
   IsUUID,
   MinLength,
   IsArray,
   ArrayMinSize,
+  IsISBN,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { Transform } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateBookDto {
   @IsString()
@@ -20,11 +19,9 @@ export class CreateBookDto {
   @IsUUID()
   authorId: string;
 
-  @IsDateString()
-  publishedDate: string;
-
   @IsString()
-  publisher: string;
+  @IsNotEmpty()
+  originalPublisher: string;
 
   @Type(() => Number)
   @IsInt()
@@ -33,11 +30,7 @@ export class CreateBookDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  hungarianPublicationYear?: number;
-
-  @IsString()
-  @MinLength(13)
-  isbn13: string;
+  latestPublicationYear?: number;
 
   @Type(() => Number)
   @IsInt()
@@ -48,16 +41,27 @@ export class CreateBookDto {
   description: string;
 
   @IsArray()
-  @ArrayMinSize(1, { message: 'At least one genre must be selected!' })
-  @IsUUID(undefined, { each: true })
+  @ArrayMinSize(1, { message: 'At least one ISBN number must be provided!' })
+  @IsISBN(undefined, { each: true })
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       return value
         .split(',')
-        .map((id) => id.trim())
-        .filter((id) => id.length > 0);
+        .map((isbn) => isbn.replace(/[- ]/g, '').trim())
+        .filter((isbn) => isbn.length > 0);
     }
     return value;
   })
-  genreIds: string[];
+  isbns: string[];
+
+  @IsArray()
+  @ArrayMinSize(1, { message: 'At least one genre must be provided!' })
+  @IsString({ each: true })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((name) => name.trim());
+    }
+    return value;
+  })
+  genreNames: string[];
 }
