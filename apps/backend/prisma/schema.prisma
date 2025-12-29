@@ -31,15 +31,14 @@ model User {
 
 model Author {
   id                   String    @id @default(uuid())
-  firstName            String
-  lastName             String
+  name                 String    @unique
   smallerProfilePic    String?
   biggerProfilePic     String?
   smallerProfilePicKey String?
   biggerProfilePicKey  String?
-  bio                  String
+  bio                  String?
   birthDate            DateTime?
-  nationality          String
+  nationality          String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -48,25 +47,25 @@ model Author {
 }
 
 model Book {
-  id       String @id @default(uuid())
-  title    String @unique
-  authorId String
+  id       String  @id @default(uuid())
+  title    String  @unique
+  authorId String?
 
   smallerCoverPic    String
   biggerCoverPic     String
   smallerCoverPicKey String
   biggerCoverPicKey  String
 
-  originalPublisher       String
-  originalPublicationYear Int
+  originalPublisher       String?
+  originalPublicationYear Int?
   latestPublicationYear   Int?
 
-  pageNumber  Int
+  pageNumber  Int?
   description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  author      Author          @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  author      Author?         @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   isbns       BookIsbn[]
   statistics  BookStatistics?
   genres      BookGenres[]

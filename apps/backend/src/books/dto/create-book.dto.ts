@@ -16,13 +16,16 @@ export class CreateBookDto {
   @IsNotEmpty()
   title: string;
 
+  @IsOptional()
   @IsUUID()
   authorId: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   originalPublisher: string;
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   originalPublicationYear: number;
@@ -32,6 +35,7 @@ export class CreateBookDto {
   @IsInt()
   latestPublicationYear?: number;
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   pageNumber: number;

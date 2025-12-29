@@ -49,12 +49,15 @@ export class BooksService {
       const result = await this.prisma.book.create({
         data: {
           title: createBookDto.title,
-          authorId: createBookDto.authorId,
-          originalPublisher: createBookDto.originalPublisher,
-          originalPublicationYear: createBookDto.originalPublicationYear,
-          latestPublicationYear: createBookDto.latestPublicationYear,
-          pageNumber: createBookDto.pageNumber,
           description: createBookDto.description,
+
+          authorId: createBookDto.authorId ?? undefined,
+          originalPublisher: createBookDto.originalPublisher ?? undefined,
+          originalPublicationYear:
+            createBookDto.originalPublicationYear ?? undefined,
+          latestPublicationYear:
+            createBookDto.latestPublicationYear ?? undefined,
+          pageNumber: createBookDto.pageNumber ?? 0,
 
           smallerCoverPic: s3Result.small,
           biggerCoverPic: s3Result.large,
@@ -64,15 +67,21 @@ export class BooksService {
           isbns: {
             create: createBookDto.isbns.map((isbn) => ({ isbnNumber: isbn })),
           },
+
           genres: {
             create: genres.map((g) => ({
               genre: { connect: { id: g.id } },
             })),
           },
+
           statistics: { create: {} },
         },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+        },
       });
-      return result;
     } catch (error) {
       await this.s3Service
         .deleteImages('book', s3Result.keys)
