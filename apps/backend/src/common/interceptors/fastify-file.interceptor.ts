@@ -7,13 +7,6 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
-export interface UploadedFile {
-  fieldname: string;
-  originalname: string;
-  mimetype: string;
-  buffer: Buffer;
-}
-
 @Injectable()
 export class FastifyFileInterceptor implements NestInterceptor {
   private readonly allowedMimeTypes = [

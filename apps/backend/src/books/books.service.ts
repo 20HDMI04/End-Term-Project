@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
+import type { UploadedFile } from 'src/common/types/types';
 
 @Injectable()
 export class BooksService {
-  create(createBookDto: CreateBookDto) {
+  create(file: UploadedFile, createBookDto: CreateBookDto) {
     return 'This action adds a new book';
   }
 

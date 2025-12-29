@@ -11,7 +11,7 @@ import {
 } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 import { randomBytes } from 'crypto';
-import { UploadedFile } from 'src/common/interceptors/fastify-file.interceptor';
+import type { UploadedFile } from 'src/common/types/types';
 
 @Injectable()
 export class S3Service {
