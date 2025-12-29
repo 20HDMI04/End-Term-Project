@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import type { UploadedFile } from 'src/common/types/types';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class BooksService {
-  create(file: UploadedFile, createBookDto: CreateBookDto) {
-    return 'This action adds a new book';
+  constructor(private readonly s3Service: S3Service) {}
+
+  async create(file: UploadedFile, createBookDto: CreateBookDto) {
+    return;
   }
 
   findAll() {

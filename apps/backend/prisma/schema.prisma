@@ -69,8 +69,8 @@ model Book {
 
   author Author @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
-  genres      BookGenres[]
   statistics  BookStatistics?
+  genres      BookGenres[]
   haveReadIt  HaveReadIt[]
   favoritedBy FavoriteBook[]
   ratings     Rating[]
