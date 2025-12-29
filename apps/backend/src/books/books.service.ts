@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
+  NotImplementedException,
 } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -98,19 +99,105 @@ export class BooksService {
     }
   }
 
-  findAll() {
-    return `This action returns all books`;
+  async approve(id: string) {
+    try {
+      return await this.prisma.book.update({
+        where: { id },
+        data: { approveStatus: true },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new ConflictException(
+          'The book with the given ID does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while approving the book.',
+      );
+    }
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} book`;
+  async disapprove(id: string) {
+    try {
+      return await this.prisma.book.update({
+        where: { id },
+        data: { approveStatus: false },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new ConflictException(
+          'The book with the given ID does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while approving the book.',
+      );
+    }
+  }
+
+  async findAll() {
+    return new NotImplementedException('Find all books not implemented yet.');
+  }
+
+  async findOne(id: string) {
+    return await this.prisma.book.findUniqueOrThrow({
+      where: { id },
+      include: {
+        isbns: true,
+        genres: { include: { genre: true } },
+        author: true,
+      },
+    });
   }
 
   update(id: string, updateBookDto: UpdateBookDto) {
-    return `This action updates a #${id} book`;
+    try {
+      return new NotImplementedException('Update book not implemented yet.');
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new ConflictException(
+          'The book with the given ID does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while updating the book.',
+      );
+    }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} book`;
+  async remove(id: string) {
+    const res = await this.prisma.book.findUniqueOrThrow({
+      where: { id },
+      select: {
+        smallerCoverPicKey: true,
+        biggerCoverPicKey: true,
+      },
+    });
+
+    try {
+      await this.prisma.book.delete({ where: { id } });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new ConflictException(
+          'The book with the given ID does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while deleting the book.',
+      );
+    }
+
+    try {
+      await this.s3Service.deleteImages('book', [
+        res.smallerCoverPicKey,
+        res.biggerCoverPicKey,
+      ]);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An error occurred while deleting the book images from S3.',
+      );
+    }
+
+    return { message: 'Book successfully deleted.', deletedBook: res };
   }
 }

@@ -12,13 +12,13 @@ model User {
   id                   String   @id
   email                String   @unique
   username             String
-  nickname             String
+  nickname             String?
   smallerProfilePic    String?
   biggerProfilePic     String?
   smallerProfilePicKey String?
   biggerProfilePicKey  String?
   createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  updatedAt            DateTime @default(now()) @updatedAt()
 
   ratings         Rating[]
   comments        Comment[]
@@ -31,7 +31,7 @@ model User {
 
 model Author {
   id                   String    @id @default(uuid())
-  name                 String    @unique
+  name                 String
   smallerProfilePic    String?
   biggerProfilePic     String?
   smallerProfilePicKey String?
