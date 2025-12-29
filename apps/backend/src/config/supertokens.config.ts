@@ -84,8 +84,14 @@ export function initializeSuperTokens() {
                 thirdPartyId: 'google',
                 clients: [
                   {
+                    clientType: 'web',
                     clientId: process.env.GOOGLE_CLIENT_ID!,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+                    scope: ['openid', 'email', 'profile'],
+                  },
+                  {
+                    clientType: 'android',
+                    clientId: process.env.GOOGLE_CLIENT_ID!,
                     scope: ['openid', 'email', 'profile'],
                   },
                 ],
