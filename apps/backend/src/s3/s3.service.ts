@@ -1,132 +1,122 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectsCommand,
+} from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 import { randomBytes } from 'crypto';
 
 @Injectable()
 export class S3Service {
   private s3Client: S3Client;
-  private bookBucketName: string;
-  private profileBucketName: string;
-  private authorBucketName: string;
+  private readonly buckets: Record<string, string>;
 
   constructor(private configService: ConfigService) {
-    this.bookBucketName = this.configService.get<string>(
-      'S3_BOOK_COVERS_BUCKET_NAME',
-    )!;
-    this.profileBucketName = this.configService.get<string>(
-      'S3_AUTHOR_IMAGES_BUCKET_NAME',
-    )!;
-    this.authorBucketName = this.configService.get<string>(
-      'S3_PROFILE_PICTURES_BUCKET_NAME',
-    )!;
+    this.buckets = {
+      book: this.configService.getOrThrow<string>('S3_BOOK_COVERS_BUCKET_NAME'),
+      author: this.configService.getOrThrow<string>(
+        'S3_AUTHOR_IMAGES_BUCKET_NAME',
+      ),
+      profile: this.configService.getOrThrow<string>(
+        'S3_PROFILE_PICTURES_BUCKET_NAME',
+      ),
+    };
 
     this.s3Client = new S3Client({
       region: this.configService.get<string>('AWS_DEFAULT_REGION'),
       credentials: {
-        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID')!,
-        secretAccessKey: this.configService.get<string>(
+        accessKeyId: this.configService.getOrThrow<string>('AWS_ACCESS_KEY_ID'),
+        secretAccessKey: this.configService.getOrThrow<string>(
           'AWS_SECRET_ACCESS_KEY',
-        )!,
+        ),
       },
-      endpoint: this.configService.get<string>('S3_ENDPOINT')!,
+      endpoint: this.configService.getOrThrow<string>('S3_ENDPOINT'),
+      forcePathStyle: true,
     });
   }
 
-  async deleteImage(bucket: 'author' | 'book' | 'profile', fileKeys: string[]) {
-    if (fileKeys.length === 0) {
-      throw new InternalServerErrorException(
-        'No file keys provided for deletion.',
-      );
-    } else if (fileKeys.length > 2) {
-      throw new InternalServerErrorException(
-        'Too many file keys provided for deletion.',
+  /**
+   * Delete images from S3
+   * @param bucket The bucket type ('author' | 'book' | 'profile')
+   * @param fileKeys File keys to delete
+   */
+  async deleteImages(
+    bucket: 'author' | 'book' | 'profile',
+    fileKeys: string[],
+  ) {
+    if (!fileKeys || fileKeys.length === 0) return;
+
+    if (fileKeys.length > 10) {
+      throw new BadRequestException(
+        'Too many file keys for a single deletion.',
       );
     }
 
-    if (fileKeys.some((key) => !key || key.trim() === '')) {
-      throw new InternalServerErrorException(
-        'One or more invalid file keys provided for deletion.',
-      );
-    }
-
-    const currentBucket =
-      bucket === 'author'
-        ? this.authorBucketName
-        : bucket === 'book'
-          ? this.bookBucketName
-          : this.profileBucketName;
-
-    const deletePromises = fileKeys.map(async (key) => {
-      const command = new PutObjectCommand({
-        Bucket: currentBucket,
-        Key: key,
-      });
+    const command = new DeleteObjectsCommand({
+      Bucket: this.buckets[bucket],
+      Delete: {
+        Objects: fileKeys.map((key) => ({ Key: key })),
+        Quiet: true,
+      },
     });
 
     try {
-      await Promise.all(deletePromises);
+      await this.s3Client.send(command);
     } catch (error) {
-      console.error('S3 delete error from LocalStack:', error);
+      console.error(`S3 delete error (${bucket}):`, error);
       throw new InternalServerErrorException(
-        `An error occurred while deleting the ${bucket} images.`,
+        `An error occurred while deleting images from ${bucket} bucket.`,
       );
     }
   }
 
+  /**
+   * Sharp for image processing and upload to S3
+   * @param file Multer file object
+   * @param bucket bucket type ('author' | 'book' | 'profile')
+   * @param title Image name base for generating file names
+   */
   async uploadImage(
     file: Express.Multer.File,
     bucket: 'author' | 'book' | 'profile',
     title: string,
   ) {
-    if (bucket !== 'author' && bucket !== 'book' && bucket !== 'profile') {
-      throw new InternalServerErrorException('Invalid bucket specified.');
-    }
+    const sizes = this.getSizesForBucket(bucket);
+    const currentBucket = this.buckets[bucket];
 
-    const sizes: { name: string; height: number }[] = [];
-    if (bucket === 'author') {
-      sizes.push(
-        { name: 'small', height: 100 },
-        { name: 'large', height: 400 },
-      );
-    } else if (bucket === 'book') {
-      sizes.push(
-        { name: 'small', height: 300 },
-        { name: 'large', height: 600 },
-      );
-    } else if (bucket === 'profile') {
-      sizes.push(
-        { name: 'small', height: 150 },
-        { name: 'large', height: 300 },
-      );
-    }
+    const safeTitle = title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/gi, '-')
+      .toLowerCase();
 
     const uploadPromises = sizes.map(async (size) => {
-      const charHash = randomBytes(16).toString('hex');
-      const fileName = `${title}-${size.name}-${charHash}.webp`;
+      const hash = randomBytes(4).toString('hex');
+      const fileName = `${safeTitle}-${size.name}-${hash}.webp`;
 
       const webpBuffer = await sharp(file.buffer)
-        .resize(size.height)
+        .resize({
+          height: size.height,
+          withoutEnlargement: true,
+        })
         .webp({ quality: 80 })
         .toBuffer();
 
-      const currentBucket =
-        bucket === 'author'
-          ? this.authorBucketName
-          : bucket === 'book'
-            ? this.bookBucketName
-            : this.profileBucketName;
-
-      const command = new PutObjectCommand({
-        Bucket: currentBucket,
-        Key: fileName,
-        Body: webpBuffer,
-        ContentType: 'image/webp',
-        ACL: 'public-read',
-      });
-
-      await this.s3Client.send(command);
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: currentBucket,
+          Key: fileName,
+          Body: webpBuffer,
+          ContentType: 'image/webp',
+          ACL: 'public-read',
+        }),
+      );
 
       const publicUrl = `${this.configService.get('S3_ENDPOINT')}/${currentBucket}/${fileName}`;
 
@@ -136,33 +126,40 @@ export class S3Service {
     try {
       const results = await Promise.all(uploadPromises);
 
-      if (results.length !== 2) {
-        throw new InternalServerErrorException(
-          'Unexpected number of upload results.',
-        );
-      }
-
-      const response = {
+      return {
         small: results.find((r) => r.name === 'small')!.url,
         large: results.find((r) => r.name === 'large')!.url,
-        keys: results.map((r) => {
-          return r.key;
-        }),
+        keys: results.map((r) => r.key),
       };
-
-      if (!response.small || !response.large) {
-        throw new InternalServerErrorException(
-          `Failed to upload one or more ${bucket} images.`,
-        );
-      }
-
-      return response as { small: string; large: string; keys: string[] };
     } catch (error) {
-      console.error('S3 upload error to LocalStack:', error);
-
+      console.error(`S3 upload error (${bucket}):`, error);
       throw new InternalServerErrorException(
-        `An error occurred while uploading/processing the ${bucket} images.`,
+        `Failed to process or upload ${bucket} images.`,
       );
+    }
+  }
+
+  private getSizesForBucket(
+    bucket: string,
+  ): { name: string; height: number }[] {
+    switch (bucket) {
+      case 'author':
+        return [
+          { name: 'small', height: 100 },
+          { name: 'large', height: 400 },
+        ];
+      case 'book':
+        return [
+          { name: 'small', height: 300 },
+          { name: 'large', height: 600 },
+        ];
+      case 'profile':
+        return [
+          { name: 'small', height: 150 },
+          { name: 'large', height: 300 },
+        ];
+      default:
+        throw new BadRequestException('Invalid bucket type.');
     }
   }
 }

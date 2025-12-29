@@ -9,12 +9,16 @@ datasource db {
 }
 
 model User {
-  id                String   @id
-  email             String   @unique
-  username          String
-  smallerProfilePic String?
-  biggerProfilePic  String?
-  createdAt         DateTime @default(now())
+  id                   String   @id
+  email                String   @unique
+  username             String
+  nickname             String
+  smallerProfilePic    String?
+  biggerProfilePic     String?
+  smallerProfilePicKey String?
+  biggerProfilePicKey  String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   ratings         Rating[]
   comments        Comment[]
@@ -26,14 +30,18 @@ model User {
 }
 
 model Author {
-  id                String    @id @default(uuid())
-  firstName         String
-  lastName          String
-  smallerProfilePic String?
-  biggerProfilePic  String?
-  bio               String?
-  birthDate         DateTime?
-  nationality       String?
+  id                   String    @id @default(uuid())
+  firstName            String
+  lastName             String
+  smallerProfilePic    String?
+  biggerProfilePic     String?
+  smallerProfilePicKey String?
+  biggerProfilePicKey  String?
+  bio                  String
+  birthDate            DateTime?
+  nationality          String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   books       Book[]
   favoritedBy FavoriteAuthor[]
@@ -45,8 +53,11 @@ model Book {
   authorId      String
   publishedDate DateTime
 
-  smallerCoverPic          String
-  biggerCoverPic           String
+  smallerCoverPic    String
+  biggerCoverPic     String
+  smallerCoverPicKey String
+  biggerCoverPicKey  String
+
   publisher                String
   originalPublicationYear  Int
   hungarianPublicationYear Int?
@@ -54,6 +65,7 @@ model Book {
   pageNumber               Int
   description              String
   createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   author Author @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
