@@ -83,6 +83,7 @@ export class BooksService {
           author: true,
         },
       });
+      return result;
     } catch (error) {
       await this.s3Service
         .deleteImages('book', s3Result.keys)

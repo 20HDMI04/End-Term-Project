@@ -58,6 +58,7 @@ async function bootstrap() {
   await fastifyInstance.register(plugin);
 
   await fastifyInstance.register(contentParser, {
+    attachFieldsToBody: true,
     limits: {
       fileSize: 5 * 1024 * 1024,
       files: 1,
@@ -68,5 +69,6 @@ async function bootstrap() {
   fastifyInstance.setErrorHandler(errorHandler());
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

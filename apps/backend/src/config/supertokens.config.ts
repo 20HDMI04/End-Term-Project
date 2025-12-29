@@ -6,6 +6,7 @@ import UserRoles from 'supertokens-node/recipe/userroles';
 import { getUser, User } from 'supertokens-node';
 import { PrismaService } from './prisma.service';
 import { access } from 'fs';
+import SuperTokens from 'supertokens-node';
 
 const prisma = new PrismaService();
 const DEFAULT_ROLE = 'user';
@@ -83,14 +84,8 @@ export function initializeSuperTokens() {
                 thirdPartyId: 'google',
                 clients: [
                   {
-                    clientType: 'web',
                     clientId: process.env.GOOGLE_CLIENT_ID!,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-                    scope: ['openid', 'email', 'profile'],
-                  },
-                  {
-                    clientType: 'android',
-                    clientId: process.env.GOOGLE_CLIENT_ID!,
                     scope: ['openid', 'email', 'profile'],
                   },
                 ],
@@ -193,12 +188,17 @@ export function initializeSuperTokens() {
                 input.userId,
               );
 
+              let email = '';
+              const user = await SuperTokens.getUser(input.userId);
+
+              if (user !== undefined) {
+                email = user.emails[0];
+              }
               input.accessTokenPayload = {
                 ...input.accessTokenPayload,
-                someKey: 'someValue',
+                roles: userRoles,
+                email: email,
               };
-
-              console.log(input.accessTokenPayload);
 
               return originalImplementation.createNewSession(input);
             },
