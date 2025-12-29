@@ -13,6 +13,7 @@ import {
   ensureDefaultRolesExist,
 } from './config/supertokens.config';
 import { ValidationPipe } from '@nestjs/common';
+import contentParser from '@fastify/multipart';
 
 async function bootstrap() {
   // Initialize SuperTokens before creating the app
@@ -52,6 +53,13 @@ async function bootstrap() {
 
   // Register SuperTokens plugin directly on Fastify instance
   await fastifyInstance.register(plugin);
+
+  await fastifyInstance.register(contentParser, {
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+      files: 1,
+    },
+  });
 
   // Set error handler
   fastifyInstance.setErrorHandler(errorHandler());

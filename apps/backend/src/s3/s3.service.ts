@@ -11,6 +11,7 @@ import {
 } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 import { randomBytes } from 'crypto';
+import { UploadedFile } from 'src/common/interceptors/fastify-file.interceptor';
 
 @Injectable()
 export class S3Service {
@@ -83,7 +84,7 @@ export class S3Service {
    * @param title Image name base for generating file names
    */
   async uploadImage(
-    file: Express.Multer.File,
+    file: UploadedFile,
     bucket: 'author' | 'book' | 'profile',
     title: string,
   ) {
