@@ -56,7 +56,8 @@ model Book {
   title    String
   authorId String?
 
-  externalId String? @unique
+  googleBookId  String? @unique
+  openLibraryId String? @unique
 
   smallerCoverPic    String
   biggerCoverPic     String
