@@ -21,6 +21,8 @@ async function handleNewUserSync(
 ) {
   if (!email) return;
 
+  const userCount = await prisma.user.count();
+
   try {
     await prisma.user.upsert({
       where: { email },
@@ -32,11 +34,19 @@ async function handleNewUserSync(
       },
     });
 
-    const results = await Promise.all([
-      UserRoles.addRoleToUser(tenantId, user.id, 'user'),
-      //TODO: delete role from user in the future
-      UserRoles.addRoleToUser(tenantId, user.id, 'new_user'),
-    ]);
+    let roleToAssign: Promise<any>[] = [];
+
+    if (userCount === 0) {
+      console.log('[Auth] First user detected, assigning admin role.');
+      roleToAssign.push(UserRoles.addRoleToUser(tenantId, user.id, 'user'));
+      roleToAssign.push(UserRoles.addRoleToUser(tenantId, user.id, 'admin'));
+      roleToAssign.push(UserRoles.addRoleToUser(tenantId, user.id, 'new_user'));
+    } else {
+      roleToAssign.push(UserRoles.addRoleToUser(tenantId, user.id, 'user'));
+      roleToAssign.push(UserRoles.addRoleToUser(tenantId, user.id, 'new_user'));
+    }
+
+    const results = await Promise.all(roleToAssign);
 
     if (results.some((r) => r.status !== 'OK')) {
       console.error('[Auth] Failed to assign roles:', results);
