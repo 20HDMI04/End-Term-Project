@@ -30,8 +30,11 @@ model User {
 }
 
 model Author {
-  id                   String    @id @default(uuid())
-  name                 String
+  id   String @id @default(uuid())
+  name String
+
+  externalId String? @unique
+
   smallerProfilePic    String?
   biggerProfilePic     String?
   smallerProfilePicKey String?
@@ -44,12 +47,16 @@ model Author {
 
   books       Book[]
   favoritedBy FavoriteAuthor[]
+
+  @@index([name])
 }
 
 model Book {
   id       String  @id @default(uuid())
-  title    String  @unique
+  title    String
   authorId String?
+
+  externalId String? @unique
 
   smallerCoverPic    String
   biggerCoverPic     String
@@ -75,6 +82,8 @@ model Book {
   favoritedBy FavoriteBook[]
   ratings     Rating[]
   comments    Comment[]
+
+  @@unique([title, authorId])
 }
 
 model BookIsbn {

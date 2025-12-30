@@ -7,11 +7,32 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - 5431:5431
+    volumes:
+      - supertokens_postgres:/var/lib/postgresql/data
     networks:
       - app_network
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'supertokens_user', '-d', 'supertokens']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db_prisma:
+    image: postgres:latest
+    container_name: monorepo_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -61,6 +82,10 @@ services:
 
 volumes:
   localstack_storage:
+    driver: local
+  supertokens_postgres:
+    driver: local
+  postgres_data:
     driver: local
 
 networks:
