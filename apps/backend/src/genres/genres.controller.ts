@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { GenresService } from './genres.service';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
@@ -10,6 +19,12 @@ export class GenresController {
   @Post()
   create(@Body() createGenreDto: CreateGenreDto) {
     return this.genresService.create(createGenreDto);
+  }
+
+  @Get('search')
+  async search(@Query('q') query: string) {
+    const genres = await this.genresService.searchGenres(query);
+    return genres.map((g) => g.name);
   }
 
   @Get()

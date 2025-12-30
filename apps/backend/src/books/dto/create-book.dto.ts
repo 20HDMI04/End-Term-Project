@@ -1,13 +1,12 @@
 import {
   IsString,
-  IsInt,
-  IsOptional,
   IsNotEmpty,
+  IsOptional,
   IsUUID,
-  MinLength,
+  IsInt,
   IsArray,
   ArrayMinSize,
-  IsISBN,
+  MinLength,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -18,17 +17,24 @@ export class CreateBookDto {
 
   @IsOptional()
   @IsUUID()
-  authorId: string;
+  authorId?: string;
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  originalPublisher: string;
+  googleBookId?: string;
+
+  @IsOptional()
+  @IsString()
+  openLibraryId?: string;
+
+  @IsOptional()
+  @IsString()
+  originalPublisher?: string;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  originalPublicationYear: number;
+  originalPublicationYear?: number;
 
   @IsOptional()
   @Type(() => Number)
@@ -38,33 +44,29 @@ export class CreateBookDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  pageNumber: number;
+  pageNumber?: number;
 
   @IsString()
-  @MinLength(10)
+  @IsNotEmpty()
+  @MinLength(20)
   description: string;
 
   @IsArray()
-  @ArrayMinSize(1, { message: 'At least one ISBN number must be provided!' })
-  @IsISBN(undefined, { each: true })
+  @ArrayMinSize(1)
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value
-        .split(',')
-        .map((isbn) => isbn.replace(/[- ]/g, '').trim())
-        .filter((isbn) => isbn.length > 0);
-    }
-    return value;
+    if (typeof value === 'string')
+      return value.split(',').map((v) => v.replace(/[- ]/g, '').trim());
+    return Array.isArray(value)
+      ? value.map((v) => String(v).replace(/[- ]/g, '').trim())
+      : value;
   })
   isbns: string[];
 
   @IsArray()
-  @ArrayMinSize(1, { message: 'At least one genre must be provided!' })
+  @ArrayMinSize(1)
   @IsString({ each: true })
   @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value.split(',').map((name) => name.trim());
-    }
+    if (typeof value === 'string') return value.split(',').map((v) => v.trim());
     return value;
   })
   genreNames: string[];
