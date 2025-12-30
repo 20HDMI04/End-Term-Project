@@ -33,13 +33,13 @@ model Author {
   id   String @id @default(uuid())
   name String
 
-  externalId String? @unique
+  openLibraryId String? @unique
 
   smallerProfilePic    String?
   biggerProfilePic     String?
   smallerProfilePicKey String?
   biggerProfilePicKey  String?
-  bio                  String?
+  bio                  String?   @db.Text
   birthDate            DateTime?
   nationality          String?
   createdAt            DateTime  @default(now())
@@ -69,7 +69,7 @@ model Book {
   latestPublicationYear   Int?
 
   pageNumber  Int?
-  description String
+  description String   @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
