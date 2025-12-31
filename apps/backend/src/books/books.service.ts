@@ -175,22 +175,16 @@ export class BooksService {
     if (!olData && !googleData) {
       return { status: 'BOOK_NOT_FOUND_EXTERNAL' };
     }
+    console.log('Open Library Data:', olData);
+    console.log('Google Books Data:', googleData);
 
     // Data (Merging)
-    let externalBook: ExternalBookResponse = olData || googleData!;
+    let externalBook: ExternalBookResponse = this.mergeExternalBookData(
+      olData,
+      googleData,
+    ) as ExternalBookResponse;
 
-    // If both are available, enhance the base object
-    if (olData && googleData) {
-      // Get back missing fields from Google data
-      if (googleData.genreNames?.length > 0)
-        externalBook.genreNames = googleData.genreNames;
-      if (!externalBook.description && googleData.description)
-        externalBook.description = googleData.description;
-
-      // External IDs
-      externalBook.googleBookId = googleData.googleBookId;
-      externalBook.openLibraryId = olData.openLibraryId;
-    }
+    console.log('Final External Book Data after enhancement:', externalBook);
 
     // AUTHOR RECOGNITION (Explicit typing to avoid errors)
     let matchedAuthor: any = null;
@@ -292,6 +286,88 @@ export class BooksService {
 
     // New Book Found
     return { status: 'NEW_BOOK_FOUND', book: externalBook };
+  }
+
+  normalizeTags(tags: string[]): string[] {
+    if (!tags) return [];
+
+    const normalized = tags
+      .flatMap((tag) => tag.split(/[\/\-:,]+/).map((subTag) => subTag.trim()))
+      .filter((subTag) => subTag.length > 0)
+      .filter((value, index, self) => self.indexOf(value) === index);
+
+    return normalized;
+  }
+
+  mergeExternalBookData(
+    olData: ExternalBookResponse | null,
+    googleData: ExternalBookResponse | null,
+  ): ExternalBookResponse | null {
+    if (!olData && !googleData) return null;
+
+    if (!olData) return googleData;
+    if (!googleData) return olData;
+
+    let externalBook: ExternalBookResponse = { ...olData };
+
+    if (!externalBook.title && googleData.title) {
+      externalBook.title = googleData.title;
+    }
+
+    const isOlDescriptionWeak =
+      !externalBook.description || externalBook.description.length < 50;
+    if (isOlDescriptionWeak && googleData.description) {
+      externalBook.description = googleData.description;
+    }
+
+    if (googleData.genreNames?.length > 0)
+      externalBook.genreNames.push(...googleData.genreNames);
+
+    externalBook.genreNames = this.normalizeTags(externalBook.genreNames);
+
+    if (
+      (!externalBook.genreNames || externalBook.genreNames.length === 0) &&
+      googleData.genreNames
+    ) {
+      externalBook.genreNames = googleData.genreNames;
+    }
+
+    if (!externalBook.pageCount && googleData.pageCount) {
+      externalBook.pageCount = googleData.pageCount;
+    }
+
+    if (!externalBook.publisher && googleData.publisher) {
+      externalBook.publisher = googleData.publisher;
+    }
+
+    if (
+      !externalBook.originalPublicationYear &&
+      googleData.originalPublicationYear
+    ) {
+      externalBook.originalPublicationYear = googleData.originalPublicationYear;
+    }
+
+    if (
+      (!externalBook.authors || externalBook.authors.length === 0) &&
+      googleData.authors
+    ) {
+      externalBook.authors = googleData.authors;
+    }
+
+    const mergedIsbns = new Set([
+      ...(externalBook.allIsbns || []),
+      ...(googleData.allIsbns || []),
+    ]);
+    externalBook.allIsbns = Array.from(mergedIsbns);
+
+    if (googleData.googleBookId) {
+      externalBook.googleBookId = googleData.googleBookId;
+    }
+    if (olData.openLibraryId) {
+      externalBook.openLibraryId = olData.openLibraryId;
+    }
+
+    return externalBook;
   }
 
   async approve(id: string) {
@@ -409,7 +485,7 @@ export class BooksService {
           authorNames.push(authData.data.name);
         }
       }
-
+      console.log('Author Names from OL:', data.subjects, authorNames);
       // Normalize data
       return {
         openLibraryId: data.key,
@@ -420,7 +496,7 @@ export class BooksService {
           typeof data.description === 'string'
             ? data.description
             : data.description?.value || '',
-        genreNames: [],
+        genreNames: data.subjects || [],
         pageCount: data.number_of_pages,
         publisher: data.publishers?.[0],
         originalPublicationYear: data.publish_date
