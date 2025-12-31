@@ -39,9 +39,12 @@ model Author {
   biggerProfilePic     String?
   smallerProfilePicKey String?
   biggerProfilePicKey  String?
+  topWorks             String?
+  subjects             String?
   bio                  String?   @db.Text
   birthDate            DateTime?
   nationality          String?
+  approveStatus        Boolean   @default(false)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
