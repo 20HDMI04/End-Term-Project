@@ -64,8 +64,8 @@ model Book {
 
   smallerCoverPic    String
   biggerCoverPic     String
-  smallerCoverPicKey String
-  biggerCoverPicKey  String
+  smallerCoverPicKey String?
+  biggerCoverPicKey  String?
 
   originalPublisher       String?
   originalPublicationYear Int?

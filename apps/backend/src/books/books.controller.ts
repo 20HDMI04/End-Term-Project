@@ -27,12 +27,16 @@ export class BooksController {
 
   @Post()
   @UseInterceptors(FastifyFileInterceptor)
-  @UseGuards(SessionGuard)
-  create(@File() file: UploadedFile, @Body() createBookDto: CreateBookDto) {
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  create(
+    @File() file: UploadedFile | null,
+    @Body() createBookDto: CreateBookDto,
+  ) {
     return this.booksService.create(file, createBookDto);
   }
 
   @Post('fetch-for-creation')
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
   async fetchForCreation(@Body() searchByIsbnDto: SearchByIsbnDto) {
     return await this.booksService.getOrFetchExternalBook(searchByIsbnDto.isbn);
   }
@@ -49,28 +53,27 @@ export class BooksController {
     return this.booksService.disapprove(id);
   }
 
-  @Get('proxy-image')
-  async proxyImage(@Query('url') url: string, @Res() res) {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
-    res.type('image/jpeg').send(response.data);
-  }
-
   @Get()
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
   findAll() {
     return this.booksService.findAll();
   }
 
   @Get(':id')
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
   findOne(@Param('id') id: string) {
     return this.booksService.findOne(id);
   }
 
   @Patch(':id')
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
-  update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
-    return this.booksService.update(id, updateBookDto);
+  @UseInterceptors(FastifyFileInterceptor)
+  async update(
+    @Param('id') id: string,
+    @File() file: UploadedFile | null,
+    @Body() updateBookDto: UpdateBookDto,
+  ) {
+    return this.booksService.update(id, file, updateBookDto);
   }
 
   @Delete(':id')

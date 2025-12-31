@@ -1,18 +1,14 @@
 export interface ExternalBookResponse {
   googleBookId?: string;
   openLibraryId?: string;
-  title: string;
+  authorOpenLibraryId?: string;
+  authorId?: string;
   authors: string[];
+  title: string;
   description: string;
-  pageCount: number;
-  publisher: string;
   genreNames: string[];
+  pageCount?: number;
+  publisher?: string;
   originalPublicationYear?: number;
-  publishedDate?: string;
-  language: string;
-  imageLinks: {
-    thumbnail: string | null;
-    smallThumbnail: string | null;
-  };
   allIsbns: string[];
 }
