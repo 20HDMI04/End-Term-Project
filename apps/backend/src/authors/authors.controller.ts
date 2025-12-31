@@ -55,6 +55,12 @@ export class AuthorsController {
     return this.authorsService.findAll(query, false);
   }
 
+  @Get('stats')
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
+  async getStats() {
+    return await this.authorsService.getModerationAuthorStats();
+  }
+
   @Get(':id/related-by-subjects')
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   async getRelated(@Param('id') id: string) {

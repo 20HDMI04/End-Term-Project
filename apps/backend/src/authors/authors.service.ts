@@ -125,20 +125,38 @@ export class AuthorsService {
   }
 
   async findAll(query: PaginationDto, admin: boolean) {
-    const { page = 1, limit = 10, search } = query;
+    const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
-    // Only fetch approved authors for regular users
     const whereCondition: any = {
       approveStatus: admin ? false : true,
     };
 
-    // If there is a search term, filter by name
     if (search) {
-      whereCondition.name = {
-        contains: search,
-        mode: 'insensitive',
-      };
+      whereCondition.name = { contains: search, mode: 'insensitive' };
+    }
+
+    let orderBy: any = {};
+
+    switch (sortBy) {
+      case 'name':
+        orderBy = { name: sortOrder };
+        break;
+      case 'createdAt':
+        orderBy = { createdAt: sortOrder };
+        break;
+      case 'favorites':
+        orderBy = { favoritedBy: { _count: sortOrder } };
+        break;
+      case 'rating':
+        return this.findAllSortedByRating(
+          whereCondition,
+          skip,
+          limit,
+          sortOrder,
+        );
+      default:
+        orderBy = { name: 'asc' };
     }
 
     const [data, total] = await Promise.all([
@@ -146,17 +164,64 @@ export class AuthorsService {
         where: whereCondition,
         skip,
         take: limit,
-        orderBy: { name: 'asc' },
+        orderBy,
+        include: {
+          _count: {
+            select: { favoritedBy: true, books: true },
+          },
+        },
       }),
       this.prisma.author.count({ where: whereCondition }),
     ]);
 
+    return { data, meta: { total, page, lastPage: Math.ceil(total / limit) } };
+  }
+
+  private async findAllSortedByRating(
+    where: any,
+    skip: number,
+    take: number,
+    order: 'asc' | 'desc',
+  ) {
+    // all authors matching the where condition
+    const authors = await this.prisma.author.findMany({
+      where,
+      include: {
+        books: {
+          select: {
+            statistics: { select: { averageRating: true } },
+          },
+        },
+        _count: { select: { favoritedBy: true } },
+      },
+    });
+
+    // we calculate average ratings and sort manually
+    const sortedData = authors
+      .map((author) => {
+        const ratings = author.books
+          .map((b) => b.statistics?.averageRating || 0)
+          .filter((r) => r > 0);
+        const avg =
+          ratings.length > 0
+            ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+            : 0;
+        return { ...author, averageRating: avg };
+      })
+      .sort((a, b) =>
+        order === 'desc'
+          ? b.averageRating - a.averageRating
+          : a.averageRating - b.averageRating,
+      );
+
+    const total = await this.prisma.author.count({ where });
+
     return {
-      data,
+      data: sortedData.slice(skip, skip + take),
       meta: {
         total,
-        page,
-        lastPage: Math.ceil(total / limit),
+        page: Math.floor(skip / take) + 1,
+        lastPage: Math.ceil(total / take),
       },
     };
   }
