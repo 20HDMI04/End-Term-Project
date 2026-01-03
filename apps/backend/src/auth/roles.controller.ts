@@ -3,11 +3,12 @@ import type { FastifyRequest } from 'fastify';
 import { SessionGuard } from './session.guard';
 import UserRoles from 'supertokens-node/recipe/userroles';
 import { env } from 'process';
+import { RolesGuard } from './roles.guard';
 
 @Controller('roles')
 export class RolesController {
   @Post('create')
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async createRole(
     @Body() body: { role: string },
     @Req() req: FastifyRequest & { session: any },
@@ -20,7 +21,7 @@ export class RolesController {
   }
 
   @Post('assign')
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async assignRole(
     @Body() body: { userId: string; role: string },
     @Req() req: FastifyRequest & { session: any },
@@ -43,7 +44,7 @@ export class RolesController {
   }
 
   @Post('get')
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
   async getUserRoles(@Req() req: FastifyRequest & { session: any }) {
     if (req.session.email != env.email_admin) {
       return { error: 'Unauthorized' };
@@ -58,7 +59,7 @@ export class RolesController {
   }
 
   @Post('remove')
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async removeRole(
     @Body() body: { userId: string; role: string },
     @Req() req: FastifyRequest & { session: any },
@@ -80,7 +81,7 @@ export class RolesController {
   }
 
   @Post('remove-new-role')
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async removeNewRole(@Req() req: FastifyRequest & { session: any }) {
     if (req.session.email != env.email_admin) {
       return { error: 'Unauthorized' };

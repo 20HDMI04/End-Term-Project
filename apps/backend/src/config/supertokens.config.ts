@@ -31,6 +31,12 @@ async function handleNewUserSync(
         id: email,
         username: user.id,
         email: email,
+        biggerProfilePicKey: null,
+        smallerProfilePicKey: null,
+        biggerProfilePic:
+          'http://localhost:4566/user-pictures/anonymous-user.webp',
+        smallerProfilePic:
+          'http://localhost:4566/user-pictures/anonymous-user.webp',
       },
     });
 
