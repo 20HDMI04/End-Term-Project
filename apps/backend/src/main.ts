@@ -68,7 +68,7 @@ async function bootstrap() {
   // Set error handler
   fastifyInstance.setErrorHandler(errorHandler());
 
-  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
+  await app.listen(3000, '0.0.0.0');
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

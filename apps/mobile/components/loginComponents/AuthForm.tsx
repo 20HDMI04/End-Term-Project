@@ -204,7 +204,7 @@ export default function AuthForm({
 					disabled={loading}
 				>
 					{loading ? (
-						<ActivityIndicator color="#fff" />
+						<ActivityIndicator color="#ffffff" />
 					) : (
 						<Text style={styles.buttonText}>
 							{isSignUp ? "Sign Up" : "Log In"}

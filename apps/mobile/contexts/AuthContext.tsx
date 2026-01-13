@@ -22,7 +22,7 @@ interface AuthProps {
 	finalizeLogin: () => Promise<void>;
 }
 
-const Api_URL = "http://192.168.1.121:3000";
+const Api_URL = "https://soft-seals-share.loca.lt/";
 const AuthContext = createContext<AuthProps>(null as any);
 
 export const useAuth = () => useContext(AuthContext);
