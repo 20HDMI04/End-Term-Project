@@ -125,15 +125,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const onLogout = async (): Promise<void> => {
 		try {
-			console.log("[AuthContext] Megkíséreljük a kijelentkezést...");
+			console.log("[AuthContext] Attempting logout...");
 			await SuperTokens.signOut();
 		} catch (error) {
-			console.error(
-				"[AuthContext] Kijelentkezési hiba (Szerver elérhetetlen):",
-				error
-			);
+			console.error("[AuthContext] Logout error (Server unreachable):", error);
 		} finally {
-			console.log("[AuthContext] Állapot törlése a kliens oldalon.");
+			console.log("[AuthContext] Logout instantiation...");
 			setAuthState({
 				isAuthenticated: false,
 				userId: null,
