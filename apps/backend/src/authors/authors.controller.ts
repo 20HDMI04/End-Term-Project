@@ -22,7 +22,9 @@ import { File } from 'src/common/decorators/file.decorator';
 import type { UploadedFile } from 'src/common/types/types';
 import { SessionGuard } from 'src/auth/session.guard';
 import { PaginationDto } from './dto/pagination.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Authors')
 @Controller('authors')
 export class AuthorsController {
   constructor(private readonly authorsService: AuthorsService) {}
@@ -90,8 +92,7 @@ export class AuthorsController {
     return this.authorsService.update(id, file, updateAuthorDto);
   }
 
-  @Delete(':id')
-  @Delete('remove')
+  @Delete()
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async removeFlexible(@Query('olId') olId?: string, @Query('id') id?: string) {
     if (olId) {
@@ -100,7 +101,7 @@ export class AuthorsController {
     if (id) {
       return await this.authorsService.remove(id);
     }
-    throw new BadRequestException('ID vagy Open Library ID megadása kötelező.');
+    throw new BadRequestException('ID or Open Library ID is required.');
   }
 
   @Patch(':id/approve')

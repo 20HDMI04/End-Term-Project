@@ -4,7 +4,9 @@ import { SessionGuard } from './session.guard';
 import UserRoles from 'supertokens-node/recipe/userroles';
 import { env } from 'process';
 import { RolesGuard } from './roles.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Roles')
 @Controller('roles')
 export class RolesController {
   @Post('create')

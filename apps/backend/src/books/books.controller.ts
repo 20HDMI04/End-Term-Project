@@ -20,7 +20,9 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { SearchByIsbnDto } from './dto/search-by-isbn.dto';
 import { Query, Res } from '@nestjs/common/decorators';
 import axios from 'axios';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Books')
 @Controller('books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}

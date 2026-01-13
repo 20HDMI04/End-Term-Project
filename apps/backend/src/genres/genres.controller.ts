@@ -15,7 +15,9 @@ import { UpdateGenreDto } from './dto/update-genre.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { SessionGuard } from 'src/auth/session.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Genres')
 @Controller('genres')
 export class GenresController {
   constructor(private readonly genresService: GenresService) {}

@@ -14,6 +14,7 @@ import {
 } from './config/supertokens.config';
 import { ValidationPipe } from '@nestjs/common';
 import contentParser from '@fastify/multipart';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   // Initialize SuperTokens before creating the app
@@ -67,6 +68,16 @@ async function bootstrap() {
 
   // Set error handler
   fastifyInstance.setErrorHandler(errorHandler());
+
+  const config = new DocumentBuilder()
+    .setTitle('Readsy API')
+    .setDescription('Readsy API documentation')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document);
 
   await app.listen(3000, '0.0.0.0');
   console.log(`Application is running on: ${await app.getUrl()}`);

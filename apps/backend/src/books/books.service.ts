@@ -517,61 +517,6 @@ export class BooksService {
     }
   }
 
-  /**
-   * If the book already exists, update its identifiers (Google/OL ID)
-   * and add any new ISBN numbers.
-   */
-  private async handleExistingBookUpdate(
-    existingBook: any,
-    externalData: ExternalBookResponse,
-  ) {
-    const updateData: any = {};
-
-    // If the database does not yet have a Google or OL ID, but the API now provides one, update it
-    if (externalData.googleBookId && !existingBook.googleBookId) {
-      updateData.googleBookId = externalData.googleBookId;
-    }
-    if (externalData.openLibraryId && !existingBook.openLibraryId) {
-      updateData.openLibraryId = externalData.openLibraryId;
-    }
-
-    // Only call update if there is something to update
-    if (Object.keys(updateData).length > 0) {
-      await this.prisma.book.update({
-        where: { id: existingBook.id },
-        data: updateData,
-      });
-    }
-
-    // ISBN sync: is there any new ISBN to add?
-    const newIsbns = externalData.allIsbns.filter(
-      (extIsbn) =>
-        !existingBook.isbns.some((dbIsbn) => dbIsbn.isbnNumber === extIsbn),
-    );
-
-    if (newIsbns.length > 0) {
-      await this.prisma.bookIsbn.createMany({
-        data: newIsbns.map((nIsbn) => ({
-          isbnNumber: nIsbn,
-          bookId: existingBook.id,
-        })),
-        skipDuplicates: true,
-      });
-    }
-
-    // Get updated book details
-    const updatedBook = await this.prisma.book.findUnique({
-      where: { id: existingBook.id },
-      include: {
-        author: true,
-        isbns: true,
-        genres: { include: { genre: true } },
-      },
-    });
-
-    return { status: 'LINKED_TO_EXISTING', book: updatedBook };
-  }
-
   async findAll() {
     return new NotImplementedException('Find all books not implemented yet.');
   }

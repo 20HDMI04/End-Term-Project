@@ -18,6 +18,9 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { FastifyFileInterceptor } from 'src/common/interceptors/fastify-file.interceptor';
 import { UploadedFile } from 'src/common/types/types';
 import { File } from 'src/common/decorators/file.decorator';
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
