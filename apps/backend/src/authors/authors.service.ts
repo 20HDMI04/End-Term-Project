@@ -159,22 +159,29 @@ export class AuthorsService {
         orderBy = { name: 'asc' };
     }
 
-    const [data, total] = await Promise.all([
-      this.prisma.author.findMany({
-        where: whereCondition,
-        skip,
-        take: limit,
-        orderBy,
-        include: {
-          _count: {
-            select: { favoritedBy: true, books: true },
+    try {
+      const [data, total] = await Promise.all([
+        this.prisma.author.findMany({
+          where: whereCondition,
+          skip,
+          take: limit,
+          orderBy,
+          include: {
+            _count: {
+              select: { favoritedBy: true, books: true },
+            },
           },
-        },
-      }),
-      this.prisma.author.count({ where: whereCondition }),
-    ]);
+        }),
+        this.prisma.author.count({ where: whereCondition }),
+      ]);
 
-    return { data, meta: { total, page, lastPage: Math.ceil(total / limit) } };
+      return {
+        data,
+        meta: { total, page, lastPage: Math.ceil(total / limit) },
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Database error during get All.');
+    }
   }
 
   private async findAllSortedByRating(
@@ -183,18 +190,25 @@ export class AuthorsService {
     take: number,
     order: 'asc' | 'desc',
   ) {
+    let authors;
     // all authors matching the where condition
-    const authors = await this.prisma.author.findMany({
-      where,
-      include: {
-        books: {
-          select: {
-            statistics: { select: { averageRating: true } },
+    try {
+      authors = await this.prisma.author.findMany({
+        where,
+        include: {
+          books: {
+            select: {
+              statistics: { select: { averageRating: true } },
+            },
           },
+          _count: { select: { favoritedBy: true } },
         },
-        _count: { select: { favoritedBy: true } },
-      },
-    });
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Database error during get All by rating.',
+      );
+    }
 
     // we calculate average ratings and sort manually
     const sortedData = authors
@@ -297,11 +311,17 @@ export class AuthorsService {
       keys: (string | null)[];
     } | null = null;
     if (file) {
-      s3Result = await this.s3Service.uploadImage(
-        file,
-        'author',
-        updateAuthorDto.name || author.name,
-      );
+      try {
+        s3Result = await this.s3Service.uploadImage(
+          file,
+          'author',
+          updateAuthorDto.name || author.name,
+        );
+      } catch (error) {
+        throw new InternalServerErrorException(
+          'Error occurred during image upload.(update)',
+        );
+      }
 
       const keysToDelete = [
         author.smallerProfilePicKey,
@@ -317,18 +337,22 @@ export class AuthorsService {
     }
 
     // Save
-    return await this.prisma.author.update({
-      where: { id },
-      data: {
-        ...updateAuthorDto,
-        ...(s3Result && {
-          smallerProfilePic: s3Result.small,
-          biggerProfilePic: s3Result.large,
-          smallerProfilePicKey: s3Result.keys[0],
-          biggerProfilePicKey: s3Result.keys[1],
-        }),
-      },
-    });
+    try {
+      return await this.prisma.author.update({
+        where: { id },
+        data: {
+          ...updateAuthorDto,
+          ...(s3Result && {
+            smallerProfilePic: s3Result.small,
+            biggerProfilePic: s3Result.large,
+            smallerProfilePicKey: s3Result.keys[0],
+            biggerProfilePicKey: s3Result.keys[1],
+          }),
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Database error during update.');
+    }
   }
   async removeByOpenLibraryId(olId: string) {
     // Find author by Open Library ID
@@ -388,22 +412,33 @@ export class AuthorsService {
 
   async approve(id: string) {
     const author = await this.prisma.author.findUnique({ where: { id } });
-    if (!author) throw new NotFoundException('Szerző nem található.');
-
-    return await this.prisma.author.update({
-      where: { id },
-      data: { approveStatus: true },
-    });
+    if (!author) throw new NotFoundException('Author not found.');
+    try {
+      return await this.prisma.author.update({
+        where: { id },
+        data: { approveStatus: true },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An error occurred during approval (author).',
+      );
+    }
   }
 
   async disapprove(id: string) {
     const author = await this.prisma.author.findUnique({ where: { id } });
     if (!author) throw new NotFoundException('Szerző nem található.');
 
-    return await this.prisma.author.update({
-      where: { id },
-      data: { approveStatus: false },
-    });
+    try {
+      return await this.prisma.author.update({
+        where: { id },
+        data: { approveStatus: false },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An error occurred during disapproval (author).',
+      );
+    }
   }
 
   async getModerationAuthorStats() {
