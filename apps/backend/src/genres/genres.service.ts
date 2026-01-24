@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
@@ -23,41 +24,47 @@ export class GenresService {
 
   async getOrCreateMany(names: string[]) {
     if (!names || names.length === 0) return [];
-    // 1. Normalize all incoming names (e.g., "horror" -> "Horror", "SCI-FI" -> "Sci-Fi")
-    const normalizedInputNames = [
-      ...new Set(names.map((name) => this.normalizeName(name))),
-    ];
 
-    // 2. Get existing genres from the database
-    const existingGenres = await this.prisma.genres.findMany({
-      where: {
-        name: { in: normalizedInputNames, mode: 'insensitive' },
-      },
-    });
+    try {
+      // Normalize input names and remove duplicates
+      const normalizedInputNames = [
+        ...new Set(names.map((name) => this.normalizeName(name))),
+      ];
 
-    const existingNames = existingGenres.map((g) => g.name);
-
-    // 3. Filter out those that are not yet included
-    const newNames = normalizedInputNames.filter(
-      (name) =>
-        !existingNames.some(
-          (existing) => existing.toLowerCase() === name.toLowerCase(),
-        ),
-    );
-
-    // 4. Save new genres
-    if (newNames.length > 0) {
-      await this.prisma.genres.createMany({
-        data: newNames.map((name) => ({ name })),
-        skipDuplicates: true,
+      // Existing genres retrieval
+      const existingGenres = await this.prisma.genres.findMany({
+        where: {
+          name: { in: normalizedInputNames, mode: 'insensitive' },
+        },
       });
+
+      const existingNames = existingGenres.map((g) => g.name.toLowerCase());
+
+      // Filter out, we need to add only the new ones
+      const newNames = normalizedInputNames.filter(
+        (name) => !existingNames.includes(name.toLowerCase()),
+      );
+
+      // New genres adding
+      if (newNames.length > 0) {
+        await this.prisma.genres.createMany({
+          data: newNames.map((name) => ({ name })),
+          skipDuplicates: true,
+        });
+      }
+
+      // All genres retrieval
+      return await this.prisma.genres.findMany({
+        where: {
+          name: { in: normalizedInputNames, mode: 'insensitive' },
+        },
+      });
+    } catch (error) {
+      console.error('Error processing genres in bulk:', error);
+      throw new InternalServerErrorException(
+        'Failed to process the provided genres.',
+      );
     }
-    // 5. All genres
-    return this.prisma.genres.findMany({
-      where: {
-        name: { in: normalizedInputNames, mode: 'insensitive' },
-      },
-    });
   }
 
   async searchGenres(query: string) {
@@ -177,65 +184,69 @@ export class GenresService {
   }
 
   async getTopGenresWithPopularBooks() {
-    return await this.prisma.genres.findMany({
-      where: {
-        books: {
-          some: {
-            book: {
-              approveStatus: true,
-            },
-          },
-        },
-      },
-      take: 30,
-      orderBy: {
-        books: {
-          _count: 'desc',
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        _count: {
-          select: {
-            books: {
-              where: {
-                book: { approveStatus: true },
+    try {
+      return await this.prisma.genres.findMany({
+        where: {
+          books: {
+            some: {
+              book: {
+                approveStatus: true,
               },
             },
           },
         },
-        books: {
-          where: {
-            book: { approveStatus: true },
+        take: 30,
+        orderBy: {
+          books: {
+            _count: 'desc',
           },
-          take: 2,
-          orderBy: {
-            book: {
-              statistics: {
-                averageRating: 'desc',
+        },
+        select: {
+          id: true,
+          name: true,
+          _count: {
+            select: {
+              books: {
+                where: {
+                  book: { approveStatus: true },
+                },
               },
             },
           },
-          select: {
-            book: {
-              select: {
-                id: true,
-                title: true,
-                smallerCoverPic: true,
-                biggerCoverPic: true,
+          books: {
+            where: {
+              book: { approveStatus: true },
+            },
+            take: 2,
+            orderBy: {
+              book: {
                 statistics: {
-                  select: {
-                    averageRating: true,
-                    ratingCount: true,
+                  averageRating: 'desc',
+                },
+              },
+            },
+            select: {
+              book: {
+                select: {
+                  id: true,
+                  title: true,
+                  smallerCoverPic: true,
+                  biggerCoverPic: true,
+                  statistics: {
+                    select: {
+                      averageRating: true,
+                      ratingCount: true,
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch top genres.');
+    }
   }
 
   async remove(id: string) {
