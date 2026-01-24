@@ -43,13 +43,13 @@ export class BooksController {
     return await this.booksService.getOrFetchExternalBook(searchByIsbnDto.isbn);
   }
 
-  @Post('approve/:id')
+  @Patch('approve/:id')
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   approve(@Param('id') id: string) {
     return this.booksService.approve(id);
   }
 
-  @Post('disapprove/:id')
+  @Patch('disapprove/:id')
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   disapprove(@Param('id') id: string) {
     return this.booksService.disapprove(id);
