@@ -55,7 +55,7 @@ export class BooksController {
     return this.booksService.disapprove(id);
   }
 
-  @Get()
+  @Get('all/')
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   findAll() {
     return this.booksService.findAll();

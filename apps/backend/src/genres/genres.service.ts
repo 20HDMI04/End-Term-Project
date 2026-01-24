@@ -167,9 +167,13 @@ export class GenresService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.genres.findUniqueOrThrow({
-      where: { id },
-    });
+    try {
+      return await this.prisma.genres.findUniqueOrThrow({
+        where: { id },
+      });
+    } catch (error) {
+      throw new BadRequestException(`Genre not found with the ID ${id}`);
+    }
   }
 
   async getTopGenresWithPopularBooks() {
@@ -240,6 +244,11 @@ export class GenresService {
         where: { id },
       });
     } catch (error) {
+      if (error.code === 'P2003') {
+        throw new ConflictException(
+          'Cannot delete genre: it is linked to existing books.',
+        );
+      }
       throw new BadRequestException('Failed to delete genre');
     }
   }
