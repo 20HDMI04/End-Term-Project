@@ -16,6 +16,7 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
 import { Author } from 'generated/prisma';
+import { PaginationDto } from './dto/pagination-book.dto';
 
 @Injectable()
 export class BooksService {
@@ -119,6 +120,7 @@ export class BooksService {
           isbns: true,
           genres: { include: { genre: true } },
           author: true,
+          statistics: true,
         },
       });
 
@@ -517,8 +519,133 @@ export class BooksService {
     }
   }
 
-  async findAll() {
-    return new NotImplementedException('Find all books not implemented yet.');
+  async findAll(query: PaginationDto) {
+    const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
+    const skip = (page - 1) * limit;
+
+    const whereCondition: any = {};
+    if (search) {
+      whereCondition.name = { contains: search, mode: 'insensitive' };
+    }
+
+    let orderBy: any = {};
+
+    switch (sortBy) {
+      case 'name':
+        orderBy = { name: sortOrder };
+        break;
+      case 'favorites':
+        orderBy = { favoritedBy: { _count: sortOrder } };
+        break;
+      case 'booksCount':
+        orderBy = { books: { _count: sortOrder } };
+        break;
+      case 'createdAt':
+        orderBy = { createdAt: sortOrder };
+        break;
+      case 'rating':
+        return this.findAllSortedByRating(
+          whereCondition,
+          skip,
+          limit,
+          sortOrder,
+        );
+      default:
+        orderBy = { name: 'asc' };
+    }
+
+    try {
+      const [data, total] = await Promise.all([
+        this.prisma.genres.findMany({
+          where: whereCondition,
+          skip,
+          take: limit,
+          orderBy,
+          include: {
+            _count: {
+              select: {
+                books: true,
+                favoritedBy: true,
+              },
+            },
+          },
+        }),
+        this.prisma.genres.count({ where: whereCondition }),
+      ]);
+
+      const lastPage = Math.ceil(total / limit);
+
+      return {
+        data,
+        meta: {
+          total,
+          page,
+          lastPage,
+          hasNextPage: page < lastPage,
+          hasPreviousPage: page > 1,
+        },
+      };
+    } catch (error) {
+      console.error('Prisma Error in findAll:', error);
+      throw new InternalServerErrorException(
+        'Hiba történt a műfajok listázása közben.',
+      );
+    }
+  }
+
+  async findAllSortedByRating(
+    whereCondition: any,
+    skip: number,
+    limit: number,
+    sortOrder: 'asc' | 'desc',
+  ) {
+    try {
+      const [data, total] = await Promise.all([
+        this.prisma.book.findMany({
+          where: {
+            ...whereCondition,
+          },
+          skip: skip,
+          take: limit,
+          include: {
+            author: {
+              select: { name: true },
+            },
+            statistics: {
+              select: {
+                averageRating: true,
+                ratingCount: true,
+              },
+            },
+            genres: {
+              include: {
+                genre: { select: { name: true } },
+              },
+            },
+          },
+          orderBy: {
+            statistics: {
+              averageRating: sortOrder,
+            },
+          },
+        }),
+        this.prisma.book.count({ where: whereCondition }),
+      ]);
+
+      return {
+        data,
+        meta: {
+          total,
+          page: Math.floor(skip / limit) + 1,
+          lastPage: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      console.error('Error in findAllSortedByRating (Books):', error);
+      throw new InternalServerErrorException(
+        'An error occurred while fetching books sorted by rating.',
+      );
+    }
   }
 
   async findOne(id: string) {

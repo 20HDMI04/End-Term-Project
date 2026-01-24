@@ -21,6 +21,7 @@ import { SearchByIsbnDto } from './dto/search-by-isbn.dto';
 import { Query, Res } from '@nestjs/common/decorators';
 import axios from 'axios';
 import { ApiTags } from '@nestjs/swagger';
+import { PaginationDto } from './dto/pagination-book.dto';
 
 @ApiTags('Books')
 @Controller('books')
@@ -55,10 +56,10 @@ export class BooksController {
     return this.booksService.disapprove(id);
   }
 
-  @Get('all/')
+  @Get()
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findAll() {
-    return this.booksService.findAll();
+  findAll(@Query() query: PaginationDto) {
+    return this.booksService.findAll(query);
   }
 
   @Get(':id')
