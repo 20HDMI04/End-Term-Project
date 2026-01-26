@@ -15,7 +15,6 @@ import { GenresService } from 'src/genres/genres.service';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
-import { Author } from 'generated/prisma';
 import { PaginationDto } from './dto/pagination-book.dto';
 
 @Injectable()

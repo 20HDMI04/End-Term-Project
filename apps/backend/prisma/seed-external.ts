@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma/client';
+import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import {

@@ -4,7 +4,7 @@ import EmailPassword from 'supertokens-node/recipe/emailpassword';
 import Session from 'supertokens-node/recipe/session';
 import UserRoles from 'supertokens-node/recipe/userroles';
 import { getUser, User } from 'supertokens-node';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from 'src/prisma.service';
 import { access } from 'fs';
 import SuperTokens from 'supertokens-node';
 
