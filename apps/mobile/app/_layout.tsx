@@ -21,6 +21,7 @@ import AnimatedSplashScreen from "@/components/splash-screen";
 import { AppHeader } from "@/components/AppHeader";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { ApiProvider } from "@/contexts/ApiContext";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -97,12 +98,14 @@ export default function RootLayout() {
 
 	return (
 		<AuthProvider>
-			<ThemeProvider
-				value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-			>
-				<RootLayoutNav />
-				<StatusBar style="auto" />
-			</ThemeProvider>
+			<ApiProvider>
+				<ThemeProvider
+					value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+				>
+					<RootLayoutNav />
+					<StatusBar style="auto" />
+				</ThemeProvider>
+			</ApiProvider>
 		</AuthProvider>
 	);
 }

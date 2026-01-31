@@ -11,14 +11,13 @@ export interface GoogleAuthResult {
 export const googleSignInAndSuperTokensAuth =
 	async (): Promise<GoogleAuthResult> => {
 		try {
-			// 1. Ellenőrizzük a Google Play szolgáltatásokat (főleg Androidon fontos)
+			// Ensure Google Play Services are available (Android only)
 			await GoogleSignin.hasPlayServices();
 
-			// 2. Bejelentkezés indítása
-			// Ez megnyitja a Google modalját
+			// Login with Google
 			const userInfo = await GoogleSignin.signIn();
 
-			// Az idToken a legfontosabb, ezt küldjük a backendnek
+			// Get the ID token from Google
 			const idToken = userInfo.data?.idToken;
 
 			if (!idToken) {
@@ -29,13 +28,11 @@ export const googleSignInAndSuperTokensAuth =
 				};
 			}
 
-			// 3. Küldés a SuperTokens backendnek
-			// FONTOS: Az URL-nek egyeznie kell a SuperTokens init apiDomain-nel!
+			// Send the ID token to your backend for SuperTokens authentication
 			const response = await fetch("http://192.168.1.121:3000/auth/signinup", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					// A "rid" segít a SuperTokens-nek beazonosítani a kérést
 					rid: "thirdparty",
 				},
 				body: JSON.stringify({
@@ -43,7 +40,7 @@ export const googleSignInAndSuperTokensAuth =
 					oAuthTokens: {
 						id_token: idToken,
 					},
-					clientType: "android", // vagy "ios", de a backend általában a Web Client ID-t nézi
+					clientType: "android",
 				}),
 			});
 
@@ -54,13 +51,12 @@ export const googleSignInAndSuperTokensAuth =
 
 			const data = await response.json();
 
-			// 4. Válasz kezelése
+			// Response details from backend
 			if (data.status === "OK") {
-				// Megerősítjük a SuperTokens SDK-nak, hogy a session aktív
 				const sessionExists = await SuperTokens.doesSessionExist();
 				console.log(
 					"[Google Auth] SuperTokens session established:",
-					sessionExists
+					sessionExists,
 				);
 
 				return {
@@ -79,7 +75,7 @@ export const googleSignInAndSuperTokensAuth =
 		} catch (error: any) {
 			console.error("[Google Auth Error]:", error);
 
-			// Specifikus hibaüzenet, ha a felhasználó egyszerűen bezárta a modalt
+			// Specific error message if the user simply closed the modal
 			if (error.code === "7") {
 				// SIGN_IN_CANCELLED
 				return {
