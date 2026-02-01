@@ -79,6 +79,7 @@ services:
       - ./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh
       - localstack_storage:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./localstack/default-pics:/tmp/seed-data
 
 volumes:
   localstack_storage:
