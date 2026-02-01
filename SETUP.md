@@ -179,7 +179,7 @@ Nyisd meg a böngésződben:
 
 ### Docker konténerek leállítása
 
-⚠️ **FIGYELEM**: Ilyenkor elveszhetnek a volume-ok és az adatok is amelyek abban voltak ilyenkor töröld le az összes volume-ot és setupold újra a prisma migrációkat mivel a supertokensben lévő adatok deszinkronizálódhatnak ekkor le kell törölni az összes volume-ot és újra setupolni az adatbázisokat pl.: prisma migrációkat.
+⚠️ **FIGYELEM**: Ilyenkor elveszhetnek a volume-ok és az adatok is amelyek abban voltak illetve a supertokensben lévő adatok deszinkronizálódhatnak a prisma által létrehozott adatbázissal ekkor le kell törölni az összes volume-ot és újra setupolni az adatbázisokat pl.: prisma migrációkat.
 
 ```bash
 docker-compose down
