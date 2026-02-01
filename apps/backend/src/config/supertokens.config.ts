@@ -64,6 +64,7 @@ async function handleNewUserSync(
   }
 }
 
+// Ensures that the default roles exist in the SuperTokens system.
 export async function ensureDefaultRolesExist() {
   try {
     await Promise.all([
@@ -76,10 +77,13 @@ export async function ensureDefaultRolesExist() {
   }
 }
 
+// Initializes SuperTokens with the required configuration and overrides.
 export function initializeSuperTokens() {
   const apiDomain = process.env.API_DOMAIN || 'http://localhost:3000';
 
+  // SuperTokens initialization with app info and recipe configurations.
   supertokens.init({
+    // Application information configuration.
     appInfo: {
       appName: 'Readsy',
       apiDomain,
@@ -87,10 +91,12 @@ export function initializeSuperTokens() {
       apiBasePath: '/auth',
       websiteBasePath: '/auth',
     },
+    // SuperTokens core connection configuration.
     supertokens: {
       connectionURI:
         process.env.SUPERTOKENS_CONNECTION_URI || 'http://localhost:3567',
     },
+    // Recipe configurations with overrides for custom behavior.
     recipeList: [
       ThirdParty.init({
         signInAndUpFeature: {
@@ -101,13 +107,14 @@ export function initializeSuperTokens() {
                 clients: [
                   {
                     clientType: 'web',
-                    clientId: process.env.GOOGLE_CLIENT_ID!,
-                    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+                    clientId: process.env.GOOGLE_CLIENT_ID || 'DISABLED',
+                    clientSecret:
+                      process.env.GOOGLE_CLIENT_SECRET || 'DISABLED',
                     scope: ['openid', 'email', 'profile'],
                   },
                   {
                     clientType: 'android',
-                    clientId: process.env.GOOGLE_CLIENT_ID!,
+                    clientId: process.env.GOOGLE_CLIENT_ID || 'DISABLED',
                     scope: ['openid', 'email', 'profile'],
                   },
                 ],
@@ -118,6 +125,7 @@ export function initializeSuperTokens() {
         override: {
           functions: (original) => ({
             ...original,
+            // Override signInUp to handle new user synchronization.
             signInUp: async (input) => {
               const res = await original.signInUp(input);
               if (res.status === 'OK' && res.createdNewRecipeUser) {
@@ -168,6 +176,7 @@ export function initializeSuperTokens() {
           }),
           apis: (originalImplementation) => ({
             ...originalImplementation,
+            // Override signUpPOST to assign default roles upon user registration.
             signInPOST: async (input) => {
               const response = await originalImplementation.signInPOST!(input);
               if (response.status === 'OK') {
@@ -181,6 +190,7 @@ export function initializeSuperTokens() {
               console.log('[Auth] SignInPOST failed:', response.status);
               return response;
             },
+            // Override signUpPOST to assign roles upon user registration.
             signUpPOST: async (input) => {
               const response = await originalImplementation.signUpPOST!(input);
               if (response.status === 'OK') {
@@ -200,6 +210,7 @@ export function initializeSuperTokens() {
 
       UserRoles.init(),
 
+      // Session initialization with custom access token payload.
       Session.init({
         override: {
           functions: (originalImplementation) => ({
