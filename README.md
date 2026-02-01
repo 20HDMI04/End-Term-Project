@@ -41,7 +41,7 @@ Azért választottuk ezt a témát mert célunk, hogy áthidaljuk a könyvválas
 | **Mobil Frontend**   | **React Native (Expo)** | Natív mobilalkalmazások (iOS és Android).                 |
 | **Adatbázis ORM**    | **Prisma**              | Type-safe adatbázis-hozzáférés és migrációk.              |
 | **Hitelesítés**      | **SuperTokens**         | Session és felhasználókezelés.                            |
-| **Séma Validáció**   | **Zod**                 | End-to-end type-safe adatsémák.                           |
+| **Séma Validáció**   | **Class Validator**     | End-to-end type-safe adatsémák.                           |
 
 ---
 
@@ -54,73 +54,13 @@ A projekt a következő kulcsfontosságú munkaterületeket tartalmazza:
 | `apps/backend`      | A **NestJS API** a Fastify adapterrel. Felelős a business logika, adatbázis-kommunikáció és a SuperTokens autentikáció szerveroldali kezeléséért. |
 | `apps/web`          | A **React webalkalmazás**, Vite-tel buildelve.                                                                                                    |
 | `apps/mobile`       | A **React Native mobilalkalmazás** (Expo-val konfigurálva).                                                                                       |
-| `packages/types`    | Megosztott TypeScript interfészek és **Zod sémák**. Biztosítja a type-safe adatcserét a backend és minden frontend között.                        |
 | `packages/database` | A **Prisma** konfiguráció (`schema.prisma`), migrációk, és a kliens kód.                                                                          |
-| `packages/ui`       | Megosztott UI komponens könyvtár (React és React Native komponensek megosztására).                                                                |
-| `packages/tsconfig` | Megosztott `tsconfig.json` fájlok.                                                                                                                |
 
 ---
 
 ## 🛠️ Beüzemelés (Local Development)
-
-A fejlesztéshez szükséges a **Node.js** (ajánlott v18+) és a **pnpm** telepítése.
-
-### 1\. Függőségek telepítése
-
-Navigálj a gyökérkönyvtárba, és telepítsd az összes munkaterületi függőséget:
-
-```bash
-pnpm install
-```
-
-### 2\. Környezeti Változók beállítása
-
-Hozd létre a `.env` fájlt a gyökérkönyvtárban és az `apps/backend` mappában a szükséges környezeti változókkal.
-
-**Példa kulcsfontosságú változókra:**
-
-```env
-# .env (Gyökér)
-DATABASE_URL="postgresql://user:password@localhost:5432/db_name"
-SUPERTOKENS_URI="http://localhost:3567"
-SUPERTOKENS_API_KEY="optional-api-key"
-```
-
-### 3\. SuperTokens Core és Adatbázis indítása
-
-A SuperTokens-nek szüksége van egy **SuperTokens Core** szerverre és egy **adatbázisra** (a fenti `DATABASE_URL` alapján).
-
-**Javasolt megközelítés: Docker Compose**
-
-A projekt tartalmaz egy `docker-compose.yml` fájlt, amely elindítja a SuperTokens Core-t és egy PostgreSQL adatbázist:
-
-```bash
-docker compose up -d postgres supertokens
-```
-
-### 4\. Adatbázis és Prisma
-
-Telepítsd a Prisma sémát az adatbázisra:
-
-```bash
-pnpm --filter database db:migrate
-pnpm --filter database build
-```
-
-_(Ez a parancs futtatja a migrációkat és legenerálja a Prisma klienst a `packages/database` mappában.)_
-
----
-
-## ▶️ Futtatás
-
-Használd a **`turbo`** parancsot a munkaterületek párhuzamos indításához.
-
-| Parancs                             | Leírás                                                                                                         |
-| :---------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| **`pnpm dev`**                      | **Párhuzamosan indítja** a backendet, a webes frontendet és a mobilalkalmazást (ha futtatható a környezetben). |
-| **`pnpm run dev --filter backend`** | Csak a NestJS backend indítása.                                                                                |
-| **`pnpm run dev --filter web`**     | Csak a React webes frontend indítása.                                                                          |
-| **`pnpm run dev --filter mobile`**  | A React Native (Expo) mobilalkalmazás indítása.                                                                |
+Jelenleg csak a web és backend beüzemelése látható.
+- Bővebben a beüzemeléséről a projektnek [SETUP](https://github.com/20HDMI04/End-Term-Project/blob/main/SETUP.md)
 
 ## 📚 Kódmegosztás (Type-Safety)
 
@@ -161,6 +101,7 @@ A projekt közösségi platform a következő, felhasználói élményt növelő
 ## 📄 További dokumentációk
 
 - Bővebben az architektúráról [Áttekintés](https://github.com/20HDMI04/End-Term-Project/blob/main/documentation/overview.md)
+- Bővebben a Setup-ról [SETUP](https://github.com/20HDMI04/End-Term-Project/blob/main/SETUP.md)
 
 ## 👤 Tagok
 
