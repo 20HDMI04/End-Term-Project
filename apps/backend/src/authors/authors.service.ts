@@ -63,8 +63,8 @@ export class AuthorsService {
    * @param file this is a picture file that we need here for author avatar if you dont provide one we fill it with a default avatar.
    * @param createAuthorDto the data transfer object containing author details to create
    * @returns the created author entity
-   * @throws {ConflictException} if an author with the same Open Library ID already exists or if a soft match duplicate is found based on name, birth date, and nationality
-   * @throws {InternalServerErrorException} if there is an error during image upload or database save, with rollback of uploaded images if the database save fails
+   * @throws {@link ConflictException} if an author with the same Open Library ID already exists or if a soft match duplicate is found based on name, birth date, and nationality
+   * @throws {@link InternalServerErrorException} if there is an error during image upload or database save, with rollback of uploaded images if the database save fails
    */
   async create(file: UploadedFile | null, createAuthorDto: CreateAuthorDto) {
     if (createAuthorDto.openLibraryId) {
@@ -145,7 +145,7 @@ export class AuthorsService {
    * @param query the pagination and filtering options
    * @param admin a boolean indicating if the request is from an admin (to filter by approval status)
    * @returns a paginated list of authors with metadata
-   * @throws {InternalServerErrorException} if there is a database error during retrieval
+   * @throws {@link InternalServerErrorException} if there is a database error during retrieval
    */
   async findAll(query: PaginationDto, admin: boolean) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
@@ -215,7 +215,7 @@ export class AuthorsService {
    * @param take take for pagination
    * @param order order of sorting (asc or desc)
    * @returns a paginated list of authors with metadata3,
-   * @throws {InternalServerErrorException} if there is a database error during retrieval
+   * @throws {@link InternalServerErrorException} if there is a database error during retrieval
    */
   private async findAllSortedByRating(
     where: any,
@@ -278,7 +278,7 @@ export class AuthorsService {
    * @summary Retrieves a single author by their ID. If the author does not exist, a NotFoundException is thrown.
    * @param id This is the Author Id.
    * @returns An instance of an author.
-   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
    */
   findOne(id: string) {
     try {
@@ -295,8 +295,8 @@ export class AuthorsService {
    * @param file This is for uploading a new profile picture for the author. If null is provided, the existing picture will remain unchanged.
    * @param updateAuthorDto This contains the updated author data.
    * @returns The updated author instance.
-   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
-   * @throws {ConflictException} if the new Open Library ID (if provided) already exists for another author, or if a soft match duplicate is found based on name, birth date
+   * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {@link ConflictException} if the new Open Library ID (if provided) already exists for another author, or if a soft match duplicate is found based on name, birth date
    */
   async update(
     id: string,
@@ -414,8 +414,8 @@ export class AuthorsService {
    * @description Deletes an author by their Open Library ID. The method first attempts to find the author using the provided Open Library ID. If the author is found, it proceeds to delete any associated profile images from S3. After handling the images, it attempts to delete the author record from the database. If the author has books assigned to them, a ConflictException is thrown to prevent deletion.
    * @param olId The Open Library ID of the author to be deleted.
    * @returns The deleted author instance.
-   * @throws {NotFoundException} if there is no author with the given Open Library ID.
-   * @throws {ConflictException} if the author cannot be deleted because there are books assigned to them.
+   * @throws {@link NotFoundException} if there is no author with the given Open Library ID.
+   * @throws {@link ConflictException} if the author cannot be deleted because there are books assigned to them.
    */
   async removeByOpenLibraryId(olId: string) {
     // Find author by Open Library ID
@@ -478,8 +478,8 @@ export class AuthorsService {
    * @description Approves an author by setting their approveStatus to true. This method is used in the moderation process where admins can approve authors that are pending. The method first checks if the author with the given ID exists in the database. If the author is found, it updates their approveStatus field to true, effectively approving them. If the author does not exist, a NotFoundException is thrown to indicate that the specified author cannot be found.
    * @param id The ID of the author to approve.
    * @returns The updated author instance with approveStatus set to true.
-   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
-   * @throws {InternalServerErrorException} if there is an error during the database update operation.
+   * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {@link InternalServerErrorException} if there is an error during the database update operation.
    */
   async approve(id: string) {
     const author = await this.prisma.author.findUnique({ where: { id } });
@@ -501,8 +501,8 @@ export class AuthorsService {
    * @description Disapproves an author by setting their approveStatus to false. This method is used in the moderation process where admins can disapprove authors that are pending or revoke approval from previously approved authors. The method first checks if the author with the given ID exists in the database. If the author is found, it updates their approveStatus field to false, effectively disapproving them. If the author does not exist, a NotFoundException is thrown to indicate that the specified author cannot be found.
    * @param id The ID of the author to disapprove.
    * @returns The updated author instance with approveStatus set to false.
-   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
-   * @throws {InternalServerErrorException} if there is an error during the database update operation.
+   * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {@link InternalServerErrorException} if there is an error during the database update operation.
    */
   async disapprove(id: string) {
     const author = await this.prisma.author.findUnique({ where: { id } });
@@ -524,7 +524,7 @@ export class AuthorsService {
    * @summary Retrieves various statistics for authors that are pending moderation. This includes counts of pending and approved authors, data quality metrics such as how many have biographies or profile pictures, and the top 5 most popular authors based on the number of times they have been favorited.
    * @description This method is used to gather statistics for authors that are pending moderation. It retrieves the count of authors awaiting moderation (approveStatus: false), the count of approved authors (approveStatus: true), data quality metrics such as how many authors have a biography and how many have a unique profile picture, and also identifies the top 5 most popular authors based on the number of times they have been favorited by users. The results are returned in a structured format that includes moderation stats, data quality metrics, and the list of top authors.
    * @returns An object containing moderation statistics, data quality metrics, and the top 5 most popular authors.
-   * @throws {InternalServerErrorException} if there is an error during the database queries to retrieve the statistics.
+   * @throws {@link InternalServerErrorException} if there is an error during the database queries to retrieve the statistics.
    */
   async getModerationAuthorStats() {
     const [pending, approved, totalWithBio, totalWithPic, topAuthors] =
@@ -567,8 +567,8 @@ export class AuthorsService {
    * @param authorId This is the ID of the author for whom we want to find similar authors based on shared subjects.
    * @param minCommon The minimum number of common subjects required for an author to be considered similar.
    * @returns An array of authors similar to the specified author, each with a count of common subjects.
-   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
-   * @throws {InternalServerErrorException} if there is an error during the database queries to retrieve the authors and their subjects.
+   * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {@link InternalServerErrorException} if there is an error during the database queries to retrieve the authors and their subjects.
    */
   async findSimilarBySubject(authorId: string, minCommon: number = 2) {
     let target;
@@ -616,8 +616,8 @@ export class AuthorsService {
    * @param authorId This is the ID of the author for whom we want to find similar authors based on shared genres.
    * @param minCommonGenres The minimum number of common genres required for an author to be considered similar.
    * @returns An array of authors similar to the specified author, each with a count of common genres.
-   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
-   * @throws {InternalServerErrorException} if there is an error during the database queries to retrieve the authors and their genres.
+   * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {@link InternalServerErrorException} if there is an error during the database queries to retrieve the authors and their genres.
    */
   async findSimilarByGenres(authorId: string, minCommonGenres: number = 2) {
     try {

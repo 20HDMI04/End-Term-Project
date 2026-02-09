@@ -1,0 +1,6 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "./docs",
+  "exclude": ["*(index|.spec|.e2e).ts"],
+}
