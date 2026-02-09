@@ -26,6 +26,12 @@ export class AuthorsService {
     private readonly httpService: HttpService,
   ) {}
 
+  /**
+   * @summary Searches for authors in external APIs (currently Open Library) based on the provided name. This is used to help auto-fill author details and prevent duplicates when creating new authors.
+   * @description Searches for authors in external APIs (currently Open Library) based on the provided name. This is used to help auto-fill author details and prevent duplicates when creating new authors.
+   * @param name the author name (we search with it in external APIs such as Google Book API or Open Library)
+   * @returns Authors matching the name from external APIs. We use this for auto-fill and to avoid duplicates when creating new authors.
+   */
   async searchExternal(name: string) {
     try {
       const url = `https://openlibrary.org/search/authors.json?q=${encodeURIComponent(name)}`;
@@ -51,6 +57,15 @@ export class AuthorsService {
     }
   }
 
+  /**
+   * @summary Creates a new author in the database. It checks for duplicates based on Open Library ID and a soft match of name, birth date
+   * @description Creates a new author in the database. It checks for duplicates based on Open Library ID and a soft match of name
+   * @param file this is a picture file that we need here for author avatar if you dont provide one we fill it with a default avatar.
+   * @param createAuthorDto the data transfer object containing author details to create
+   * @returns the created author entity
+   * @throws {ConflictException} if an author with the same Open Library ID already exists or if a soft match duplicate is found based on name, birth date, and nationality
+   * @throws {InternalServerErrorException} if there is an error during image upload or database save, with rollback of uploaded images if the database save fails
+   */
   async create(file: UploadedFile | null, createAuthorDto: CreateAuthorDto) {
     if (createAuthorDto.openLibraryId) {
       const existingAuthor = await this.prisma.author.findUnique({
@@ -90,7 +105,7 @@ export class AuthorsService {
         );
       } catch (error) {
         throw new InternalServerErrorException(
-          'Hiba történt a kép feltöltésekor.',
+          'Error occurred during image upload.',
         );
       }
     } else {
@@ -124,6 +139,14 @@ export class AuthorsService {
     }
   }
 
+  /**
+   * @summary Retrieves a paginated list of authors with optional filtering and sorting. Admins can see unapproved authors, while regular users only see approved ones. Supports searching by name and sorting by name, creation date, number of favorites, or average rating.
+   * @description Retrieves a paginated list of authors from the database. Supports filtering by approval status, search term, and sorting by various fields including name, creation date, number of favorites, and average rating.
+   * @param query the pagination and filtering options
+   * @param admin a boolean indicating if the request is from an admin (to filter by approval status)
+   * @returns a paginated list of authors with metadata
+   * @throws {InternalServerErrorException} if there is a database error during retrieval
+   */
   async findAll(query: PaginationDto, admin: boolean) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
@@ -184,6 +207,16 @@ export class AuthorsService {
     }
   }
 
+  /**
+   * @summary This method retrieves authors sorted by their average book ratings. Since Prisma does not support sorting by related model aggregates in a way that calculates averages, we fetch the relevant authors and their books, calculate the average ratings in memory, and then sort the results before paginating.
+   * @description This method is used when the client requests authors sorted by their average ratings. It first retrieves all authors matching the provided conditions along with their books and the average ratings of those books. Then, it calculates the average rating for each author, sorts the authors based on these averages, and finally returns the paginated result.
+   * @param where where statement to filter authors (e.g., by approval status, search term)
+   * @param skip skip for pagination
+   * @param take take for pagination
+   * @param order order of sorting (asc or desc)
+   * @returns a paginated list of authors with metadata3,
+   * @throws {InternalServerErrorException} if there is a database error during retrieval
+   */
   private async findAllSortedByRating(
     where: any,
     skip: number,
@@ -240,10 +273,31 @@ export class AuthorsService {
     };
   }
 
+  /**
+   *
+   * @summary Retrieves a single author by their ID. If the author does not exist, a NotFoundException is thrown.
+   * @param id This is the Author Id.
+   * @returns An instance of an author.
+   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   */
   findOne(id: string) {
-    return this.prisma.author.findUniqueOrThrow({ where: { id } });
+    try {
+      return this.prisma.author.findUniqueOrThrow({ where: { id } });
+    } catch (error) {
+      throw new NotFoundException('Author not found.');
+    }
   }
 
+  /**
+   * @summary Updates an existing author's details. It checks for the existence of the author, validates uniqueness of the Open Library ID if it's being changed, and also checks for soft duplicates based on name, birth date, and nationality.
+   * @description Updates an existing author's details. It first checks if the author exists, then if the Open Library ID is being changed, it validates that the new ID is unique. It also performs a soft duplicate check if the name, birth date, or nationality are being changed. If a new profile picture is provided, it uploads the new image to S3 and deletes the old one. Finally, it updates the author record in the database with the new details and image URLs.
+   * @param id This is an ID of an author what you want to update.
+   * @param file This is for uploading a new profile picture for the author. If null is provided, the existing picture will remain unchanged.
+   * @param updateAuthorDto This contains the updated author data.
+   * @returns The updated author instance.
+   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {ConflictException} if the new Open Library ID (if provided) already exists for another author, or if a soft match duplicate is found based on name, birth date
+   */
   async update(
     id: string,
     file: UploadedFile | null,
@@ -354,6 +408,15 @@ export class AuthorsService {
       throw new InternalServerErrorException('Database error during update.');
     }
   }
+
+  /**
+   * @summary Deletes an author by their Open Library ID. It first finds the author using the provided Open Library ID, then deletes any associated images from S3, and finally removes the author record from the database. If the author has books assigned to them, a ConflictException is thrown.
+   * @description Deletes an author by their Open Library ID. The method first attempts to find the author using the provided Open Library ID. If the author is found, it proceeds to delete any associated profile images from S3. After handling the images, it attempts to delete the author record from the database. If the author has books assigned to them, a ConflictException is thrown to prevent deletion.
+   * @param olId The Open Library ID of the author to be deleted.
+   * @returns The deleted author instance.
+   * @throws {NotFoundException} if there is no author with the given Open Library ID.
+   * @throws {ConflictException} if the author cannot be deleted because there are books assigned to them.
+   */
   async removeByOpenLibraryId(olId: string) {
     // Find author by Open Library ID
     const author = await this.prisma.author.findUnique({
@@ -362,7 +425,7 @@ export class AuthorsService {
 
     if (!author) {
       throw new NotFoundException(
-        `Nem található szerző ezzel az Open Library azonosítóval: ${olId}`,
+        `There is no author with this Open Library ID: ${olId}`,
       );
     }
 
@@ -410,6 +473,14 @@ export class AuthorsService {
     }
   }
 
+  /**
+   * @summary Approves an author by setting their approveStatus to true. This method is typically used by admins to approve authors that are pending moderation. It first checks if the author exists, and if so, updates their approveStatus to true. If the author does not exist, a NotFoundException is thrown.
+   * @description Approves an author by setting their approveStatus to true. This method is used in the moderation process where admins can approve authors that are pending. The method first checks if the author with the given ID exists in the database. If the author is found, it updates their approveStatus field to true, effectively approving them. If the author does not exist, a NotFoundException is thrown to indicate that the specified author cannot be found.
+   * @param id The ID of the author to approve.
+   * @returns The updated author instance with approveStatus set to true.
+   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {InternalServerErrorException} if there is an error during the database update operation.
+   */
   async approve(id: string) {
     const author = await this.prisma.author.findUnique({ where: { id } });
     if (!author) throw new NotFoundException('Author not found.');
@@ -425,9 +496,17 @@ export class AuthorsService {
     }
   }
 
+  /**
+   * @summary Disapproves an author by setting their approveStatus to false. This method is typically used by admins to disapprove authors that are pending moderation or to revoke approval from previously approved authors. It first checks if the author exists, and if so, updates their approveStatus to false. If the author does not exist, a NotFoundException is thrown.
+   * @description Disapproves an author by setting their approveStatus to false. This method is used in the moderation process where admins can disapprove authors that are pending or revoke approval from previously approved authors. The method first checks if the author with the given ID exists in the database. If the author is found, it updates their approveStatus field to false, effectively disapproving them. If the author does not exist, a NotFoundException is thrown to indicate that the specified author cannot be found.
+   * @param id The ID of the author to disapprove.
+   * @returns The updated author instance with approveStatus set to false.
+   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {InternalServerErrorException} if there is an error during the database update operation.
+   */
   async disapprove(id: string) {
     const author = await this.prisma.author.findUnique({ where: { id } });
-    if (!author) throw new NotFoundException('Szerző nem található.');
+    if (!author) throw new NotFoundException('Author not found.');
 
     try {
       return await this.prisma.author.update({
@@ -441,6 +520,12 @@ export class AuthorsService {
     }
   }
 
+  /**
+   * @summary Retrieves various statistics for authors that are pending moderation. This includes counts of pending and approved authors, data quality metrics such as how many have biographies or profile pictures, and the top 5 most popular authors based on the number of times they have been favorited.
+   * @description This method is used to gather statistics for authors that are pending moderation. It retrieves the count of authors awaiting moderation (approveStatus: false), the count of approved authors (approveStatus: true), data quality metrics such as how many authors have a biography and how many have a unique profile picture, and also identifies the top 5 most popular authors based on the number of times they have been favorited by users. The results are returned in a structured format that includes moderation stats, data quality metrics, and the list of top authors.
+   * @returns An object containing moderation statistics, data quality metrics, and the top 5 most popular authors.
+   * @throws {InternalServerErrorException} if there is an error during the database queries to retrieve the statistics.
+   */
   async getModerationAuthorStats() {
     const [pending, approved, totalWithBio, totalWithPic, topAuthors] =
       await Promise.all([
@@ -475,11 +560,25 @@ export class AuthorsService {
       topAuthors,
     };
   }
+
+  /**
+   * @summary Finds authors similar to a given author based on shared subjects. It retrieves the target author, extracts their subjects, and then finds other authors who have overlapping subjects. The results are filtered to include only those with a minimum number of shared subjects and are sorted by the count of common subjects in descending order.
+   * @description This method is used to find authors that are similar to a specified author based on the subjects associated with them. It first retrieves the target author using their ID and extracts their subjects into an array. Then, it queries the database for other authors who have any overlapping subjects with the target author. The results are processed to count how many subjects they have in common with the target author, and only those with a minimum number of shared subjects (default is 2) are included in the final result. The similar authors are then sorted by the count of common subjects in descending order, and the top 10 results are returned.
+   * @param authorId This is the ID of the author for whom we want to find similar authors based on shared subjects.
+   * @param minCommon The minimum number of common subjects required for an author to be considered similar.
+   * @returns An array of authors similar to the specified author, each with a count of common subjects.
+   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {InternalServerErrorException} if there is an error during the database queries to retrieve the authors and their subjects.
+   */
   async findSimilarBySubject(authorId: string, minCommon: number = 2) {
-    const target = await this.prisma.author.findUnique({
-      where: { id: authorId },
-    });
-    if (!target || !target.subjects) return [];
+    let target;
+    try {
+      target = await this.prisma.author.findUniqueOrThrow({
+        where: { id: authorId },
+      });
+    } catch (error) {
+      throw new NotFoundException('Author not found for similarity search.');
+    }
 
     const targetArray = target.subjects
       .split(',')
@@ -511,7 +610,23 @@ export class AuthorsService {
       .slice(0, 10);
   }
 
+  /**
+   * @summary Finds authors similar to a given author based on shared genres. It retrieves the target author, extracts their genres from their books, and then finds other authors who have overlapping genres. The results are filtered to include only those with a minimum number of shared genres and are sorted by the count of common genres in descending order.
+   * @description This method is used to find authors that are similar to a specified author based on the genres associated with their books. It first retrieves the target author using their ID. Then, it queries the database for the genres of the target author's books and extracts unique genre IDs. Next, it finds other authors who have books in these genres. The results are processed to count how many genres they have in common with the target author, and only those with a minimum number of shared genres (default is 2) are included in the final result. The similar authors are then sorted by the count of common genres in descending order, and the top 10 results are returned.
+   * @param authorId This is the ID of the author for whom we want to find similar authors based on shared genres.
+   * @param minCommonGenres The minimum number of common genres required for an author to be considered similar.
+   * @returns An array of authors similar to the specified author, each with a count of common genres.
+   * @throws {NotFoundException} if the author with the given ID does not exist in the database.
+   * @throws {InternalServerErrorException} if there is an error during the database queries to retrieve the authors and their genres.
+   */
   async findSimilarByGenres(authorId: string, minCommonGenres: number = 2) {
+    try {
+      const author = await this.prisma.author.findUniqueOrThrow({
+        where: { id: authorId },
+      });
+    } catch (error) {
+      throw new NotFoundException('Author not found for similarity search.');
+    }
     // Get genre IDs of the target author
     const authorGenres = await this.prisma.bookGenres.findMany({
       where: {
