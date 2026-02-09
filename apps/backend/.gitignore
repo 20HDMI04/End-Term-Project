@@ -16,6 +16,8 @@ docs
 
 *.js
 
+generate-docs
+
 # OS
 .DS_Store
 
