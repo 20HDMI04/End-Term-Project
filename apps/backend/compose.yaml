@@ -76,7 +76,7 @@ services:
       PERSIST_S3: 1
       PERSIST_BASE_DIR: /persisted-data
     volumes:
-      - ./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh
+      - ./localstack/init-aws.sh:/docker-entrypoint-initaws.d/init-aws.sh
       - localstack_storage:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
       - ./localstack/default-pics:/tmp/seed-data
