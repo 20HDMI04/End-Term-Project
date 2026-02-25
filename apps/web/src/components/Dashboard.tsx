@@ -4,8 +4,7 @@ import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import "./Dashboard.css";
 import Session from "supertokens-auth-react/recipe/session";
 import { useEffect, useState } from "react";
-import AuthorManager from "../componentsfortestingpurposes/AuthorManager";
-import BookCreationForm from "../componentsfortestingpurposes/BookAuthorCreator";
+
 
 async function checkUserRole() {
 	if (await Session.doesSessionExist()) {
@@ -123,9 +122,7 @@ export default function Dashboard() {
 					</div>
 				</div>
 			</div>
-			{/* Book Creator for testing purposes */}
-			<AuthorManager />
-			<BookCreationForm />
+			
 			<button onClick={updateUserFirstTime}>Update First Time Flag</button>
 		</>
 	);
