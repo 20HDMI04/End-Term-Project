@@ -8,7 +8,7 @@ services:
     ports:
       - 5431:5431
     volumes:
-      - supertokens_postgres:/var/lib/postgresql/data
+      - supertokens_postgres:/var/lib/postgresql
     networks:
       - app_network
     restart: unless-stopped
@@ -29,7 +29,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
