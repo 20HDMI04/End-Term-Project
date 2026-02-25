@@ -20,6 +20,7 @@ SuperTokens.init({
 		websiteDomain: "http://localhost:5173", // Frontend website domain
 		apiBasePath: "/auth",
 		websiteBasePath: "/auth",
+		// The above paths are where the SuperTokens routes will be available on the frontend and backend. Adjust as needed.
 	},
 	clientType: "web",
 	recipeList: [
