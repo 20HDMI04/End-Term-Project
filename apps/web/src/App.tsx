@@ -52,14 +52,9 @@ import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import * as reactRouterDom from "react-router-dom";
 import { EmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/emailpassword/prebuiltui";
 import { ThirdPartyPreBuiltUI } from "supertokens-auth-react/recipe/thirdparty/prebuiltui";
-import Dashboard from "./components/Dashboard";
 import {Home} from "./components/Home";
 import {Discover} from "./components/Discover";
 import {Search} from "./components/Search";
-import { EmailPasswordComponentsOverrideProvider } from "supertokens-auth-react/recipe/emailpassword";
-import { AuthRecipeComponentsOverrideContextProvider } from "supertokens-auth-react/ui";
-import { ThirdpartyComponentsOverrideProvider } from "supertokens-auth-react/recipe/thirdparty";
-import { useNavigate } from "react-router-dom";
 
 SuperTokens.init({
 	appInfo: {
@@ -101,19 +96,12 @@ export default function App() {
 
 					{/* DASHBOARD - Main entry point & home */}
 					{/* File: src/components/Dashboard.tsx */}
-					<Route
-						path="/"
-						element={
-							<SessionAuth>
-								<Dashboard />
-							</SessionAuth>
-						}
-					/>
+					
 
 					{/* HOME PAGE - User's personal dashboard */}
 					{/* File: src/components/Home.tsx */}
 					<Route
-						path="/home"
+						path="/"
 						element={
 							<SessionAuth>
 								<Home />
@@ -164,15 +152,4 @@ export default function App() {
 	);
 }
 
-const YourComponent = () => {
-  const navigate = useNavigate();
-  
-  return (
-    <>
-      <button onClick={() => navigate("/")}>Dashboard</button>
-      <button onClick={() => navigate("/home")}>Home</button>
-      <button onClick={() => navigate("/discover")}>Discover Books</button>
-      <button onClick={() => navigate("/search")}>Search</button>
-    </>
-  );
-};
+
