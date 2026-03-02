@@ -1,10 +1,33 @@
-import { useNavigate } from "react-router-dom";
+/**
+ * ================================================================
+ * READSY - DASHBOARD COMPONENT
+ * Main Entry Point & Dashboard Page
+ * ================================================================
+ * File: src/components/Dashboard.tsx
+ * Route: /
+ * Protected: Yes (SessionAuth wrapper in src/App.tsx)
+ * 
+ * Purpose:
+ * - Main landing page after user login
+ * - Display user information and session data
+ * - Role-based access control
+ * - Navigation to other features
+ * 
+ * Key Features:
+ * ✓ Display user ID, email, and roles
+ * ✓ Fetch user data from backend (/user/me)
+ * ✓ Check user roles from JWT token
+ * ✓ Logout functionality
+ * ✓ Navigation to other pages
+ * \n * Related Files:
+ * → src/components/Dashboard.css - Styling\n * → src/App.tsx (line ~102) - Route definition
+ * \n * Backend API Calls:\n * GET http://localhost:3000/user/me\n * PATCH http://localhost:3000/user/me-the-first-time\n * \n * See: COMPONENT_GUIDE.md → Dashboard Component\n * ================================================================\n */
+ import { useNavigate } from "react-router-dom";
 import { signOut } from "supertokens-auth-react/recipe/session";
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import "./Dashboard.css";
 import Session from "supertokens-auth-react/recipe/session";
 import { useEffect, useState } from "react";
-
 
 async function checkUserRole() {
 	if (await Session.doesSessionExist()) {
@@ -122,7 +145,8 @@ export default function Dashboard() {
 					</div>
 				</div>
 			</div>
-			
+			{/* Book Creator for testing purposes */}
+
 			<button onClick={updateUserFirstTime}>Update First Time Flag</button>
 		</>
 	);
