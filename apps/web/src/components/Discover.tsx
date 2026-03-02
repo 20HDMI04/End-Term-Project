@@ -41,10 +41,30 @@
 
 export function Discover() {
     return (
-        <div>
-            <header>
-                <h1>Discover</h1>
+        <div className="home-container">  
+            <nav className="navbar navbar-expand-lg">
+                <div className="container-fluid">
+                    <div className="collapse navbar-collapse" id="navbarNavDropdown">
+                        <img src="../public/logo.svg" alt="" className="logo" />
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <h2><a className="nav-link" href="/">Home</a></h2>
+                            </li>
+                            <li className="nav-item">
+                                <h2><a className="nav-link" href="/search">Search</a></h2>
+                            </li>
+                            <li className="nav-item">
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <header className="header">
+                
             </header>
+
 
             <div>
                 {/* Filters */}
@@ -66,13 +86,17 @@ export function Discover() {
                 {/* Popular Authors */}
             </div>
 
-            <footer>
+            <footer className="footer">
                 {/*Logo*/}
                 <p>
                     "Jani ajánlásával lorem ipsum stb"
                 </p>
                 {/*contacts*/}
             </footer>
+            <div className="footer2">
+                <p>Copyright© Readsy 2025. Allrights reserved.</p>
+                <p className="Privacy">Privacy & Policy</p>
+            </div>
 
         </div>
     );

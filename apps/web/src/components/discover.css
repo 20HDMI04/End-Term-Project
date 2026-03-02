@@ -1,0 +1,156 @@
+html, body {
+    background-color: #f7f4dc;
+    margin: 0;
+    padding: 0;
+}
+
+.home-container {
+    background-color: #f7f4dc;
+}
+
+.logo{
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    max-width: 15%;
+    margin: 10%, 10%;
+}
+nav{
+    background-color: #f7f4dc !important;
+    margin-top: 1em;
+}
+
+
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px 40px;
+    background-color: #485B1F;
+    opacity: 40%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 40px;
+    font-family: "Modern No. 20";
+    color: white;
+    position: relative;
+    gap: 40px;
+}
+
+.header-content {
+    flex: 1;
+    text-align:inherit;
+}
+
+.header-images {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: absolute;
+    right: 0;
+    gap: 20px;
+    padding-left:80% ;
+}
+
+.headerAlso {
+    position: relative;
+    width: 250px;
+    height: auto;
+    left: 90px;
+    top: 20px;
+    z-index: 5;
+}
+
+.headerFelso {
+    position: relative;
+    width: 280px;
+    height: auto;
+    z-index: 5;
+    right: 20px;
+    bottom:10px;
+}
+
+.gomb1 {
+    background-color: #374618;
+    color: white;
+    border-radius: 8px;
+    border-color: transparent;
+    box-shadow: black 0px 4px 8px;
+
+}
+
+.listing-h1 {
+    font-family: "Modern No. 20";
+    color: #374618;
+    margin-bottom: 20px;
+    margin-left: 1em;
+}
+.nav-item{
+    color: #374618;
+    font-family: "Modern No. 20";
+}
+.nav-link{
+    font-size: x-large;
+}
+
+.footer{
+     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 50px 40px;
+    background-color: #485B1F;
+    opacity: 80%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: "Modern No. 20";
+    color: white;
+}
+.privacy{
+    float: left;
+    margin-top: 10px;
+}
+.footer2{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    background-color: #374618;
+    opacity: 80%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: "Modern No. 20";
+    color: white;
+    max-height: 10px;
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        padding: 30px 20px;
+        gap: 20px;
+    }
+
+    .header-content {
+        width: 100%;
+        text-align: center;
+    }
+
+    .header-images {
+        position: relative;
+        right: auto;
+        padding-left: 0;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .headerAlso {
+        width: 150px;
+        left: 0;
+        top: 0;
+    }
+
+    .headerFelso {
+        width: 170px;
+        right: 0;
+        bottom: 0;
+    }
+}
