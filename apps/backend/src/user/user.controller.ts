@@ -18,7 +18,13 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { FastifyFileInterceptor } from 'src/common/interceptors/fastify-file.interceptor';
 import { UploadedFile } from 'src/common/types/types';
 import { File } from 'src/common/decorators/file.decorator';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiTags,
+  ApiResponse,
+  ApiNotFoundResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('User')
 @Controller('user')
@@ -26,6 +32,19 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('me')
+  @ApiOperation({
+    summary: 'Get current user profile',
+    description:
+      'Returns the profile information of the currently authenticated user.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The user profile has been successfully retrieved.',
+  })
+  @ApiNotFoundResponse({
+    description: 'User with the specified email was not found.',
+  })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   findOne(@Session() session: any) {
     const user_email = session.userDataInAccessToken.email;
@@ -33,6 +52,12 @@ export class UserController {
   }
 
   @Patch('me')
+  @ApiOperation({
+    summary: 'Update current user profile',
+    description:
+      'Updates the profile information of the currently authenticated user. If this is the first time the user is updating their profile, a nickname must be provided.',
+  })
+  @ApiCookieAuth()
   @UseInterceptors(FastifyFileInterceptor)
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   update(
