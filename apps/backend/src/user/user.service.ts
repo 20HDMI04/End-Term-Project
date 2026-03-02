@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,15 +21,21 @@ export class UserService {
   ) {}
 
   findOne(email: string) {
-    return this.prisma.user.findUniqueOrThrow({
-      where: { email: email },
-      omit: {
-        id: true,
-        biggerProfilePicKey: true,
-        smallerProfilePicKey: true,
-        username: true,
-      },
-    });
+    try {
+      return this.prisma.user.findUniqueOrThrow({
+        where: { email: email },
+        omit: {
+          id: true,
+          biggerProfilePicKey: true,
+          smallerProfilePicKey: true,
+          username: true,
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException(
+        'User with the specified email was not found.',
+      );
+    }
   }
 
   async update(
