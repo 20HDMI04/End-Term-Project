@@ -5,16 +5,16 @@
  * ================================================================
  * File: src/App.tsx
  * Purpose: Application initialization, authentication setup, routing
- * 
+ *
  * Key Sections:
  * 1. SuperTokens Configuration (line ~22-41)
  *    - Authentication setup (email, Google, sessions)
  *    - Backend API: http://localhost:3000
- * 
+ *
  * 2. Route Setup (line ~43-105)
  *    - All routes protected with SessionAuth
  *    - SuperTokens auth routes auto-generated
- * 
+ *
  * Available Routes:
  * ┌────────────────────────────────────────────┐
  * │ /          → Dashboard (main page)         │
@@ -24,20 +24,20 @@
  * │ /search    → Search page                   │
  * │ /auth/*    → Auth pages (SuperTokens)      │
  * └────────────────────────────────────────────┘
- * 
+ *
  * Component Files:
  * → src/components/Dashboard.tsx - Main dashboard
  * → src/components/Home.tsx - Home page
  * → src/components/Discover.tsx - Book discovery
  * → src/components/Search.tsx - Search functionality
  * → src/components/AuthLayout.tsx - Auth wrapper
- * 
+ *
  * To Add New Route:
  * 1. Create component in src/components/
  * 2. Import at the top of this file
  * 3. Add <Route> with SessionAuth wrapper
  * 4. Reference COMPONENT_GUIDE.md for patterns
- * 
+ *
  * See: WEB_DOCUMENTATION.md → Routing section
  * ================================================================
  */
@@ -52,14 +52,14 @@ import { SessionAuth } from "supertokens-auth-react/recipe/session";
 import * as reactRouterDom from "react-router-dom";
 import { EmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/emailpassword/prebuiltui";
 import { ThirdPartyPreBuiltUI } from "supertokens-auth-react/recipe/thirdparty/prebuiltui";
-import {Home} from "./components/Home";
-import {Discover} from "./components/Discover";
-import {Search} from "./components/Search";
+import { Home } from "./components/Home";
+import { Discover } from "./components/Discover";
+import { Search } from "./components/Search";
 
 SuperTokens.init({
 	appInfo: {
 		appName: "Readsy",
-		apiDomain: "http://localhost:3000", // Backend API domain
+		apiDomain: "http://localhost:3002", // Backend API domain
 		websiteDomain: "http://localhost:5173", // Frontend website domain
 		apiBasePath: "/auth",
 		websiteBasePath: "/auth",
@@ -81,7 +81,6 @@ SuperTokens.init({
 
 export default function App() {
 	return (
-
 		<SuperTokensWrapper>
 			<BrowserRouter>
 				<Routes>
@@ -96,7 +95,6 @@ export default function App() {
 
 					{/* DASHBOARD - Main entry point & home */}
 					{/* File: src/components/Dashboard.tsx */}
-					
 
 					{/* HOME PAGE - User's personal dashboard */}
 					{/* File: src/components/Home.tsx */}
@@ -148,8 +146,5 @@ export default function App() {
 				</Routes>
 			</BrowserRouter>
 		</SuperTokensWrapper>
-		
 	);
 }
-
-
