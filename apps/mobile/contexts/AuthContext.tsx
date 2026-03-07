@@ -22,7 +22,7 @@ interface AuthProps {
 	finalizeLogin: () => Promise<void>;
 }
 
-const Api_URL = "https://koax-hoax-readsy.loca.lt";
+const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
 const AuthContext = createContext<AuthProps>(null as any);
 
 export const useAuth = () => useContext(AuthContext);
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const onRegister = async (
 		email: string,
-		password: string
+		password: string,
 	): Promise<ResponseData> => {
 		try {
 			const response = await fetch(`${Api_URL}/auth/signup`, {
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 	const onLogin = async (
 		email: string,
-		password: string
+		password: string,
 	): Promise<ResponseData> => {
 		try {
 			const response = await fetch(`${Api_URL}/auth/signin`, {

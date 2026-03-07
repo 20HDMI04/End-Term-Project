@@ -1,7 +1,7 @@
 import axios from "axios";
 import SuperTokens from "supertokens-react-native";
 
-const API_URL = "https://koax-hoax-readsy.loca.lt";
+const API_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
 
 const apiClient = axios.create({
 	baseURL: API_URL,

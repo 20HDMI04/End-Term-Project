@@ -16,21 +16,21 @@ export default ({ config }: { config: any }) => ({
 function getApiUrl(): string {
 	// If running on a physical device, replace this with your computer's IP address
 	// You can find it by running `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-	const LOCAL_IP = "192.168.1.121";
+	const LOCAL_IP = "chloroplastic-crumbly-dominic.ngrok-free.dev";
 
 	// Check if running on Android irl device
 	if (Platform.OS === "android") {
 		// Android irl device
-		return "http://192.168.1.121:3000";
+		return "chloroplastic-crumbly-dominic.ngrok-free.dev";
 	}
 
 	// Check if running on iOS simulator or web
 	if (Platform.OS === "ios" || Platform.OS === "web") {
-		return "http://localhost:3000";
+		return "chloroplastic-crumbly-dominic.ngrok-free.dev";
 	}
 
 	// For physical devices, use the local network IP
-	return `http://${LOCAL_IP}:3000`;
+	return `chloroplastic-crumbly-dominic.ngrok-free.dev`;
 }
 
 export const API_URL = getApiUrl();

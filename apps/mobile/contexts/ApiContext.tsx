@@ -17,7 +17,7 @@ interface ApiProps {
 	getTopBooks: () => Promise<ResponseData | Book[]>;
 }
 
-const Api_URL = "https://koax-hoax-readsy.loca.lt";
+const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
 const ApiContext = createContext<ApiProps>(null as any);
 
 export const useApi = () => useContext(ApiContext);
