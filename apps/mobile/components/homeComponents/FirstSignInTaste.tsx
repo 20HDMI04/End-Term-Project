@@ -1,9 +1,10 @@
-import React, { use, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, View, Text, Modal, TouchableOpacity } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useColorScheme } from "react-native";
 import { Colors } from "@/constants/theme";
 import LottieView from "lottie-react-native";
+import ArrowRight from "@/assets/svgs/arrow-circle-right.svg";
 
 interface MultiPageOverlayProps {
 	visible: boolean;
@@ -14,6 +15,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 	const [currentPage, setCurrentPage] = useState(0);
 	const isDarkMode = useColorScheme() === "dark";
 	const animationRef = useRef<LottieView>(null);
+	const pagerRef = useRef<PagerView>(null);
 
 	const backgroundColors = isDarkMode
 		? Colors.dark.background
@@ -45,6 +47,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 					style={styles.pagerView}
 					initialPage={0}
 					onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
+					ref={pagerRef}
 				>
 					<View
 						key="1"
@@ -72,13 +75,44 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 						<Text style={[styles.textSmall, { color: secondaryTextColors }]}>
 							Join thousands of users who are leveling up their lives.
 						</Text>
+						<TouchableOpacity
+							onPress={() => {
+								pagerRef.current?.setPage(currentPage + 1);
+							}}
+							style={[
+								isDarkMode ? Colors.buttonDark : Colors.button,
+								styles.button,
+								{
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 10,
+								},
+							]}
+						>
+							<View style={{ width: 26 }} />
+							<Text
+								style={[
+									styles.textStyle,
+									{
+										color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+									},
+								]}
+							>
+								Next Step
+							</Text>
+							<ArrowRight
+								style={{ width: 32, height: 32 }}
+								fill={isDarkMode ? "#000000" : "#ffffff"}
+							></ArrowRight>
+						</TouchableOpacity>
 					</View>
 					<View
 						key="2"
 						style={[styles.page, { backgroundColor: backgroundColors }]}
 					>
 						<Text style={[styles.text, { color: textColors }]}>
-							Second Step
+							Own your reader profile.
 						</Text>
 					</View>
 					<View
@@ -124,10 +158,10 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 		borderRadius: 90,
-		width: 300,
-		height: 300,
+		width: 330,
+		height: 330,
 		overflow: "hidden",
-		bottom: 20,
+		top: 16,
 	},
 	pagerView: {
 		flex: 1,
@@ -139,26 +173,30 @@ const styles = StyleSheet.create({
 		padding: 20,
 	},
 	text: {
-		fontSize: 50,
+		fontSize: 56,
 		width: "95%",
 		marginLeft: 5,
 		textAlign: "left",
 		fontFamily: "Modern-No-20-Regular",
-		bottom: 90,
+		bottom: 40,
 	},
 	textSmall: {
-		fontSize: 18,
+		fontSize: 20,
 		marginLeft: 10,
 		width: "94%",
 		textAlign: "center",
 		fontFamily: "Modern-No-20-Regular",
-		bottom: 20,
+		top: 16,
 	},
 	indicatorContainer: {
 		flexDirection: "row",
 		position: "absolute",
-		top: 60,
+		top: 70,
 		alignSelf: "center",
+	},
+	textStyle: {
+		fontSize: 16,
+		fontFamily: "Poppins_300Light",
 	},
 	dot: {
 		width: 70,
@@ -170,11 +208,13 @@ const styles = StyleSheet.create({
 		width: 70,
 	},
 	button: {
-		marginTop: 30,
-		backgroundColor: "#007AFF",
-		paddingHorizontal: 30,
-		paddingVertical: 12,
-		borderRadius: 25,
+		width: "94%",
+		height: 50,
+		marginBottom: 10,
+		justifyContent: "center",
+		alignItems: "center",
+		borderRadius: 30,
+		top: 88,
 	},
 	buttonText: {
 		color: "white",
@@ -182,8 +222,8 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 	},
 	lottie: {
-		width: 360,
-		height: 360,
+		width: 400,
+		height: 400,
 	},
 });
 

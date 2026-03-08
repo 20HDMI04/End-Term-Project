@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
+import { Colors } from "@/constants/theme";
 
 export default function Index() {
 	const router = useRouter();
@@ -9,20 +10,23 @@ export default function Index() {
 
 	useEffect(() => {
 		if (authState.isAuthenticated !== null) {
-			if (authState.isAuthenticated) {
-				console.log("[Index] User is authenticated, redirecting to Tabs...");
-				router.replace("/(tabs)");
-			} else {
-				console.log(
-					"[Index] User is not authenticated, redirecting to Auth..."
-				);
-				router.replace("/(authentication)/auth");
-			}
+			const timeout = setTimeout(() => {
+				if (authState.isAuthenticated) {
+					console.log("[Index] Authenticated -> Tabs");
+					router.replace("/(tabs)");
+				} else {
+					console.log("[Index] Not authenticated -> Auth");
+					router.replace("/(authentication)/auth");
+				}
+			}, 1);
+
+			return () => clearTimeout(timeout);
 		}
 	}, [authState.isAuthenticated]);
+
 	return (
 		<View style={styles.container}>
-			<ActivityIndicator size="large" color="#0000ff" />
+			<ActivityIndicator size="large" color={Colors.mainColorLight} />
 		</View>
 	);
 }

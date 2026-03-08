@@ -1,7 +1,6 @@
 {
   "expo": {
     "name": "readsy",
-    "entryPoint": "./app/index.tsx",
     "slug": "readsy",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,77 +8,72 @@
     "scheme": "readsy",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "scheme": "readsy"
-    },
     "android": {
-      "config": {
-        "googleSignIn": {
-          "clientIds": [
-            "774321371207-itd52m8vd4orsn72d94465dan2tfc1pp.apps.googleusercontent.com"
-          ]
-        },
-        "adaptiveIcon": {
-          "dark": {
-            "backgroundColor": "#222E3A",
-            "foregroundImage": "./assets/images/adaptive-icon-dark.png"
-          },
-          "backgroundColor": "#F7F4EB",
-          "foregroundImage": "./assets/images/adaptive-icon.png"
-        },
-        "edgeToEdgeEnabled": true,
-        "predictiveBackGestureEnabled": false,
-        "package": "com.hdmi.readsy",
-        "scheme": "readsy"
-      },
-      "web": {
-        "output": "static",
-        "favicon": "./assets/images/favicon.png"
-      },
-      "plugins": [
-        "@react-native-google-signin/google-signin",
-        "expo-router",
-        [
-          "expo-splash-screen",
-          {
-            "backgroundColor": "#F7F4EB",
-            "image": "./assets/images/splash-icon-light.png",
-            "dark": {
-              "image": "./assets/images/splash-icon-dark.png",
-              "backgroundColor": "#222E3A"
-            },
-            "imageWidth": 200
-          }
-        ],
-        [
-          "expo-font",
-          {
-            "fonts": [
-              "./assets/fonts/MOD20.TTF"
-            ]
-          }
-        ]
-      ],
-      "experiments": {
-        "typedRoutes": true,
-        "reactCompiler": true
-      },
-      "extra": {
-        "router": {},
-        "eas": {
-          "projectId": "33d418ad-9105-454c-8813-0a07ddd30349"
-        }
-      },
-      "package": "com.hdmi.readsy"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "33d418ad-9105-454c-8813-0a07ddd30349"
+      "package": "com.hdmi.readsy",
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F4EB",
+        "foregroundImage": "./assets/images/adaptive-icon.png"
       }
     },
     "plugins": [
-      "expo-secure-store"
-    ]
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+      ],
+      "@react-native-google-signin/google-signin",
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan book barcodes."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos for profile pictures."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7F4EB",
+          "image": "./assets/images/splash-icon-light.png",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#222E3A"
+          },
+          "imageWidth": 200
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/modern_no_20_regular.otf"
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true,
+      "reactCompiler": false
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "33d418ad-9105-454c-8813-0a07ddd30349"
+      }
+    }
   }
 }

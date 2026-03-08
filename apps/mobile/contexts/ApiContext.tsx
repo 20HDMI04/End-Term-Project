@@ -1,20 +1,20 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useEffect, useContext, use } from "react";
 import SuperTokens from "supertokens-react-native";
 import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
+import { UserService } from "@/services/user.service";
+import { Storage } from "@/utils/storage";
 
-interface ResponseData {
-	error: boolean;
-	msg: string;
-}
-
-interface Book {
-	id: string;
-	title: string;
-	// TODO: add other book properties
+export interface Me {
+	biggerProfilePic: string;
+	createdAt: string;
+	email: string;
+	nickname: any;
+	smallerProfilePic: string;
+	updatedAt: string;
 }
 
 interface ApiProps {
-	getTopBooks: () => Promise<ResponseData | Book[]>;
+	getMe: () => Promise<Me | { error: boolean; msg: string }>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -23,39 +23,25 @@ const ApiContext = createContext<ApiProps>(null as any);
 export const useApi = () => useContext(ApiContext);
 
 export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
-	useEffect(() => {
-		const checkSession = async () => {
-			try {
-				const sessionExists = await SuperTokens.doesSessionExist();
-				if (sessionExists) {
-					const userId = await SuperTokens.getUserId();
-					const payload = await SuperTokens.getAccessTokenPayloadSecurely();
-					const roles = payload["st-role"]?.v || [];
-				} else {
-					await SuperTokens.signOut();
-				}
-			} catch (e) {
-				await SuperTokens.signOut();
-				console.error("Session check error:", e);
-			}
-		};
-		checkSession();
-	}, []);
-
-	const getTopBooks = async (): Promise<ResponseData | Book[]> => {
+	const getMe = async () => {
 		try {
-			// TODO: api call to get top books
-			return [];
-		} catch (e) {
-			console.error("Get books error:", e);
-			return { error: true, msg: "Failed to fetch top books." };
+			const data = await UserService.getCurrentUser();
+			await Storage.setItem("user", data);
+			return data;
+		} catch (e: any) {
+			return {
+				error: true,
+				msg:
+					e.response?.data?.message ||
+					"An error occurred while fetching user data.",
+			};
 		}
 	};
 
 	return (
 		<ApiContext.Provider
 			value={{
-				getTopBooks,
+				getMe,
 			}}
 		>
 			{children}

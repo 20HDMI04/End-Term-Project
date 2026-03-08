@@ -1,30 +1,30 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 
-/**
- * Metro configuration for Expo + SVG transformer
- * This adapts the default Expo metro config to treat `.svg` as source
- * so `react-native-svg-transformer` can convert them to React components.
- */
 const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, "../..");
+
 const config = getDefaultConfig(projectRoot);
 
-const { assetExts, sourceExts } = config.resolver;
+const { transformer, resolver } = config;
 
-config.transformer = config.transformer || {};
-config.transformer.babelTransformerPath = require.resolve(
-	"react-native-svg-transformer"
-);
+config.transformer = {
+	...transformer,
+	babelTransformerPath: require.resolve("react-native-svg-transformer"),
+};
 
-config.resolver = config.resolver || {};
-config.resolver.assetExts = assetExts.filter((ext) => ext !== "svg");
-config.resolver.sourceExts = [...sourceExts, "svg"];
+config.resolver = {
+	...resolver,
+	assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
+	sourceExts: [...resolver.sourceExts, "svg"],
+	nodeModulesPaths: [
+		path.resolve(projectRoot, "node_modules"),
+		path.resolve(workspaceRoot, "node_modules"),
+	],
+};
 
-// Monorepo support
+config.watchFolders = [workspaceRoot];
+
 config.projectRoot = projectRoot;
-config.watchFolders = [
-	projectRoot,
-	path.resolve(projectRoot, "../../node_modules"),
-];
 
 module.exports = config;

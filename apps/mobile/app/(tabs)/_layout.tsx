@@ -58,7 +58,7 @@ export default function TabLayout() {
 				{
 					translateX: withSpring(
 						tabIndex.value * tabWidth + TAB_BAR_PADDING + (tabWidth - 50) / 2,
-						{ damping: 20, stiffness: 150, mass: 1 }
+						{ damping: 20, stiffness: 150, mass: 1 },
 					),
 				},
 			],

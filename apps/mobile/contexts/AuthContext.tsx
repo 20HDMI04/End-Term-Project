@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import SuperTokens from "supertokens-react-native";
 import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
+import { ApiProvider } from "./ApiContext";
+import { UserService } from "@/services/user.service";
 
 interface ResponseData {
 	error: boolean;
@@ -40,7 +42,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				const sessionExists = await SuperTokens.doesSessionExist();
 				if (sessionExists) {
 					const userId = await SuperTokens.getUserId();
-
 					const payload = await SuperTokens.getAccessTokenPayloadSecurely();
 					const roles = payload["st-role"]?.v || [];
 
