@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext, use } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import SuperTokens from "supertokens-react-native";
 import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { UserService } from "@/services/user.service";
@@ -18,6 +18,7 @@ interface ApiProps {
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
+const S3_URL = "https://readsys3.share.zrok.io/";
 const ApiContext = createContext<ApiProps>(null as any);
 
 export const useApi = () => useContext(ApiContext);
@@ -26,7 +27,18 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 	const getMe = async () => {
 		try {
 			const data = await UserService.getCurrentUser();
-			await Storage.setItem("user", data);
+			const userData: Me = {
+				...data,
+				smallerProfilePic: data.smallerProfilePic.replace(
+					"http://localhost:4566",
+					S3_URL,
+				),
+				biggerProfilePic: data.biggerProfilePic.replace(
+					"http://localhost:4566",
+					S3_URL,
+				),
+			} as Me;
+			await Storage.setItem("user", userData);
 			return data;
 		} catch (e: any) {
 			return {

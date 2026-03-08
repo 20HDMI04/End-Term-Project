@@ -120,7 +120,7 @@ export default function RootLayout() {
 	const [appIsReady, setAppIsReady] = useState(false);
 
 	const [fontsLoaded, fontError] = useFonts({
-		"Modern-No-20-Regular": require("../assets/fonts/modern_no_20_regular.otf"),
+		modern_no_20_regular: require("../assets/fonts/modern_no_20_regular.otf"),
 		Poppins_300Light,
 		Poppins_400Regular,
 		Poppins_600SemiBold,

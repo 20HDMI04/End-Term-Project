@@ -41,7 +41,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 
 	const lottieSource = getLottieSource();
 	return (
-		<Modal visible={visible} animationType="slide" transparent={false}>
+		<Modal visible={visible} animationType="slide" transparent={true}>
 			<View style={styles.container}>
 				<PagerView
 					style={styles.pagerView}
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
 		marginLeft: 5,
 		textAlign: "left",
 		fontFamily: "Modern-No-20-Regular",
-		bottom: 40,
+		bottom: 54,
 	},
 	textSmall: {
 		fontSize: 20,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
 	indicatorContainer: {
 		flexDirection: "row",
 		position: "absolute",
-		top: 70,
+		top: 20,
 		alignSelf: "center",
 	},
 	textStyle: {
