@@ -931,4 +931,8 @@ export class BooksService {
 
     return { message: 'Book successfully deleted.', deletedBook: res };
   }
+
+  async getMainPageBooksWithSections() {
+    //TODO: implement section logic and get books based on that
+  }
 }
