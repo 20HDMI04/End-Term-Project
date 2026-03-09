@@ -28,6 +28,7 @@ export class BooksService {
     private readonly httpService: HttpService,
   ) {}
 
+  // TODO: Adding additional endpoints and documentation
   async create(file: UploadedFile | null, createBookDto: CreateBookDto) {
     // ISBN, Google Book ID, Open Library ID check (duplicate prevention)
     const duplicateCheck = await this.prisma.book.findFirst({
@@ -42,7 +43,7 @@ export class BooksService {
     });
 
     if (duplicateCheck) {
-      // Megnézzük, pontosan melyik ütközött az üzenethez
+      // Determine the reason for duplication (which field caused the conflict)
       const matchedIsbn = duplicateCheck.isbns.find((i) =>
         createBookDto.isbns.includes(i.isbnNumber),
       );
@@ -68,7 +69,7 @@ export class BooksService {
       } catch (error) {
         this.logger.error(`S3 Upload Error: ${error.message}`);
         throw new InternalServerErrorException(
-          'Hiba történt a kép feltöltésekor.',
+          'Error occurred while uploading the book cover image. Please try again later.',
         );
       }
     } else {
@@ -379,7 +380,7 @@ export class BooksService {
       });
     } catch (error) {
       if (error.code === 'P2025') {
-        throw new ConflictException(
+        throw new NotFoundException(
           'The book with the given ID does not exist.',
         );
       }
@@ -397,7 +398,7 @@ export class BooksService {
       });
     } catch (error) {
       if (error.code === 'P2025') {
-        throw new ConflictException(
+        throw new NotFoundException(
           'The book with the given ID does not exist.',
         );
       }
@@ -421,7 +422,7 @@ export class BooksService {
       const item = data.items[0];
       const info = item.volumeInfo;
 
-      // ISBN-ek gyűjtése
+      // Collect ISBNs
       const isbns = info.industryIdentifiers?.map((id) => id.identifier) || [];
       if (!isbns.includes(cleanIsbn)) isbns.push(cleanIsbn);
 
@@ -430,12 +431,12 @@ export class BooksService {
         ? new Date(publishedDateRaw).getFullYear()
         : undefined;
 
-      // Google API-nál az authorOpenLibraryId mindig undefined lesz,
-      // mert a Google nem ismeri az OL azonosítókat.
+      // Google API doesn't provide Open Library IDs, so we can only return Google-specific data. The OL ID and author OL ID will be filled in later if we find a match in our database or through the OL API,
+      // because Google Books doesn't provide that information. We will rely on our merging logic to fill in any gaps when we combine data from both sources.
       return {
         googleBookId: item.id,
-        openLibraryId: undefined, // Google-nél nincs OL ID
-        authorOpenLibraryId: undefined, // Ezt itt nem tudjuk kinyerni
+        openLibraryId: undefined, // Google API doesn't provide OL ID, so it's set to undefined
+        authorOpenLibraryId: undefined, // We don't get OL author ID from Google, so it's set to undefined
         title: info.title,
         authors: info.authors || [],
         description: info.description || '',
@@ -513,7 +514,7 @@ export class BooksService {
         ],
       } as ExternalBookResponse;
     } catch (error) {
-      this.logger.warn(`Open Library API hiba: ${error.message}`);
+      this.logger.warn(`Open Library API error: ${error.message}`);
       return null;
     }
   }
@@ -587,7 +588,7 @@ export class BooksService {
     } catch (error) {
       console.error('Prisma Error in findAll:', error);
       throw new InternalServerErrorException(
-        'Hiba történt a műfajok listázása közben.',
+        'Error occurred while fetching genres. Please try again later.',
       );
     }
   }
@@ -648,14 +649,25 @@ export class BooksService {
   }
 
   async findOne(id: string) {
-    return await this.prisma.book.findUniqueOrThrow({
-      where: { id },
-      include: {
-        isbns: true,
-        genres: { include: { genre: true } },
-        author: true,
-      },
-    });
+    try {
+      return await this.prisma.book.findUniqueOrThrow({
+        where: { id },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(
+          'The book with the given ID does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while fetching the book details.',
+      );
+    }
   }
 
   async update(
@@ -670,7 +682,7 @@ export class BooksService {
     });
 
     if (!existingBook) {
-      throw new NotFoundException(`A könyv (ID: ${id}) nem található.`);
+      throw new NotFoundException(`The book (ID: ${id}) was not found.`);
     }
 
     // 2. Conflict check: If the admin modifies identifiers,
@@ -697,7 +709,7 @@ export class BooksService {
 
       if (conflict) {
         throw new ConflictException(
-          'A megadott azonosítók (ISBN, Google ID vagy OL ID) már egy másik könyvhöz tartoznak.',
+          'The provided identifiers (ISBN, Google ID or OL ID) are already associated with another book.',
         );
       }
     }
@@ -785,7 +797,7 @@ export class BooksService {
     } catch (error) {
       this.logger.error(`Update hiba: ${error.message}`);
       throw new InternalServerErrorException(
-        'Hiba történt a könyv frissítésekor.',
+        'Error occurred while updating the book. Please try again later.',
       );
     }
   }

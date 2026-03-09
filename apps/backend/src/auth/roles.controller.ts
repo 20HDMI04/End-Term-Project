@@ -4,12 +4,20 @@ import { SessionGuard } from './session.guard';
 import UserRoles from 'supertokens-node/recipe/userroles';
 import { env } from 'process';
 import { RolesGuard } from './roles.guard';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Roles')
 @Controller('roles')
 export class RolesController {
   @Post('create')
+  @ApiOperation({ summary: 'Create a new role' })
+  @ApiCookieAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async createRole(
     @Body() body: { role: string },
@@ -23,6 +31,9 @@ export class RolesController {
   }
 
   @Post('assign')
+  @ApiOperation({ summary: 'Assign a role to a user' })
+  @ApiCookieAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async assignRole(
     @Body() body: { userId: string; role: string },
@@ -46,6 +57,9 @@ export class RolesController {
   }
 
   @Post('get')
+  @ApiOperation({ summary: 'Get roles for a user' })
+  @ApiCookieAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   async getUserRoles(@Req() req: FastifyRequest & { session: any }) {
     if (req.session.email != env.email_admin) {
@@ -61,6 +75,9 @@ export class RolesController {
   }
 
   @Post('remove')
+  @ApiOperation({ summary: 'Remove a role from a user' })
+  @ApiCookieAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async removeRole(
     @Body() body: { userId: string; role: string },
@@ -83,6 +100,9 @@ export class RolesController {
   }
 
   @Post('remove-new-role')
+  @ApiOperation({ summary: 'Remove a new role' })
+  @ApiCookieAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   async removeNewRole(@Req() req: FastifyRequest & { session: any }) {
     if (req.session.email != env.email_admin) {
