@@ -19,6 +19,8 @@ const loginTextDark = "#A8B5C2";
 const thirdColorLight = "#D7DCCF";
 const thirdColorDark = "#324252";
 
+const darkerTextLight = "#98A675";
+
 export const Colors = {
 	loginBackgroundDark: loginBackgroundDark,
 	loginTextDark: loginTextDark,
@@ -33,6 +35,7 @@ export const Colors = {
 	secondaryColorLight: secondaryColorLight,
 	thirdColorLight: thirdColorLight,
 
+	darkerTextLight: darkerTextLight,
 	button: {
 		backgroundColor: mainColorLight,
 	},

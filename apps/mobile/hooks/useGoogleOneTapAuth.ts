@@ -29,20 +29,23 @@ export const googleSignInAndSuperTokensAuth =
 			}
 
 			// Send the ID token to your backend for SuperTokens authentication
-			const response = await fetch("http://192.168.1.121:3000/auth/signinup", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					rid: "thirdparty",
-				},
-				body: JSON.stringify({
-					thirdPartyId: "google",
-					oAuthTokens: {
-						id_token: idToken,
+			const response = await fetch(
+				"https://chloroplastic-crumbly-dominic.ngrok-free.dev/auth/signinup",
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						rid: "thirdparty",
 					},
-					clientType: "android",
-				}),
-			});
+					body: JSON.stringify({
+						thirdPartyId: "google",
+						oAuthTokens: {
+							id_token: idToken,
+						},
+						clientType: "android",
+					}),
+				},
+			);
 
 			if (!response.ok) {
 				const errorText = await response.text();

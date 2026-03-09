@@ -16,12 +16,8 @@ import FirstSignInTaste from "@/components/homeComponents/FirstSignInTaste";
 import React, { useState } from "react";
 
 export default function HomeScreen() {
-	const { onLogout, authState } = useAuth();
+	const { authState } = useAuth();
 	const [modalVisibility, setModalVisibility] = useState(false);
-
-	const handleLogout = async () => {
-		await onLogout();
-	};
 
 	return (
 		<>
@@ -34,23 +30,6 @@ export default function HomeScreen() {
 
 						<DashboardAdCarousel />
 						<AnimatedCarousel />
-
-						<TouchableOpacity
-							style={styles.logoutButton}
-							onPress={handleLogout}
-						>
-							<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
-								Log out
-							</ThemedText>
-							<IconSymbol
-								color={"#960303ff"}
-								name="arrow.right.square"
-								size={18}
-								style={{
-									marginBottom: Platform.OS === "ios" ? 2 : 0,
-								}}
-							/>
-						</TouchableOpacity>
 
 						<FirstSignInTaste
 							visible={modalVisibility}
@@ -69,19 +48,6 @@ export default function HomeScreen() {
 								Open Carousel
 							</ThemedText>
 						</TouchableOpacity>
-
-						<ThemedText style={styles.welcomeText}>
-							Welcome back! Your User ID: {authState.userId}
-						</ThemedText>
-						<ThemedText style={styles.welcomeText}>
-							Welcome back! Your User ID: {authState.userId}
-						</ThemedText>
-						<ThemedText style={styles.welcomeText}>
-							Welcome back! Your User ID: {authState.userId}
-						</ThemedText>
-						<ThemedText style={styles.welcomeText}>
-							Welcome back! Your User ID: {authState.userId}
-						</ThemedText>
 					</ScrollView>
 				</SafeAreaView>
 			</View>

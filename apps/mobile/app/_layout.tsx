@@ -1,13 +1,21 @@
+console.log("[_layout] Module loading started");
+
 import {
 	DarkTheme,
 	DefaultTheme,
 	ThemeProvider,
 } from "@react-navigation/native";
+console.log("[_layout] @react-navigation/native loaded");
+
 import { Colors } from "@/constants/theme";
 import { Stack, useRouter, useSegments } from "expo-router";
+console.log("[_layout] expo-router loaded");
+
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-import { useEffect, useState } from "react";
+console.log("[_layout] react-native-reanimated loaded");
+
+import { StrictMode, useEffect, useState } from "react";
 import {
 	Poppins_300Light,
 	Poppins_400Regular,
@@ -17,41 +25,77 @@ import { useFonts } from "expo-font";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initSuperTokens } from "../config/supertokens.config";
 import * as SplashScreenRN from "expo-splash-screen";
+console.log("[_layout] Basic imports done");
+
 import AnimatedSplashScreen from "@/components/splash-screen";
+console.log("[_layout] splash-screen loaded (lottie-react-native)");
+
 import { AppHeader } from "@/components/AppHeader";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+console.log("[_layout] AuthContext loaded (supertokens-react-native)");
+
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { ApiProvider } from "@/contexts/ApiContext";
+console.log("[_layout] GoogleSignin loaded");
+
+import { ApiProvider, useApi } from "@/contexts/ApiContext";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
-GoogleSignin.configure({
-	webClientId: WEB_CLIENT_ID,
-	offlineAccess: true,
-	scopes: ["profile", "email"],
-});
+try {
+	GoogleSignin.configure({
+		webClientId: WEB_CLIENT_ID,
+		offlineAccess: true,
+		scopes: ["profile", "email"],
+	});
+} catch (e) {
+	console.warn("GoogleSignin.configure failed:", e);
+}
 
-initSuperTokens();
+try {
+	initSuperTokens();
+} catch (e) {
+	console.warn("initSuperTokens failed:", e);
+}
+
 SplashScreenRN.preventAutoHideAsync();
 
 function RootLayoutNav() {
 	const { authState } = useAuth();
+	const api = useApi();
 	const segments = useSegments();
 	const router = useRouter();
+	const [isNavigationReady, setIsNavigationReady] = useState(false);
 
 	useEffect(() => {
-		if (authState.isAuthenticated === null) return;
+		setIsNavigationReady(true);
+	}, []);
 
-		const inAuthGroup = segments[0] === "(authentication)";
+	useEffect(() => {
+		if (authState.isAuthenticated === null || !isNavigationReady) return;
 
-		if (!authState.isAuthenticated && !inAuthGroup) {
-			console.log("[LayoutNav] Redirecting to Login...");
-			router.replace("/(authentication)/auth");
-		} else if (authState.isAuthenticated && inAuthGroup) {
-			console.log("[LayoutNav] Redirecting to Home...");
-			router.replace("/(tabs)");
+		const routeSegments = segments as string[];
+
+		const inAuthGroup = routeSegments[0] === "(authentication)";
+		const inTabsGroup = routeSegments[0] === "(tabs)";
+
+		const timeout = setTimeout(() => {
+			if (!authState.isAuthenticated && !inAuthGroup) {
+				console.log("[LayoutNav] Redirecting to Auth");
+				router.replace("/(authentication)/auth");
+			} else if (authState.isAuthenticated && (inAuthGroup || !inTabsGroup)) {
+				console.log("[LayoutNav] Redirecting to Tabs");
+				router.replace("/(tabs)");
+			}
+		}, 0);
+
+		return () => clearTimeout(timeout);
+	}, [authState.isAuthenticated, segments, isNavigationReady]);
+
+	useEffect(() => {
+		if (authState.isAuthenticated) {
+			api.getMe();
 		}
-	}, [authState.isAuthenticated, segments]);
+	}, [authState.isAuthenticated]);
 
 	return (
 		<Stack
@@ -61,7 +105,7 @@ function RootLayoutNav() {
 				header: (props) => <AppHeader {...props} />,
 			}}
 		>
-			<Stack.Screen name="index" options={{ headerShown: false }} />
+			<Stack.Screen name="index" options={{ headerShown: true }} />
 			<Stack.Screen
 				name="(authentication)/auth"
 				options={{ headerShown: false }}
@@ -75,12 +119,22 @@ export default function RootLayout() {
 	const colorScheme = useColorScheme();
 	const [appIsReady, setAppIsReady] = useState(false);
 
-	const [fontsLoaded] = useFonts({
-		"Modern-No-20-Regular": require("../assets/fonts/Modern-No-20-Regular.otf"),
+	const [fontsLoaded, fontError] = useFonts({
+		modern_no_20_regular: require("../assets/fonts/modern_no_20_regular.otf"),
 		Poppins_300Light,
 		Poppins_400Regular,
 		Poppins_600SemiBold,
 	});
+
+	useEffect(() => {
+		if (fontsLoaded || fontError) {
+			SplashScreenRN.hideAsync();
+		}
+	}, [fontsLoaded, fontError]);
+
+	if (!fontsLoaded && !fontError) {
+		return null;
+	}
 
 	const CustomDarkTheme = {
 		...DarkTheme,
@@ -92,18 +146,18 @@ export default function RootLayout() {
 		colors: { ...DefaultTheme.colors, background: Colors.secondaryColorLight },
 	};
 
-	if (!fontsLoaded || !appIsReady) {
-		return <AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />;
-	}
-
 	return (
 		<AuthProvider>
 			<ApiProvider>
 				<ThemeProvider
 					value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
 				>
-					<RootLayoutNav />
-					<StatusBar style="auto" />
+					{!appIsReady ? (
+						<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
+					) : (
+						<RootLayoutNav />
+					)}
+					<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
 				</ThemeProvider>
 			</ApiProvider>
 		</AuthProvider>

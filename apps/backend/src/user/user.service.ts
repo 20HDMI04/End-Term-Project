@@ -20,9 +20,9 @@ export class UserService {
     private readonly s3Service: S3Service,
   ) {}
 
-  findOne(email: string) {
+  async findOne(email: string) {
     try {
-      return this.prisma.user.findUniqueOrThrow({
+      return await this.prisma.user.findUniqueOrThrow({
         where: { email: email },
         omit: {
           id: true,

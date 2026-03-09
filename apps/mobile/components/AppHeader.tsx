@@ -40,11 +40,11 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 		const focusedRoute = getFocusedRouteNameFromRoute(route);
 
 		const tabNames: Record<string, string> = {
-			index: "readsy",
+			index: "Readsy",
 			explore: "Explore",
 			search: "Search",
-			collections: "",
-			settings: "Account",
+			collections: "Favorites",
+			settings: "Profile",
 		};
 
 		return tabNames[focusedRoute || ""] || tabNames["index"];

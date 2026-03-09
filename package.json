@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "db-up": "docker-compose -f database/docker-compose.yaml up -d"
+    "db-up": "docker-compose -f database/docker-compose.yaml up -d",
+    "build-mobile": "eas build --platform android --profile development"
   },
   "devDependencies": {
     "pnpm": "^10.20.0",
@@ -21,8 +22,8 @@
   },
   "pnpm": {
     "overrides": {
-      "react": "19.1.0",
-      "react-dom": "19.1.0"
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
     }
   }
 }
