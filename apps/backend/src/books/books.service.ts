@@ -17,6 +17,16 @@ import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
 import { PaginationDto } from './dto/pagination-book.dto';
 
+type GenreType =
+  | 'history'
+  | 'fiction'
+  | 'romance'
+  | 'young-adult'
+  | 'fantasy'
+  | 'just-science'
+  | 'thriller'
+  | 'social-science';
+
 @Injectable()
 export class BooksService {
   private readonly logger = new Logger(BooksService.name);
@@ -932,7 +942,353 @@ export class BooksService {
     return { message: 'Book successfully deleted.', deletedBook: res };
   }
 
+  /**
+   * @summary Retrieves curated sections of books for the main page, including categories such as Latest Added, Crowd Favorites, Short & Sweet, Weekend Reads, Genre Spotlights, Multi-Edition Hits, and Oldies but Goldies. Each section includes a title, subtitle, and a list of books that fit the criteria for that category.
+   * @description This method compiles various sections of books to be displayed on the main page of the application. It fetches different sets of books based on specific criteria, such as the most recently added books, the highest-rated books according to user ratings, shorter books that can be read quickly, books suitable for weekend reading, a spotlight on a random genre with handpicked essentials, books that have multiple editions indicating their popularity and longevity, and classic books that have stood the test of time. Each section is structured with a title, a subtitle that provides context for the category, and the corresponding list of books that meet the criteria for that section.
+   * @returns A promise resolving to an array of curated book sections. Each section contains a title, subtitle, and a list of books that fit the specific criteria for that category. The sections include Latest Added, Crowd Favorites, Short & Sweet, Weekend Reads, Genre Spotlights, Multi-Edition Hits, and Oldies but Goldies.
+   * @remarks The method includes error handling to ensure that any issues encountered while fetching the different sets of books are properly logged and handled, allowing the application to gracefully manage errors and provide a consistent user experience on the main page. It also utilizes helper methods to fetch books for each specific category, ensuring that the logic for retrieving books is organized and maintainable.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching any of the book sections for the main page. Each helper method responsible for fetching a specific category of books includes its own error handling to ensure that issues are properly logged and managed.
+   */
   async getMainPageBooksWithSections() {
-    //TODO: implement section logic and get books based on that
+    const LatestBooks = await this.getLatestAddedBooks();
+    const CrowdFavorites = await this.getCrowdFavorites();
+    const ShortAndSweet = await this.getShortAndSweet();
+    const WeekendReads = await this.getWeekendReads();
+    const GenreSpotlight = await this.getGenreSpotlight();
+    const MultiEditionHits = await this.getMultiEditionHits();
+    const OldiesButGoldies = await this.getOldiesButGoldies();
+    const mainPageContent = [
+      {
+        title: 'Latest Added',
+        subtitle: 'Stay ahead with the most recent additions.',
+        data: LatestBooks,
+      },
+      {
+        title: 'Crowd Favorites',
+        subtitle: 'Most-loved titles according to our community.',
+        data: CrowdFavorites,
+      },
+      {
+        title: 'Short & Sweet',
+        subtitle: 'Tiny books, massive impact.',
+        data: ShortAndSweet,
+      },
+      {
+        title: 'Weekend Reads',
+        subtitle: 'Perfect books to dive into over the weekend.',
+        data: WeekendReads,
+      },
+      GenreSpotlight,
+      {
+        title: 'Multi-Edition Hits',
+        subtitle: 'Rare finds and classic reprints with a rich history.',
+        data: MultiEditionHits,
+      },
+      {
+        title: 'Oldies but Goldies',
+        subtitle: 'Vintage gems that have stood the test of time.',
+        data: OldiesButGoldies,
+      },
+    ];
+    return mainPageContent;
+  }
+
+  /**
+   * @summary Retrieves the latest added books that have been approved, limited to the 15 most recent entries. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches the most recently added books from the database that have been approved for display. It limits the results to the 15 latest entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The books are ordered by their creation date in descending order to ensure that the newest additions are displayed first.
+   * @returns A promise resolving to an array of the latest added books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are limited to the 15 most recent entries.
+   */
+  async getLatestAddedBooks() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          approveStatus: true,
+        },
+        take: 15,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          statistics: true,
+          comments: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting latest books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves the crowd favorite books based on their average rating, limited to the top 15 entries. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches the books that are considered crowd favorites by ordering them based on their average rating in descending order. It limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are sorted to highlight the most popular titles according to user ratings.
+   * @returns A promise resolving to an array of the top 15 crowd favorite books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are ordered by average rating in descending order.
+   */
+  async getCrowdFavorites() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          approveStatus: true,
+        },
+        orderBy: {
+          statistics: {
+            averageRating: 'desc',
+          },
+        },
+        take: 15,
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+        include: {
+          statistics: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting crowd favorite books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that are considered "Short & Sweet" based on their page number, limited to those with 100 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches books that are categorized as "Short & Sweet" by filtering them based on their page number, specifically those that have 100 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight shorter reads that can be enjoyed quickly.
+   * @returns A promise resolving to an array of "Short & Sweet" books, each including its statistics, comments, and genres.
+   */
+  async getShortAndSweet() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          AND: [{ approveStatus: true }, { pageNumber: { lte: 100 } }],
+        },
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+        include: {
+          statistics: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting short and sweet books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that are suitable for "Weekend Reads" based on their page number, limited to those with 250 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
+   *  @description This method fetches books that are categorized as "Weekend Reads" by filtering them based on their page number, specifically those that have 250 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight reads that can be comfortably enjoyed over a weekend.
+   *  @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
+   */
+  async getWeekendReads() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          AND: [{ approveStatus: true }, { pageNumber: { lte: 250 } }],
+        },
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+        include: {
+          statistics: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting weekend reads books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves a spotlight section for a random genre, including a title, subtitle, and a list of handpicked essential books for that genre. The method randomly selects a genre from a predefined list and fetches books that fit the criteria for that genre, including related data such as statistics, comments, and genres for each book.
+   * @description This method creates a spotlight section for a randomly selected genre by first choosing a genre from a predefined list of genres. It then constructs a title and subtitle for the spotlight section based on the selected genre. The method fetches books that are relevant to the chosen genre using specific criteria defined in the `getBooksByASpecificGenre` helper method. Each book in the spotlight section includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are tailored to highlight essential reads for fans of the selected genre.
+   * @returns A promise resolving to an object containing the title, subtitle, and a list of books for the genre spotlight section. The books included in this section are handpicked essentials for lovers of the randomly selected genre, and each book includes its statistics, comments, and genres.
+   */
+  async getGenreSpotlight() {
+    const randomGenre = this.getRandomGenre();
+    const forProd =
+      randomGenre.charAt(0).toUpperCase() +
+      randomGenre
+        .slice(1)
+        .replace(/-\w/, (match) => ' ' + match[1].toUpperCase());
+    return {
+      title: `Genre Spotlights: ${forProd}`,
+      subtitle: `Handpicked essentials for every ${forProd} lover.`,
+      data: await this.getBooksByASpecificGenre(randomGenre as GenreType),
+    };
+  }
+
+  /**
+   * @summary Returns a random genre from a predefined list.
+   * @description This method selects a genre at random from a list of available genres.
+   * @returns The name of the randomly selected genre.
+   */
+  getRandomGenre() {
+    const GENRE_LIST = [
+      'history',
+      'fiction',
+      'romance',
+      'young-adult',
+      'fantasy',
+      'just-science',
+      'thriller',
+      'social-science',
+    ];
+    const randomIndex = Math.floor(Math.random() * GENRE_LIST.length);
+    return GENRE_LIST[randomIndex];
+  }
+
+  /**
+   * @summary Retrieves books that fit the criteria for a specific genre based on predefined keyword filters. The method constructs a query to fetch approved books that match the keywords associated with the specified genre, while also allowing for the exclusion of certain keywords if necessary. The results include related data such as statistics, comments, genres, and ISBNs for each book.
+   * @description This method defines a set of keyword filters for each genre and constructs a query to retrieve books that match the criteria for the specified genre. It includes conditions to ensure that only approved books are fetched and allows for the inclusion of books that contain certain keywords in their genres while excluding others if specified. The method returns a list of books that fit the genre criteria, along with related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs.
+   * @param genre The genre for which to retrieve books. The genre is used to determine the relevant keywords for filtering the books in the database query.
+   * @returns A list of books that fit the genre criteria, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching the books for the specified genre. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
+   */
+  async getBooksByASpecificGenre(genre: GenreType) {
+    const genreFilters: Record<GenreType, any> = {
+      history: { keywords: ['history'] },
+      fiction: { keywords: ['fiction'] },
+      romance: { keywords: ['romance', 'love'] },
+      'young-adult': { keywords: ['adult'] },
+      fantasy: { keywords: ['magic', 'fantasy'] },
+      thriller: { keywords: ['thriller', 'horror'] },
+      'social-science': { keywords: ['economics', 'politic', 'business'] },
+      'just-science': { keywords: ['science'], exclude: ['fiction'] },
+    };
+
+    const config = genreFilters[genre];
+
+    const where: any = {
+      approveStatus: true,
+      AND: [],
+    };
+
+    const keywordQuery = {
+      OR: config.keywords.map((kw) => ({
+        genres: {
+          some: { genre: { name: { contains: kw, mode: 'insensitive' } } },
+        },
+      })),
+    };
+    where.AND.push(keywordQuery);
+
+    if (config.exclude) {
+      where.AND.push({
+        NOT: config.exclude.map((ex) => ({
+          genres: {
+            some: { genre: { name: { contains: ex, mode: 'insensitive' } } },
+          },
+        })),
+      });
+    }
+
+    try {
+      return await this.prisma.book.findMany({
+        where,
+        take: 15,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting books by a specific genre.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that have multiple editions, indicating their popularity and longevity. The method fetches approved books and orders them by the count of their associated ISBNs in descending order, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
+   * @description This method identifies books that have multiple editions by counting the number of associated ISBNs for each book. It retrieves approved books from the database and orders them based on the count of their ISBNs in descending order, which serves as an indicator of their popularity and longevity. The method limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs for each book. This allows users to discover books that have been reprinted or have multiple editions, suggesting that they are well-loved and have stood the test of time.
+   * @returns A list of books that have multiple editions, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   */
+  async getMultiEditionHits() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          approveStatus: true,
+        },
+        orderBy: {
+          isbns: {
+            _count: 'desc',
+          },
+        },
+        take: 15,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting multi-edition hits books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves classic books that have stood the test of time, based on their original publication year. The method fetches approved books that were originally published before the year 2000, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
+   * @description This method identifies "Oldies but Goldies" by filtering books based on their original publication year, specifically those that were published before the year 2000. It retrieves approved books from the database that meet this criterion and limits the results to the top 15 entries. Each book in this category includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. This allows users to discover classic books that have been cherished over time and have made a lasting impact on readers.
+   * @returns A list of classic books that have stood the test of time, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   */
+  async getOldiesButGoldies() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          AND: [
+            { approveStatus: true },
+            { originalPublicationYear: { lt: 2000 } },
+          ],
+        },
+        take: 15,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting oldies but goldies books.',
+      );
+    }
   }
 }

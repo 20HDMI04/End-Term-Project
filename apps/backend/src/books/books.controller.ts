@@ -30,11 +30,15 @@ import {
 } from '@nestjs/swagger';
 import { PaginationDto } from './dto/pagination-book.dto';
 import { ApiOperation } from '@nestjs/swagger';
+import { AuthorsService } from 'src/authors/authors.service';
 
 @ApiTags('Books')
 @Controller('books')
 export class BooksController {
-  constructor(private readonly booksService: BooksService) {}
+  constructor(
+    private readonly booksService: BooksService,
+    private readonly authorsService: AuthorsService,
+  ) {}
 
   @Post()
   @ApiOperation({
@@ -205,5 +209,29 @@ export class BooksController {
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
   remove(@Param('id') id: string) {
     return this.booksService.remove(id);
+  }
+
+  @Get('mainpage')
+  @ApiOperation({
+    summary: 'Get main page content',
+    description:
+      'Retrieves the main page content, including featured authors and books.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Main page content retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the main page content. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  async mainPageContent() {
+    const mainPageContent = {
+      authors: await this.authorsService.getMainPageAuthors(),
+      books: await this.booksService.getMainPageBooksWithSections(),
+    };
+    return mainPageContent;
   }
 }
