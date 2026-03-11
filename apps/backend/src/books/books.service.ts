@@ -959,7 +959,7 @@ export class BooksService {
     const OldiesButGoldies = await this.getOldiesButGoldies();
     const mainPageContent = [
       {
-        title: 'Latest Added',
+        title: 'Just Landed',
         subtitle: 'Stay ahead with the most recent additions.',
         data: LatestBooks,
       },
@@ -1016,6 +1016,12 @@ export class BooksService {
               genre: { select: { name: true } },
             },
           },
+          isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -1055,6 +1061,11 @@ export class BooksService {
           },
           comments: true,
           isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -1088,6 +1099,11 @@ export class BooksService {
           },
           comments: true,
           isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -1121,6 +1137,11 @@ export class BooksService {
           },
           comments: true,
           isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -1223,6 +1244,11 @@ export class BooksService {
           genres: { include: { genre: { select: { name: true } } } },
           comments: true,
           isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -1254,6 +1280,11 @@ export class BooksService {
           genres: { include: { genre: { select: { name: true } } } },
           comments: true,
           isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -1283,6 +1314,11 @@ export class BooksService {
           genres: { include: { genre: { select: { name: true } } } },
           comments: true,
           isbns: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
     } catch (error) {

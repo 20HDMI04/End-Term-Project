@@ -712,7 +712,7 @@ export class AuthorsService {
     const topBooksAuthors = await this.getTopBooksAuthors();
     const mainPageAuthors = [
       {
-        title: 'Newly Added',
+        title: 'Freshly Picked Talents',
         subtitle: 'Explore the newest storytellers in our collection.',
         data: newlyAdded,
       },
