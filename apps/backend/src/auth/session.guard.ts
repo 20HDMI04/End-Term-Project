@@ -9,6 +9,12 @@ import type { SessionRequest } from 'supertokens-node/framework/fastify';
 
 @Injectable()
 export class SessionGuard implements CanActivate {
+  /**
+   * @summary Verifies the user's session for protected routes
+   * @param context - The execution context of the request
+   * @returns A promise resolving to a boolean indicating if the session is valid
+   * @throws {UnauthorizedException} If session verification fails
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = context.switchToHttp();
     const req = ctx.getRequest<SessionRequest>();

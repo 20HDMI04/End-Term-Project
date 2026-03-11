@@ -7,6 +7,7 @@ import { BooksModule } from './books/books.module';
 import { GenresModule } from './genres/genres.module';
 import { AuthorsModule } from './authors/authors.module';
 import { UserModule } from './user/user.module';
+import { SocialModule } from './social/social.module';
 import s3Config from './config/s3.config';
 
 @Module({
@@ -26,6 +27,7 @@ import s3Config from './config/s3.config';
     GenresModule,
     AuthorsModule,
     UserModule,
+    SocialModule,
   ],
   controllers: [],
   providers: [],
