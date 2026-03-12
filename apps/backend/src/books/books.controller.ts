@@ -241,6 +241,10 @@ export class BooksController {
     description: 'Retrieves the details of a specific book by its ISBN.',
   })
   @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The book has been successfully retrieved.',
+  })
   @ApiNotFoundResponse({
     description: 'The book with the specified ISBN was not found.',
   })
