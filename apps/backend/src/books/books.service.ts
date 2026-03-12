@@ -754,6 +754,43 @@ export class BooksService {
   }
 
   /**
+   * @summary Retrieves a single book by its ISBN. The method checks the database for the provided ISBN and includes related data such as the author's name, genre names, and rating statistics. If the book with the given ISBN does not exist, it throws a NotFoundException. If any other error occurs during the fetch process, it throws an InternalServerErrorException.
+   * @description This method is designed to fetch a book's details based on its ISBN number. It queries the database for a unique record matching the provided ISBN and includes related information such as the author's name, genre names, and rating statistics. The method handles errors gracefully by checking for specific error codes to determine if the book was not found and responding with appropriate exceptions. If the book is successfully retrieved, it returns the complete details of the book along with its related data.
+   * @param isbn - The ISBN number of the book to retrieve. The method will clean the ISBN by removing any hyphens or spaces before processing.
+   * @returns A promise resolving to the book details or an error if the book is not found.
+   * @throws {@link NotFoundException} if the book with the given ISBN does not exist in the database.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
+   */
+  async findOneByIsbn(isbn: string) {
+    try {
+      return await this.prisma.bookIsbn.findUniqueOrThrow({
+        where: { isbnNumber: isbn },
+        include: {
+          book: {
+            include: {
+              isbns: true,
+              genres: { include: { genre: true } },
+              author: {
+                select: { name: true },
+              },
+              statistics: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(
+          'The book with the given ISBN does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while fetching the book details.',
+      );
+    }
+  }
+
+  /**
    * @summary Updates a book's details, including its cover image, metadata, genres, and ISBNs. The method checks for the existence of the book, handles potential conflicts with identifiers, manages image uploads and deletions in S3, and updates the book record in the database accordingly.
    * @description This method allows updating various aspects of a book, such as its title, description, identifiers (Google Book ID, Open Library ID), author, publication details, genres, and ISBNs. It first checks if the book exists in the database and throws a NotFoundException if it does not. It then checks for potential conflicts with the provided identifiers to ensure they are not already associated with another book. If a new cover image is provided, it handles the deletion of the old images from S3 and uploads the new image, updating the corresponding fields in the database. Finally, it updates the book record with the new details and returns the updated book information.
    * @param id - The ID of the book to update.
