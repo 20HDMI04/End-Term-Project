@@ -56,14 +56,13 @@ import { Home } from "./components/Home";
 import { Discover } from "./components/Discover";
 import { Search } from "./components/Search";
 
-SuperTokens.init({
+SuperTokens.init({	
 	appInfo: {
 		appName: "Readsy",
 		apiDomain: "http://localhost:3002", // Backend API domain
 		websiteDomain: "http://localhost:5173", // Frontend website domain
 		apiBasePath: "/auth",
 		websiteBasePath: "/auth",
-		// The above paths are where the SuperTokens routes will be available on the frontend and backend. Adjust as needed.
 	},
 	clientType: "web",
 	recipeList: [
