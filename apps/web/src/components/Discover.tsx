@@ -16,20 +16,20 @@
  * Status: EMPTY - Ready for implementation
  * 
  * Suggested Features to Implement:
- * ✓ Featured books carousel
- * ✓ Latest releases
- * ✓ Popular books
- * ✓ Genre filtering
- * ✓ Author filtering
- * ✓ Sort options (rating, date, popularity)
- * ✓ Book cards with cover images
- * ✓ Quick preview on hover
- * ✓ Add to list button
- * ✓ View book details
+ * Featured books carousel
+ * Latest releases
+ * Popular books
+ * Genre filtering
+ * Author filtering
+ * Sort options (rating, date, popularity)
+ * Book cards with cover images
+ * Quick preview on hover
+ * Add to list button
+ * View book details
  * 
  * Related Files:
- * → src/App.tsx (line ~133) - Route definition
- * → COMPONENT_GUIDE.md → Discover Component - Implementation guide
+ *       src/App.tsx (line ~133) - Route definition
+ *       COMPONENT_GUIDE.md → Discover Component - Implementation guide
  * 
  * API Endpoints Needed:
  * GET /books - List all books with filters
@@ -38,7 +38,7 @@
  * See: WEB_DOCUMENTATION.md → Discover Component section
  * ================================================================
  */
-
+import "./css/discover.css"
 export function Discover() {
     return (
         <div className="home-container">  
@@ -54,6 +54,7 @@ export function Discover() {
                                 <h2><a className="nav-link" href="/search">Search</a></h2>
                             </li>
                             <li className="nav-item">
+                                <h2><a className="nav-link">Discover</a></h2>
                             </li>
 
                         </ul>

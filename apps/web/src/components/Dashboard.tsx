@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /**
  * ================================================================
  * READSY - DASHBOARD COMPONENT
@@ -14,18 +15,18 @@
  * - Navigation to other features
  * 
  * Key Features:
- * ✓ Display user ID, email, and roles
- * ✓ Fetch user data from backend (/user/me)
- * ✓ Check user roles from JWT token
- * ✓ Logout functionality
- * ✓ Navigation to other pages
+ * Display user ID, email, and roles
+ * Fetch user data from backend (/user/me)
+ * Check user roles from JWT token
+ * Logout functionality
+ * Navigation to other pages
  * \n * Related Files:
- * → src/components/Dashboard.css - Styling\n * → src/App.tsx (line ~102) - Route definition
+ * 		src/components/Dashboard.css - Styling\n * → src/App.tsx (line ~102) - Route definition
  * \n * Backend API Calls:\n * GET http://localhost:3000/user/me\n * PATCH http://localhost:3000/user/me-the-first-time\n * \n * See: COMPONENT_GUIDE.md → Dashboard Component\n * ================================================================\n */
  import { useNavigate } from "react-router-dom";
 import { signOut } from "supertokens-auth-react/recipe/session";
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
-import "./Dashboard.css";
+import "./css/Dashboard.css";
 import Session from "supertokens-auth-react/recipe/session";
 import { useEffect, useState } from "react";
 
