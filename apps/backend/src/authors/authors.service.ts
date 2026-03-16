@@ -14,6 +14,7 @@ import { HttpService } from '@nestjs/axios';
 import { Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { PaginationDto } from './dto/pagination.dto';
+import { title } from 'process';
 
 @Injectable()
 export class AuthorsService {
@@ -697,5 +698,112 @@ export class AuthorsService {
       .filter((a) => a.commonCount >= minCommonGenres)
       .sort((a, b) => b.commonCount - a.commonCount)
       .slice(0, 10);
+  }
+
+  /**
+   * @summary Retrieves authors to be displayed on the main page, categorized into sections such as "Newly Added", "Modern Visionaries", and "Masterminds Behind the Hits". Each section includes a title, subtitle, and a list of authors that fit the criteria for that category.
+   * @description This method is used to gather authors for the main page display. It categorizes authors into three sections: "Newly Added" for the most recently added authors, "Modern Visionaries" for influential contemporary authors (born after 1970), and "Masterminds Behind the Hits" for authors of highly-rated books (average rating of 4 or higher). Each section includes a title, a subtitle describing the category, and a list of authors that meet the criteria. The method returns an array of these sections to be rendered on the main page.
+   * @returns An array of objects, each representing a section of authors for the main page, including the title, subtitle, and the list of authors in that section.
+   * @throws {@link InternalServerErrorException} if there is an error during the database queries to retrieve the authors for any of the sections.
+   */
+  async getMainPageAuthors() {
+    const newlyAdded = await this.getNewlyAddedAuthors();
+    const modernVisionaries = await this.getModernVisionaries();
+    const topBooksAuthors = await this.getTopBooksAuthors();
+    const mainPageAuthors = [
+      {
+        title: 'Newly Added',
+        subtitle: 'Explore the newest storytellers in our collection.',
+        data: newlyAdded,
+      },
+      {
+        title: 'Modern Visionaries',
+        subtitle:
+          'Fresh perspectives from the most influential writers of our time.',
+        data: modernVisionaries,
+      },
+      {
+        title: 'Masterminds Behind the Hits',
+        subtitle: 'Meet the brilliant authors of our most highly-rated books.',
+        data: topBooksAuthors,
+      },
+    ];
+    return mainPageAuthors;
+  }
+
+  /**
+   * @summary Retrieves the most recently added authors that have been approved. This method is used to populate the "Newly Added" section on the main page, showcasing the latest additions to the author collection. It fetches authors from the database where approveStatus is true, orders them by their creation date in descending order, and limits the results to the 15 most recent authors. Additionally, it omits the profile picture keys from the returned data for security and privacy reasons.
+   * @description This method is responsible for fetching the most recently added authors that have been approved for display. It queries the database for authors with approveStatus set to true, sorts them by their createdAt timestamp in descending order to get the newest authors first, and limits the results to 15 authors. The method also omits the smallerProfilePicKey and biggerProfilePicKey fields from the returned author data to prevent exposure of sensitive information related to image storage.
+   * @returns A promise resolving to an array of the most recently added and approved authors.
+   */
+  async getNewlyAddedAuthors() {
+    try {
+      return await this.prisma.author.findMany({
+        where: { approveStatus: true },
+        orderBy: { createdAt: 'desc' },
+        take: 15,
+        omit: {
+          smallerProfilePicKey: true,
+          biggerProfilePicKey: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting newly added authors.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves influential contemporary authors born after January 1, 1970, that have been approved. This method is used to populate the "Modern Visionaries" section on the main page, highlighting influential authors of our time. It fetches authors from the database where approveStatus is true and birthDate is greater than or equal to January 1, 1970. The results are ordered by their creation date in descending order and limited to the 15 most recent authors. Similar to other methods, it omits the profile picture keys from the returned data for security and privacy reasons.
+   * @description This method is responsible for fetching influential contemporary authors who were born after January 1, 1970, and have been approved for display. It queries the database for authors with approveStatus set to true and a birthDate that is greater than or equal to January 1, 1970. The results are sorted by their createdAt timestamp in descending order to prioritize newer authors, and the output is limited to 15 authors. The method also omits the smallerProfilePicKey and biggerProfilePicKey fields from the returned author data to ensure that sensitive information related to image storage is not exposed.
+   * @returns A promise resolving to an array of influential contemporary authors.
+   */
+  async getModernVisionaries() {
+    try {
+      return await this.prisma.author.findMany({
+        where: {
+          approveStatus: true,
+          birthDate: { gte: new Date('1970-01-01') },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 15,
+        omit: {
+          smallerProfilePicKey: true,
+          biggerProfilePicKey: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting modern visionaries.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves authors of highly-rated books (average rating of 4 or higher) that have been approved. This method is used to populate the "Masterminds Behind the Hits" section on the main page, showcasing authors whose books have received high ratings from readers. It queries the database for authors with approveStatus set to true and who have at least one book with an average rating of 4 or higher. The results are limited to 15 authors and omit the profile picture keys for security and privacy reasons.
+   * @description This method is responsible for fetching authors whose books have received high ratings (average rating of 4 or higher) and have been approved for display. It queries the database for authors with approveStatus set to true and a related condition that checks if they have at least one book with a statistics record where averageRating is greater than or equal to 4. The results are limited to 15 authors, and the smallerProfilePicKey and biggerProfilePicKey fields are omitted from the returned data to prevent exposure of sensitive information related to image storage.
+   * @returns A promise resolving to an array of top books authors.
+   */
+  async getTopBooksAuthors() {
+    try {
+      const authors = await this.prisma.author.findMany({
+        where: {
+          approveStatus: true,
+          books: { some: { statistics: { averageRating: { gte: 4 } } } },
+        },
+        take: 15,
+        omit: {
+          smallerProfilePicKey: true,
+          biggerProfilePicKey: true,
+        },
+        distinct: ['id'],
+      });
+      return authors;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting top books authors.',
+      );
+    }
   }
 }

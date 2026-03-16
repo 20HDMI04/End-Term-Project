@@ -11,6 +11,12 @@ import type { SessionRequest } from 'supertokens-node/framework/fastify';
 export class RolesGuard implements CanActivate {
   constructor(private allowedRoles: string[]) {}
 
+  /**
+   * @summary Checks if the user has the required roles to access a route
+   * @param context - The execution context of the request
+   * @returns A promise resolving to a boolean indicating if the user has the required roles
+   * @throws {ForbiddenException} If no session is found or if the user does not have the required permissions
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<SessionRequest>();
     const session = req.session;

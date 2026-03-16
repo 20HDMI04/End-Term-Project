@@ -18,6 +18,11 @@ export class S3Service {
   private s3Client: S3Client;
   private readonly buckets: Record<string, string>;
 
+  /**
+   * @summary S3Service constructor
+   * @description Initializes the S3Service by setting up the S3 client and bucket names based on the provided configuration. The constructor retrieves necessary configuration values such as AWS credentials, region, endpoint, and bucket names for different types of images (book covers, author images, profile pictures). If any required configuration value is missing, an error will be thrown during initialization.
+   * @param configService The configuration service for retrieving S3 configuration values. Its from s3.config.ts which is a nestjs/config package and is used to access environment variables and other configuration settings required for S3 operations.
+   */
   constructor(private configService: ConfigService) {
     this.buckets = {
       book: this.configService.getOrThrow<string>('S3_BOOK_COVERS_BUCKET_NAME'),
@@ -43,9 +48,12 @@ export class S3Service {
   }
 
   /**
-   * Delete images from S3
-   * @param bucket The bucket type ('author' | 'book' | 'profile')
+   * @summary Delete images from S3
+   * @description Deletes images from the specified S3 bucket based on the provided file keys. The method checks if the file keys are valid and limits the number of keys to prevent excessive deletions. If any error occurs during the deletion process, an InternalServerErrorException is thrown.
+   * @param bucket The type of bucket from which to delete images ('author', 'book', or 'profile').
    * @param fileKeys File keys to delete
+   * @throws  {@link BadRequestException} if the number of file keys exceeds the allowed limit.
+   * @throws  {@link InternalServerErrorException} if an error occurs during the deletion process.
    */
   async deleteImages(
     bucket: 'author' | 'book' | 'profile',
@@ -79,9 +87,14 @@ export class S3Service {
 
   /**
    * Sharp for image processing and upload to S3
+   * @summary Process and upload an image to S3
+   * @description This method takes an uploaded file, processes it using Sharp to create different sizes based on the specified bucket type, and uploads the processed images to S3. The method generates unique file names to avoid collisions and returns the URLs and keys of the uploaded images. If any error occurs during processing or uploading, an InternalServerErrorException is thrown.
    * @param file Multer file object
    * @param bucket bucket type ('author' | 'book' | 'profile')
    * @param title Image name base for generating file names
+   * @returns An object containing URLs and keys of the uploaded images
+   * @throws  {@link BadRequestException} if the bucket type is invalid.
+   * @throws  {@link InternalServerErrorException} if an error occurs during image processing or upload to S3.
    */
   async uploadImage(
     file: UploadedFile,
@@ -140,6 +153,13 @@ export class S3Service {
     }
   }
 
+  /**
+   * @summary Get image sizes for a given bucket type
+   * @description Returns an array of size configurations based on the specified bucket type. Each configuration includes a name and a height for resizing images. If an invalid bucket type is provided, a BadRequestException is thrown.
+   * @param bucket The type of bucket for which to retrieve size configurations ('author', 'book', or 'profile').
+   * @returns An array of size configurations for the specified bucket type.
+   * @throws  {@link BadRequestException} if the bucket type is invalid.
+   */
   private getSizesForBucket(
     bucket: string,
   ): { name: string; height: number }[] {

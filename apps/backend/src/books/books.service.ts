@@ -17,6 +17,16 @@ import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
 import { PaginationDto } from './dto/pagination-book.dto';
 
+type GenreType =
+  | 'history'
+  | 'fiction'
+  | 'romance'
+  | 'young-adult'
+  | 'fantasy'
+  | 'just-science'
+  | 'thriller'
+  | 'social-science';
+
 @Injectable()
 export class BooksService {
   private readonly logger = new Logger(BooksService.name);
@@ -28,6 +38,15 @@ export class BooksService {
     private readonly httpService: HttpService,
   ) {}
 
+  /**
+   * @summary Creates a new book entry in the database. It first checks for duplicates based on ISBNs, Google Book ID, and Open Library ID. If a cover image file is provided, it uploads it to S3; otherwise, it uses default images. The method also handles genre associations and rolls back S3 uploads if any database operation fails.
+   * @param file - An optional uploaded file for the book cover image. If not provided, default images will be used.
+   * @param createBookDto - A DTO containing the details of the book to be created, including title, description, identifiers (ISBNs, Google Book ID, Open Library ID), author information, publication details, and genre names.
+   * @returns The created book record, including associated genres and ISBNs.
+   * @throws {@link ConflictException} if a book with the same ISBN, Google Book ID, or Open Library ID already exists.
+   * @throws {@link InternalServerErrorException} if there is an error during S3 upload or database operations.
+   * @remarks The method performs a duplicate check to prevent multiple entries of the same book based on key identifiers. It also ensures that any uploaded images are rolled back (deleted from S3) if the database operation fails, maintaining data integrity between S3 and the database.
+   */
   async create(file: UploadedFile | null, createBookDto: CreateBookDto) {
     // ISBN, Google Book ID, Open Library ID check (duplicate prevention)
     const duplicateCheck = await this.prisma.book.findFirst({
@@ -42,7 +61,7 @@ export class BooksService {
     });
 
     if (duplicateCheck) {
-      // Megnézzük, pontosan melyik ütközött az üzenethez
+      // Determine the reason for duplication (which field caused the conflict)
       const matchedIsbn = duplicateCheck.isbns.find((i) =>
         createBookDto.isbns.includes(i.isbnNumber),
       );
@@ -68,7 +87,7 @@ export class BooksService {
       } catch (error) {
         this.logger.error(`S3 Upload Error: ${error.message}`);
         throw new InternalServerErrorException(
-          'Hiba történt a kép feltöltésekor.',
+          'Error occurred while uploading the book cover image. Please try again later.',
         );
       }
     } else {
@@ -146,6 +165,13 @@ export class BooksService {
     }
   }
 
+  /**
+   * @summary Retrieves a book by its ISBN. It first checks if the book already exists in the local database. If not, it fetches data from external sources (Open Library and Google Books APIs) in parallel, merges the data, and checks for potential matches in the local database based on identifiers and author information. The method returns the appropriate status and book data based on the findings.
+   * @description This method is designed to efficiently retrieve book information using an ISBN. It performs a local database check to prevent unnecessary external API calls. If the book is not found locally, it fetches data from both Open Library and Google Books APIs simultaneously to minimize latency. The fetched data is then merged, and the method checks for potential matches in the local database based on Google Book ID, Open Library ID, and author information to determine if the book can be linked to an existing entry or if it is a new discovery. The method returns a structured response indicating the status of the retrieval process and the relevant book data.
+   * @param isbn - The ISBN number of the book to be retrieved. The method will clean the ISBN by removing any hyphens or spaces before processing.
+   * @returns An object containing the status of the retrieval process and the book data if found. The status can indicate whether the book already exists in the local database, was found through external APIs, linked to an existing entry, or if it is a possible translation based on author information.
+   * @remarks The method uses a structured approach to handle multiple scenarios, including duplicate prevention, data merging from multiple sources, and intelligent matching based on identifiers and author information. It also includes logging for debugging purposes, especially when fetching data from external APIs.
+   */
   async getOrFetchExternalBook(isbn: string) {
     const cleanIsbn = isbn.replace(/[- ]/g, '');
 
@@ -289,6 +315,12 @@ export class BooksService {
     return { status: 'NEW_BOOK_FOUND', book: externalBook };
   }
 
+  /**
+   * @summary Normalizes an array of tags by splitting them on common delimiters, trimming whitespace, and removing duplicates. This is used to ensure consistent formatting of genre names or other tag-like data.
+   * @description The method takes an array of strings (tags) and processes each tag by splitting it on common delimiters such as slashes, hyphens, colons, and commas. It then trims any leading or trailing whitespace from the resulting sub-tags and filters out any empty strings. Finally, it removes duplicate tags to return a clean, normalized array of unique tags.
+   * @param tags - An array of strings representing tags that may contain multiple sub-tags separated by common delimiters. For example, a tag like "Science Fiction / Fantasy" would be split into "Science Fiction" and "Fantasy".
+   * @returns An array of normalized strings representing the unique, cleaned tags.
+   */
   normalizeTags(tags: string[]): string[] {
     if (!tags) return [];
 
@@ -300,6 +332,13 @@ export class BooksService {
     return normalized;
   }
 
+  /**
+   * @summary Merges book data from Open Library and Google Books APIs into a single cohesive object. The method prioritizes non-empty and more detailed information, combining genres and ISBNs while ensuring no duplicates. It also fills in missing fields from one source with data from the other when available.
+   * @description This method takes two book data objects, one from Open Library and one from Google Books, and merges them into a single object. It checks each field (title, description, genres, page count, publisher, publication year, authors, and ISBNs) and prioritizes the more complete or non-empty data. For genres and ISBNs, it combines the lists from both sources while removing duplicates. The method also ensures that if one source lacks certain information (e.g., description or publisher), it fills in those gaps with data from the other source if available.
+   * @param olData - The book data retrieved from the Open Library API, which may contain fields such as title, description, genres, page count, publisher, publication year, authors, and ISBNs.
+   * @param googleData - The book data retrieved from the Google Books API, which may contain similar fields as the Open Library data. This data is used to enhance or fill in missing information from the Open Library data when merging.
+   * @returns The merged book data object containing information from both sources. If both sources are null, it returns null. The resulting object will have the most complete and detailed information available from either source, with combined genres and ISBNs where applicable.
+   */
   mergeExternalBookData(
     olData: ExternalBookResponse | null,
     googleData: ExternalBookResponse | null,
@@ -371,6 +410,13 @@ export class BooksService {
     return externalBook;
   }
 
+  /**
+   * @summary Approves a book by setting its approveStatus to true in the database. The method takes the book ID as a parameter and updates the corresponding record. If the book with the given ID does not exist, it throws a NotFoundException. If any other error occurs during the update process, it throws an InternalServerErrorException.
+   * @description This method is used to approve a book entry in the database by updating its approveStatus field to true. It first attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while approving the book.
+   * @param id - The unique identifier of the book to be approved. This ID is used to locate the specific book record in the database that needs to be updated.
+   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
+   * @returns The updated book record with approveStatus set to true if the operation is successful. If the book is not found, it returns a NotFoundException. If any other error occurs, it returns an InternalServerErrorException.
+   */
   async approve(id: string) {
     try {
       return await this.prisma.book.update({
@@ -379,7 +425,7 @@ export class BooksService {
       });
     } catch (error) {
       if (error.code === 'P2025') {
-        throw new ConflictException(
+        throw new NotFoundException(
           'The book with the given ID does not exist.',
         );
       }
@@ -389,6 +435,13 @@ export class BooksService {
     }
   }
 
+  /**
+   * @summary Disapproves a book by setting its approveStatus to false in the database.
+   * @description This method is used to disapprove a book entry in the database by updating its approveStatus field to false. Similar to the approve method, it attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while disapproving the book.
+   * @param id - The unique identifier of the book to be disapproved.
+   * @returns The updated book record with approveStatus set to false if the operation is successful.
+   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
+   */
   async disapprove(id: string) {
     try {
       return await this.prisma.book.update({
@@ -397,16 +450,23 @@ export class BooksService {
       });
     } catch (error) {
       if (error.code === 'P2025') {
-        throw new ConflictException(
+        throw new NotFoundException(
           'The book with the given ID does not exist.',
         );
       }
       throw new InternalServerErrorException(
-        'An error occurred while approving the book.',
+        'An error occurred while disapproving the book.',
       );
     }
   }
 
+  /**
+   * @summary Fetches book data from the Google Books API based on its ISBN.
+   * @description This method takes an ISBN number as input, cleans it by removing any hyphens or spaces, and constructs a query URL to fetch book data from the Google Books API. It uses the HttpService to make a GET request to the API and retrieves the book information. If the API returns no items or an error occurs during the fetch process, it logs the error and returns null. The method extracts relevant information from the API response, such as title, authors, description, genres, page count, publisher, publication year, language, and all associated ISBNs, and returns it in a structured format as an ExternalBookResponse object.
+   * @param isbn - The ISBN number of the book to be fetched from the Google Books API. The method will clean the ISBN by removing any hyphens or spaces before making the API request.
+   * @returns A structured object containing the book data retrieved from the Google Books API, including title, authors, description, genres, page count, publisher, publication year, language, and all associated ISBNs. If the book is not found or an error occurs during the fetch process, it returns null.
+   * @remarks The method includes error handling to log any issues that arise during the API call, ensuring that the application can gracefully handle scenarios where the Google Books API is unavailable or returns unexpected data. It also ensures that the returned data is normalized and structured for consistent use within the application.
+   */
   async fetchFromGoogleApi(isbn: string): Promise<ExternalBookResponse | null> {
     try {
       const cleanIsbn = isbn.replace(/[- ]/g, '');
@@ -421,7 +481,7 @@ export class BooksService {
       const item = data.items[0];
       const info = item.volumeInfo;
 
-      // ISBN-ek gyűjtése
+      // Collect ISBNs
       const isbns = info.industryIdentifiers?.map((id) => id.identifier) || [];
       if (!isbns.includes(cleanIsbn)) isbns.push(cleanIsbn);
 
@@ -430,12 +490,12 @@ export class BooksService {
         ? new Date(publishedDateRaw).getFullYear()
         : undefined;
 
-      // Google API-nál az authorOpenLibraryId mindig undefined lesz,
-      // mert a Google nem ismeri az OL azonosítókat.
+      // Google API doesn't provide Open Library IDs, so we can only return Google-specific data. The OL ID and author OL ID will be filled in later if we find a match in our database or through the OL API,
+      // because Google Books doesn't provide that information. We will rely on our merging logic to fill in any gaps when we combine data from both sources.
       return {
         googleBookId: item.id,
-        openLibraryId: undefined, // Google-nél nincs OL ID
-        authorOpenLibraryId: undefined, // Ezt itt nem tudjuk kinyerni
+        openLibraryId: undefined, // Google API doesn't provide OL ID, so it's set to undefined
+        authorOpenLibraryId: undefined, // We don't get OL author ID from Google, so it's set to undefined
         title: info.title,
         authors: info.authors || [],
         description: info.description || '',
@@ -513,11 +573,18 @@ export class BooksService {
         ],
       } as ExternalBookResponse;
     } catch (error) {
-      this.logger.warn(`Open Library API hiba: ${error.message}`);
+      this.logger.warn(`Open Library API error: ${error.message}`);
       return null;
     }
   }
 
+  /**
+   * @summary Retrieves a paginated list of genres with optional search and sorting capabilities. The method allows filtering genres by name, sorting by various fields (name, number of favorites, number of books, creation date, or average rating), and includes metadata about the pagination state in the response.
+   * @description This method fetches genres from the database based on the provided pagination and sorting parameters. It supports searching genres by name using a case-insensitive partial match. The sorting can be done by genre name, number of favorites, number of books, creation date, or average rating. When sorting by average rating, it performs a more complex query to calculate the average rating for each genre. The response includes the list of genres along with metadata about the total number of genres, current page, last page, and whether there are next or previous pages available.
+   * @param query - An object containing pagination and sorting parameters, including page number, limit of items per page, search term for filtering by name, sorting field, and sorting order (ascending or descending).
+   * @returns A promise resolving to an object containing the list of genres and pagination metadata. The genres are returned based on the applied search and sorting criteria, and the metadata provides information about the total number of genres, current page, last page, and navigation availability for next and previous pages.
+   * @remarks The method includes error handling to catch and log any issues that arise during the database query process, ensuring that the application can gracefully handle errors and provide informative feedback to the client.
+   */
   async findAll(query: PaginationDto) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
@@ -587,11 +654,20 @@ export class BooksService {
     } catch (error) {
       console.error('Prisma Error in findAll:', error);
       throw new InternalServerErrorException(
-        'Hiba történt a műfajok listázása közben.',
+        'Error occurred while fetching genres. Please try again later.',
       );
     }
   }
 
+  /**
+   * @summary Due to its complexity I choose to outsource the implementation of this method. Retrieves a paginated list of books sorted by their average rating, with optional filtering based on provided conditions. The method includes related author, genre, and rating statistics in the response, and returns metadata about the pagination state.
+   * @description This method fetches books from the database based on the provided filtering conditions, pagination parameters, and sorting order. It includes related data such as the author's name, genre names, and rating statistics (average rating and rating count). The books are sorted by their average rating in either ascending or descending order as specified. The response includes metadata about the total number of books matching the conditions, current page, and last page to facilitate client-side pagination.
+   * @param whereCondition - An object representing the filtering conditions to apply when retrieving books. This can include various criteria such as approval status, author ID, genre ID, or any other relevant fields that can be used to filter the book records in the database.
+   * @param skip - The number of records to skip for pagination purposes. This is calculated based on the current page and the limit of items per page.
+   * @param limit - The maximum number of book records to return in the response for the current page.
+   * @param sortOrder - The order in which to sort the books based on their average rating. It can be either 'asc' for ascending order or 'desc' for descending order.
+   * @returns A promise resolving to the paginated list of books sorted by rating along with pagination metadata.
+   */
   async findAllSortedByRating(
     whereCondition: any,
     skip: number,
@@ -647,17 +723,47 @@ export class BooksService {
     }
   }
 
+  /**
+   * @summary Retrieves a single book by its ID.
+   * @description This method fetches a book from the database based on the provided ID. It includes related data such as the author's name, genre names, and rating statistics.
+   * @param id - The ID of the book to retrieve.
+   * @returns A promise resolving to the book details or an error if the book is not found.
+   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
+   */
   async findOne(id: string) {
-    return await this.prisma.book.findUniqueOrThrow({
-      where: { id },
-      include: {
-        isbns: true,
-        genres: { include: { genre: true } },
-        author: true,
-      },
-    });
+    try {
+      return await this.prisma.book.findUniqueOrThrow({
+        where: { id },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(
+          'The book with the given ID does not exist.',
+        );
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while fetching the book details.',
+      );
+    }
   }
 
+  /**
+   * @summary Updates a book's details, including its cover image, metadata, genres, and ISBNs. The method checks for the existence of the book, handles potential conflicts with identifiers, manages image uploads and deletions in S3, and updates the book record in the database accordingly.
+   * @description This method allows updating various aspects of a book, such as its title, description, identifiers (Google Book ID, Open Library ID), author, publication details, genres, and ISBNs. It first checks if the book exists in the database and throws a NotFoundException if it does not. It then checks for potential conflicts with the provided identifiers to ensure they are not already associated with another book. If a new cover image is provided, it handles the deletion of the old images from S3 and uploads the new image, updating the corresponding fields in the database. Finally, it updates the book record with the new details and returns the updated book information.
+   * @param id - The ID of the book to update.
+   * @param file - The uploaded cover image file, if applicable.
+   * @param updateBookDto - The data transfer object containing the updated book details.
+   * @returns A promise resolving to the updated book information or an error if the update fails.
+   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
+   * @throws {@link ConflictException} if the provided identifiers (ISBN, Google ID, or Open Library ID) are already associated with another book.
+   * @throws {@link InternalServerErrorException} if an error occurs while updating the book details or managing images in S3.
+   */
   async update(
     id: string,
     file: UploadedFile | null,
@@ -670,7 +776,7 @@ export class BooksService {
     });
 
     if (!existingBook) {
-      throw new NotFoundException(`A könyv (ID: ${id}) nem található.`);
+      throw new NotFoundException(`The book (ID: ${id}) was not found.`);
     }
 
     // 2. Conflict check: If the admin modifies identifiers,
@@ -697,7 +803,7 @@ export class BooksService {
 
       if (conflict) {
         throw new ConflictException(
-          'A megadott azonosítók (ISBN, Google ID vagy OL ID) már egy másik könyvhöz tartoznak.',
+          'The provided identifiers (ISBN, Google ID or OL ID) are already associated with another book.',
         );
       }
     }
@@ -785,11 +891,19 @@ export class BooksService {
     } catch (error) {
       this.logger.error(`Update hiba: ${error.message}`);
       throw new InternalServerErrorException(
-        'Hiba történt a könyv frissítésekor.',
+        'Error occurred while updating the book. Please try again later.',
       );
     }
   }
 
+  /**
+   * @summary Deletes a book from the database and its associated images from S3. The method first retrieves the book's image keys, then deletes the book record from the database, and finally attempts to delete the images from S3. It handles potential errors during both the database deletion and the S3 deletion processes, ensuring that appropriate exceptions are thrown if issues arise.
+   * @description This method is responsible for removing a book from the database and its associated cover images from S3. It first retrieves the book's smaller and bigger cover image keys to ensure that it has the necessary information to delete the images after the book record is removed. It then attempts to delete the book record from the database, handling any potential errors that may occur during this process, such as the book not existing. After successfully deleting the book record, it proceeds to delete the associated images from S3 using the retrieved keys. If any errors occur during the S3 deletion process, it logs the error and throws an InternalServerErrorException to indicate that there was an issue while deleting the images.
+   * @param id - The unique identifier of the book to be deleted. This ID is used to locate the specific book record in the database and retrieve its associated image keys for deletion from S3.
+   * @throws {@link ConflictException} if the book with the given ID does not exist in the database.
+   * @throws {@link InternalServerErrorException} if an error occurs while deleting the book record from the database or while deleting the images from S3.
+   * @returns A promise resolving to an object containing a success message and the deleted book's information.
+   */
   async remove(id: string) {
     const res = await this.prisma.book.findUniqueOrThrow({
       where: { id },
@@ -826,5 +940,355 @@ export class BooksService {
     }
 
     return { message: 'Book successfully deleted.', deletedBook: res };
+  }
+
+  /**
+   * @summary Retrieves curated sections of books for the main page, including categories such as Latest Added, Crowd Favorites, Short & Sweet, Weekend Reads, Genre Spotlights, Multi-Edition Hits, and Oldies but Goldies. Each section includes a title, subtitle, and a list of books that fit the criteria for that category.
+   * @description This method compiles various sections of books to be displayed on the main page of the application. It fetches different sets of books based on specific criteria, such as the most recently added books, the highest-rated books according to user ratings, shorter books that can be read quickly, books suitable for weekend reading, a spotlight on a random genre with handpicked essentials, books that have multiple editions indicating their popularity and longevity, and classic books that have stood the test of time. Each section is structured with a title, a subtitle that provides context for the category, and the corresponding list of books that meet the criteria for that section.
+   * @returns A promise resolving to an array of curated book sections. Each section contains a title, subtitle, and a list of books that fit the specific criteria for that category. The sections include Latest Added, Crowd Favorites, Short & Sweet, Weekend Reads, Genre Spotlights, Multi-Edition Hits, and Oldies but Goldies.
+   * @remarks The method includes error handling to ensure that any issues encountered while fetching the different sets of books are properly logged and handled, allowing the application to gracefully manage errors and provide a consistent user experience on the main page. It also utilizes helper methods to fetch books for each specific category, ensuring that the logic for retrieving books is organized and maintainable.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching any of the book sections for the main page. Each helper method responsible for fetching a specific category of books includes its own error handling to ensure that issues are properly logged and managed.
+   */
+  async getMainPageBooksWithSections() {
+    const LatestBooks = await this.getLatestAddedBooks();
+    const CrowdFavorites = await this.getCrowdFavorites();
+    const ShortAndSweet = await this.getShortAndSweet();
+    const WeekendReads = await this.getWeekendReads();
+    const GenreSpotlight = await this.getGenreSpotlight();
+    const MultiEditionHits = await this.getMultiEditionHits();
+    const OldiesButGoldies = await this.getOldiesButGoldies();
+    const mainPageContent = [
+      {
+        title: 'Latest Added',
+        subtitle: 'Stay ahead with the most recent additions.',
+        data: LatestBooks,
+      },
+      {
+        title: 'Crowd Favorites',
+        subtitle: 'Most-loved titles according to our community.',
+        data: CrowdFavorites,
+      },
+      {
+        title: 'Short & Sweet',
+        subtitle: 'Tiny books, massive impact.',
+        data: ShortAndSweet,
+      },
+      {
+        title: 'Weekend Reads',
+        subtitle: 'Perfect books to dive into over the weekend.',
+        data: WeekendReads,
+      },
+      GenreSpotlight,
+      {
+        title: 'Multi-Edition Hits',
+        subtitle: 'Rare finds and classic reprints with a rich history.',
+        data: MultiEditionHits,
+      },
+      {
+        title: 'Oldies but Goldies',
+        subtitle: 'Vintage gems that have stood the test of time.',
+        data: OldiesButGoldies,
+      },
+    ];
+    return mainPageContent;
+  }
+
+  /**
+   * @summary Retrieves the latest added books that have been approved, limited to the 15 most recent entries. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches the most recently added books from the database that have been approved for display. It limits the results to the 15 latest entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The books are ordered by their creation date in descending order to ensure that the newest additions are displayed first.
+   * @returns A promise resolving to an array of the latest added books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are limited to the 15 most recent entries.
+   */
+  async getLatestAddedBooks() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          approveStatus: true,
+        },
+        take: 15,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          statistics: true,
+          comments: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting latest books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves the crowd favorite books based on their average rating, limited to the top 15 entries. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches the books that are considered crowd favorites by ordering them based on their average rating in descending order. It limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are sorted to highlight the most popular titles according to user ratings.
+   * @returns A promise resolving to an array of the top 15 crowd favorite books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are ordered by average rating in descending order.
+   */
+  async getCrowdFavorites() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          approveStatus: true,
+        },
+        orderBy: {
+          statistics: {
+            averageRating: 'desc',
+          },
+        },
+        take: 15,
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+        include: {
+          statistics: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting crowd favorite books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that are considered "Short & Sweet" based on their page number, limited to those with 100 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches books that are categorized as "Short & Sweet" by filtering them based on their page number, specifically those that have 100 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight shorter reads that can be enjoyed quickly.
+   * @returns A promise resolving to an array of "Short & Sweet" books, each including its statistics, comments, and genres.
+   */
+  async getShortAndSweet() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          AND: [{ approveStatus: true }, { pageNumber: { lte: 100 } }],
+        },
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+        include: {
+          statistics: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting short and sweet books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that are suitable for "Weekend Reads" based on their page number, limited to those with 250 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
+   *  @description This method fetches books that are categorized as "Weekend Reads" by filtering them based on their page number, specifically those that have 250 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight reads that can be comfortably enjoyed over a weekend.
+   *  @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
+   */
+  async getWeekendReads() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          AND: [{ approveStatus: true }, { pageNumber: { lte: 250 } }],
+        },
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+        include: {
+          statistics: true,
+          genres: {
+            include: {
+              genre: { select: { name: true } },
+            },
+          },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting weekend reads books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves a spotlight section for a random genre, including a title, subtitle, and a list of handpicked essential books for that genre. The method randomly selects a genre from a predefined list and fetches books that fit the criteria for that genre, including related data such as statistics, comments, and genres for each book.
+   * @description This method creates a spotlight section for a randomly selected genre by first choosing a genre from a predefined list of genres. It then constructs a title and subtitle for the spotlight section based on the selected genre. The method fetches books that are relevant to the chosen genre using specific criteria defined in the `getBooksByASpecificGenre` helper method. Each book in the spotlight section includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are tailored to highlight essential reads for fans of the selected genre.
+   * @returns A promise resolving to an object containing the title, subtitle, and a list of books for the genre spotlight section. The books included in this section are handpicked essentials for lovers of the randomly selected genre, and each book includes its statistics, comments, and genres.
+   */
+  async getGenreSpotlight() {
+    const randomGenre = this.getRandomGenre();
+    const forProd =
+      randomGenre.charAt(0).toUpperCase() +
+      randomGenre
+        .slice(1)
+        .replace(/-\w/, (match) => ' ' + match[1].toUpperCase());
+    return {
+      title: `Genre Spotlights: ${forProd}`,
+      subtitle: `Handpicked essentials for every ${forProd} lover.`,
+      data: await this.getBooksByASpecificGenre(randomGenre as GenreType),
+    };
+  }
+
+  /**
+   * @summary Returns a random genre from a predefined list.
+   * @description This method selects a genre at random from a list of available genres.
+   * @returns The name of the randomly selected genre.
+   */
+  getRandomGenre() {
+    const GENRE_LIST = [
+      'history',
+      'fiction',
+      'romance',
+      'young-adult',
+      'fantasy',
+      'just-science',
+      'thriller',
+      'social-science',
+    ];
+    const randomIndex = Math.floor(Math.random() * GENRE_LIST.length);
+    return GENRE_LIST[randomIndex];
+  }
+
+  /**
+   * @summary Retrieves books that fit the criteria for a specific genre based on predefined keyword filters. The method constructs a query to fetch approved books that match the keywords associated with the specified genre, while also allowing for the exclusion of certain keywords if necessary. The results include related data such as statistics, comments, genres, and ISBNs for each book.
+   * @description This method defines a set of keyword filters for each genre and constructs a query to retrieve books that match the criteria for the specified genre. It includes conditions to ensure that only approved books are fetched and allows for the inclusion of books that contain certain keywords in their genres while excluding others if specified. The method returns a list of books that fit the genre criteria, along with related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs.
+   * @param genre The genre for which to retrieve books. The genre is used to determine the relevant keywords for filtering the books in the database query.
+   * @returns A list of books that fit the genre criteria, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching the books for the specified genre. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
+   */
+  async getBooksByASpecificGenre(genre: GenreType) {
+    const genreFilters: Record<GenreType, any> = {
+      history: { keywords: ['history'] },
+      fiction: { keywords: ['fiction'] },
+      romance: { keywords: ['romance', 'love'] },
+      'young-adult': { keywords: ['adult'] },
+      fantasy: { keywords: ['magic', 'fantasy'] },
+      thriller: { keywords: ['thriller', 'horror'] },
+      'social-science': { keywords: ['economics', 'politic', 'business'] },
+      'just-science': { keywords: ['science'], exclude: ['fiction'] },
+    };
+
+    const config = genreFilters[genre];
+
+    const where: any = {
+      approveStatus: true,
+      AND: [],
+    };
+
+    const keywordQuery = {
+      OR: config.keywords.map((kw) => ({
+        genres: {
+          some: { genre: { name: { contains: kw, mode: 'insensitive' } } },
+        },
+      })),
+    };
+    where.AND.push(keywordQuery);
+
+    if (config.exclude) {
+      where.AND.push({
+        NOT: config.exclude.map((ex) => ({
+          genres: {
+            some: { genre: { name: { contains: ex, mode: 'insensitive' } } },
+          },
+        })),
+      });
+    }
+
+    try {
+      return await this.prisma.book.findMany({
+        where,
+        take: 15,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting books by a specific genre.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that have multiple editions, indicating their popularity and longevity. The method fetches approved books and orders them by the count of their associated ISBNs in descending order, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
+   * @description This method identifies books that have multiple editions by counting the number of associated ISBNs for each book. It retrieves approved books from the database and orders them based on the count of their ISBNs in descending order, which serves as an indicator of their popularity and longevity. The method limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs for each book. This allows users to discover books that have been reprinted or have multiple editions, suggesting that they are well-loved and have stood the test of time.
+   * @returns A list of books that have multiple editions, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   */
+  async getMultiEditionHits() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          approveStatus: true,
+        },
+        orderBy: {
+          isbns: {
+            _count: 'desc',
+          },
+        },
+        take: 15,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting multi-edition hits books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves classic books that have stood the test of time, based on their original publication year. The method fetches approved books that were originally published before the year 2000, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
+   * @description This method identifies "Oldies but Goldies" by filtering books based on their original publication year, specifically those that were published before the year 2000. It retrieves approved books from the database that meet this criterion and limits the results to the top 15 entries. Each book in this category includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. This allows users to discover classic books that have been cherished over time and have made a lasting impact on readers.
+   * @returns A list of classic books that have stood the test of time, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   */
+  async getOldiesButGoldies() {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          AND: [
+            { approveStatus: true },
+            { originalPublicationYear: { lt: 2000 } },
+          ],
+        },
+        take: 15,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting oldies but goldies books.',
+      );
+    }
   }
 }

@@ -101,7 +101,7 @@ export class BookDetailsNormalizer {
         ? details.description.value
         : details.description || '';
 
-    // Itt kezeltük a hibát: safe check az excerpts-re
+    // If no description is available, but there are excerpts, use them as a fallback
     if (!desc && details.excerpts?.length) {
       desc =
         'Notable Excerpts:\n' +
