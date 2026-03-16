@@ -17,6 +17,7 @@ export function Home() {
 			async function Boks() {
 				const consoleData = await api.getData()
 				setBookList(consoleData.books)
+				console.log(consoleData.books)
 				setAuthorList(consoleData.authors)
 			}
 			Boks();
@@ -92,7 +93,7 @@ export function Home() {
 							(a: Book, b: Book) =>
 								(b.statistics?.averageRating ?? 0) - (a.statistics?.averageRating ?? 0)
 						) 
-						.slice(0, 5)
+						.slice(0, 6)
 						.map((book: Book) => (
 							<div key={book.id} className="card book-card shadow-sm">
 								<img
@@ -104,7 +105,7 @@ export function Home() {
 								<div className="card-body p-2">
 									<h6 className="card-title">{book.title}</h6>
 									<p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
-										Author: {book.authorId ?? "Unknown"} <br />
+										{book.author.name ?? "Unknown"} <br />
 										Rating: {book.statistics?.averageRating ?? "No rating"}
 									</p>
 								</div>
@@ -113,7 +114,9 @@ export function Home() {
 				</div>
 			</div>
 
-			{/* Other Sections */}
+			<div className="author-container mt-4">
+
+			</div>
 			<div>{/* Explore genres */}</div>
 			<div>{/* Popular Authors */}</div>
 
