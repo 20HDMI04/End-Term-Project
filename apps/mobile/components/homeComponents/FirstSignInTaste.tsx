@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
 		width: "95%",
 		marginLeft: 5,
 		textAlign: "left",
-		fontFamily: "Modern-No-20-Regular",
+		fontFamily: "modern_no_20_regular",
 		bottom: 54,
 	},
 	textSmall: {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
 		marginLeft: 10,
 		width: "94%",
 		textAlign: "center",
-		fontFamily: "Modern-No-20-Regular",
+		fontFamily: "modern_no_20_regular",
 		top: 16,
 	},
 	indicatorContainer: {

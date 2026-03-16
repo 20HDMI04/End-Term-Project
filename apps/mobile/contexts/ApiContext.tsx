@@ -2,7 +2,9 @@ import { createContext, useState, useEffect, useContext } from "react";
 import SuperTokens from "supertokens-react-native";
 import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { UserService } from "@/services/user.service";
+import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
+import { MainPageData } from "@/constants/interfaces";
 
 export interface Me {
 	biggerProfilePic: string;
@@ -15,6 +17,8 @@ export interface Me {
 
 interface ApiProps {
 	getMe: () => Promise<Me | { error: boolean; msg: string }>;
+	getMainPageData: () => Promise<MainPageData>;
+	getMainPageAnyWay: () => Promise<MainPageData>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -50,10 +54,32 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getMainPageData = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.fetchMainPageData();
+			return data;
+		} catch (error) {
+			console.error("Error fetching main page data:", error);
+			throw error;
+		}
+	};
+
+	const getMainPageAnyWay = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.fetchMainPageAnyWay();
+			return data;
+		} catch (error) {
+			console.error("Error fetching main page data:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
 				getMe,
+				getMainPageData,
+				getMainPageAnyWay,
 			}}
 		>
 			{children}

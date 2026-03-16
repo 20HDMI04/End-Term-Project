@@ -234,4 +234,26 @@ export class BooksController {
     };
     return mainPageContent;
   }
+
+  @Get('byisbn/:isbn')
+  @ApiOperation({
+    summary: 'Find a book by ISBN',
+    description: 'Retrieves the details of a specific book by its ISBN.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The book has been successfully retrieved.',
+  })
+  @ApiNotFoundResponse({
+    description: 'The book with the specified ISBN was not found.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the book. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  findOneByIsbn(@Param('isbn') isbn: string) {
+    return this.booksService.findOneByIsbn(isbn);
+  }
 }

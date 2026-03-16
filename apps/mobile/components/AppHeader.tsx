@@ -5,13 +5,14 @@ import {
 	TouchableOpacity,
 	Appearance,
 	Text,
+	InteractionManager,
 } from "react-native";
 import Animated, {
 	useSharedValue,
 	useAnimatedStyle,
-	withTiming, // Időalapú animáció a spring helyett
+	withTiming,
 	interpolate,
-	Easing, // A mozgás görbéjéhez
+	Easing,
 } from "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import ReadsyLightSvg from "@/assets/svgs/readsyWithoutTop.svg";
@@ -21,7 +22,6 @@ import Sun from "@/assets/svgs/sun-dim.svg";
 import { Colors } from "@/constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 interface AppHeaderProps {
 	options: any;
@@ -29,8 +29,24 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ options, route }: AppHeaderProps) {
+	const [loading, setLoading] = React.useState(false);
 	const isDarkMode = useColorScheme() === "dark";
 	const iconBackgroundColor = isDarkMode ? Colors.thirdColorDark : "#ffffff";
+	const transition = useSharedValue(isDarkMode ? 1 : 0);
+
+	const handleThemeChange = () => {
+		if (loading) return;
+		transition.value = withTiming(isDarkMode ? 1 : 0, {
+			duration: 1000,
+			easing: Easing.bezier(0.4, 0, 0.2, 1),
+		});
+		setLoading(true);
+		const nextScheme = isDarkMode ? "light" : "dark";
+		setTimeout(() => {
+			Appearance.setColorScheme(nextScheme);
+			setLoading(false);
+		}, 100);
+	};
 
 	const getTitle = () => {
 		if (options.headerTitle && typeof options.headerTitle === "string")
@@ -49,15 +65,6 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 
 		return tabNames[focusedRoute || ""] || tabNames["index"];
 	};
-
-	const transition = useSharedValue(isDarkMode ? 1 : 0);
-
-	useEffect(() => {
-		transition.value = withTiming(isDarkMode ? 1 : 0, {
-			duration: 1000,
-			easing: Easing.bezier(0.4, 0, 0.2, 1),
-		});
-	}, [isDarkMode]);
 
 	const animatedButtonStyle = useAnimatedStyle(() => {
 		const rotation = interpolate(transition.value, [0, 1], [0, 360]);
@@ -93,7 +100,7 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 				<TouchableOpacity
 					activeOpacity={0.7}
 					onPress={() => {
-						Appearance.setColorScheme(isDarkMode ? "light" : "dark");
+						handleThemeChange();
 					}}
 				>
 					<Animated.View
@@ -128,7 +135,7 @@ const styles = StyleSheet.create({
 		fontSize: 60,
 		padding: 0,
 		margin: 0,
-		fontFamily: "Modern-No-20-Regular",
+		fontFamily: "modern_no_20_regular",
 		lineHeight: 70,
 	},
 	darkLightButton: {
