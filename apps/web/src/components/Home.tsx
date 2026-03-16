@@ -91,8 +91,8 @@ export function Home() {
 						.sort(
 							(a: Book, b: Book) =>
 								(b.statistics?.averageRating ?? 0) - (a.statistics?.averageRating ?? 0)
-						) 
-						.slice(0, 5)
+						)
+						.slice(0, 6)
 						.map((book: Book) => (
 							<div key={book.id} className="card book-card shadow-sm">
 								<img
@@ -104,7 +104,7 @@ export function Home() {
 								<div className="card-body p-2">
 									<h6 className="card-title">{book.title}</h6>
 									<p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
-										Author: {book.authorId ?? "Unknown"} <br />
+										{book.author.name ?? "Unknown"} <br />
 										Rating: {book.statistics?.averageRating ?? "No rating"}
 									</p>
 								</div>
@@ -113,9 +113,59 @@ export function Home() {
 				</div>
 			</div>
 
-			{/* Other Sections */}
+
 			<div>{/* Explore genres */}</div>
-			<div>{/* Popular Authors */}</div>
+
+
+			<div>{/* Popular Authors */}
+				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 50px", marginTop: "20px" }}>
+					<h1 className="listing-h1">Popular Authors</h1>
+					<a href="/discover" className="see-all-link">
+						<p className="see-all mb-0">See All</p>
+					</a>
+				</div>
+
+				<div className="authors-container mt-5">
+					<h2 className="text-center mb-4">Popular Authors</h2>
+
+					<div className="d-flex justify-content-center gap-5 flex-wrap">
+						{booksList
+							?.flatMap((section: BookSection) => section.data)
+							.filter((value, index, self) =>
+								index === self.findIndex(book => book.id === value.id)
+							)
+							.slice(0, 5)
+							.map((book: Book) => (
+								<div key={book.id} className="text-center">
+
+									<img
+										src={book.smallerCoverPic || book.biggerCoverPic || "/logo.svg"}
+										alt={book.author?.name}
+										style={{
+											width: "140px",
+											height: "140px",
+											objectFit: "cover",
+											borderRadius: "50%",
+											border: "4px solid #4E6B3A"
+										}}
+									/>
+
+									<p
+										style={{
+											marginTop: "12px",
+											fontWeight: 500,
+											color: "#4E6B3A"
+										}}
+									>
+										{book.author?.name ?? "Unknown Author"}
+									</p>
+
+								</div>
+							))}
+					</div>
+				</div>
+
+			</div>
 
 			{/* Footer */}
 			<footer className="footer">
