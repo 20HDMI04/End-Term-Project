@@ -1031,17 +1031,19 @@ export class BooksService {
   }
 
   /**
-   * @summary Retrieves the latest added books that have been approved, limited to the 15 most recent entries. The method includes related data such as statistics, comments, and genres for each book.
-   * @description This method fetches the most recently added books from the database that have been approved for display. It limits the results to the 15 latest entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The books are ordered by their creation date in descending order to ensure that the newest additions are displayed first.
-   * @returns A promise resolving to an array of the latest added books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are limited to the 15 most recent entries.
+   * @summary Retrieves the latest added books that have been approved, limited to the specified number of entries. The method includes related data such as statistics, comments, and genres for each book.
+   * @description This method fetches the most recently added books from the database that have been approved for display. It limits the results to the specified number of entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The books are ordered by their creation date in descending order to ensure that the newest additions are displayed first.
+   * @returns A promise resolving to an array of the latest added books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are limited to the specified number of entries.
+   * @param take - The maximum number of latest added books to retrieve. The method will return up to this number of entries, ordered by their creation date in descending order.
+   * @remarks The method includes error handling to catch and log any issues that arise during the database query process, ensuring that the application can gracefully handle errors and provide informative feedback to the client if there are issues while fetching the latest added books.
    */
-  async getLatestAddedBooks() {
+  async getLatestAddedBooks(take: number = 15) {
     try {
       return await this.prisma.book.findMany({
         where: {
           approveStatus: true,
         },
-        take: 15,
+        take: take,
         orderBy: {
           createdAt: 'desc',
         },
@@ -1073,7 +1075,7 @@ export class BooksService {
    * @description This method fetches the books that are considered crowd favorites by ordering them based on their average rating in descending order. It limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are sorted to highlight the most popular titles according to user ratings.
    * @returns A promise resolving to an array of the top 15 crowd favorite books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are ordered by average rating in descending order.
    */
-  async getCrowdFavorites() {
+  async getCrowdFavorites(take: number = 15) {
     try {
       return await this.prisma.book.findMany({
         where: {
@@ -1084,7 +1086,7 @@ export class BooksService {
             averageRating: 'desc',
           },
         },
-        take: 15,
+        take: take,
         omit: {
           smallerCoverPicKey: true,
           biggerCoverPicKey: true,
@@ -1117,12 +1119,13 @@ export class BooksService {
    * @description This method fetches books that are categorized as "Short & Sweet" by filtering them based on their page number, specifically those that have 100 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight shorter reads that can be enjoyed quickly.
    * @returns A promise resolving to an array of "Short & Sweet" books, each including its statistics, comments, and genres.
    */
-  async getShortAndSweet() {
+  async getShortAndSweet(take: number = 15) {
     try {
       return await this.prisma.book.findMany({
         where: {
           AND: [{ approveStatus: true }, { pageNumber: { lte: 100 } }],
         },
+        take: take,
         omit: {
           smallerCoverPicKey: true,
           biggerCoverPicKey: true,
@@ -1155,12 +1158,13 @@ export class BooksService {
    *  @description This method fetches books that are categorized as "Weekend Reads" by filtering them based on their page number, specifically those that have 250 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight reads that can be comfortably enjoyed over a weekend.
    *  @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
    */
-  async getWeekendReads() {
+  async getWeekendReads(take: number = 15) {
     try {
       return await this.prisma.book.findMany({
         where: {
           AND: [{ approveStatus: true }, { pageNumber: { lte: 250 } }],
         },
+        take: take,
         omit: {
           smallerCoverPicKey: true,
           biggerCoverPicKey: true,
@@ -1191,9 +1195,10 @@ export class BooksService {
   /**
    * @summary Retrieves a spotlight section for a random genre, including a title, subtitle, and a list of handpicked essential books for that genre. The method randomly selects a genre from a predefined list and fetches books that fit the criteria for that genre, including related data such as statistics, comments, and genres for each book.
    * @description This method creates a spotlight section for a randomly selected genre by first choosing a genre from a predefined list of genres. It then constructs a title and subtitle for the spotlight section based on the selected genre. The method fetches books that are relevant to the chosen genre using specific criteria defined in the `getBooksByASpecificGenre` helper method. Each book in the spotlight section includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are tailored to highlight essential reads for fans of the selected genre.
-   * @returns A promise resolving to an object containing the title, subtitle, and a list of books for the genre spotlight section. The books included in this section are handpicked essentials for lovers of the randomly selected genre, and each book includes its statistics, comments, and genres.
+   *  @param take The number of books to retrieve.
+   *  @returns A promise resolving to an object containing the title, subtitle, and a list of books for the genre spotlight section. The books included in this section are handpicked essentials for lovers of the randomly selected genre, and each book includes its statistics, comments, and genres.
    */
-  async getGenreSpotlight() {
+  async getGenreSpotlight(take: number = 15) {
     const randomGenre = this.getRandomGenre();
     const forProd =
       randomGenre.charAt(0).toUpperCase() +
@@ -1203,7 +1208,7 @@ export class BooksService {
     return {
       title: `Genre Spotlights: ${forProd}`,
       subtitle: `Handpicked essentials for every ${forProd} lover.`,
-      data: await this.getBooksByASpecificGenre(randomGenre as GenreType),
+      data: await this.getBooksByASpecificGenre(randomGenre as GenreType, take),
     };
   }
 
@@ -1231,10 +1236,11 @@ export class BooksService {
    * @summary Retrieves books that fit the criteria for a specific genre based on predefined keyword filters. The method constructs a query to fetch approved books that match the keywords associated with the specified genre, while also allowing for the exclusion of certain keywords if necessary. The results include related data such as statistics, comments, genres, and ISBNs for each book.
    * @description This method defines a set of keyword filters for each genre and constructs a query to retrieve books that match the criteria for the specified genre. It includes conditions to ensure that only approved books are fetched and allows for the inclusion of books that contain certain keywords in their genres while excluding others if specified. The method returns a list of books that fit the genre criteria, along with related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs.
    * @param genre The genre for which to retrieve books. The genre is used to determine the relevant keywords for filtering the books in the database query.
+   * @param take The number of books to retrieve.
    * @returns A list of books that fit the genre criteria, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
    * @throws {@link InternalServerErrorException} if an error occurs while fetching the books for the specified genre. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
    */
-  async getBooksByASpecificGenre(genre: GenreType) {
+  async getBooksByASpecificGenre(genre: GenreType, take: number = 15) {
     const genreFilters: Record<GenreType, any> = {
       history: { keywords: ['history'] },
       fiction: { keywords: ['fiction'] },
@@ -1275,7 +1281,7 @@ export class BooksService {
     try {
       return await this.prisma.book.findMany({
         where,
-        take: 15,
+        take: take,
         include: {
           statistics: true,
           genres: { include: { genre: { select: { name: true } } } },
@@ -1298,9 +1304,10 @@ export class BooksService {
   /**
    * @summary Retrieves books that have multiple editions, indicating their popularity and longevity. The method fetches approved books and orders them by the count of their associated ISBNs in descending order, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
    * @description This method identifies books that have multiple editions by counting the number of associated ISBNs for each book. It retrieves approved books from the database and orders them based on the count of their ISBNs in descending order, which serves as an indicator of their popularity and longevity. The method limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs for each book. This allows users to discover books that have been reprinted or have multiple editions, suggesting that they are well-loved and have stood the test of time.
+   * @param take The number of books to retrieve.
    * @returns A list of books that have multiple editions, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
    */
-  async getMultiEditionHits() {
+  async getMultiEditionHits(take: number = 15) {
     try {
       return await this.prisma.book.findMany({
         where: {
@@ -1311,7 +1318,7 @@ export class BooksService {
             _count: 'desc',
           },
         },
-        take: 15,
+        take: take,
         include: {
           statistics: true,
           genres: { include: { genre: { select: { name: true } } } },
@@ -1334,9 +1341,10 @@ export class BooksService {
   /**
    * @summary Retrieves classic books that have stood the test of time, based on their original publication year. The method fetches approved books that were originally published before the year 2000, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
    * @description This method identifies "Oldies but Goldies" by filtering books based on their original publication year, specifically those that were published before the year 2000. It retrieves approved books from the database that meet this criterion and limits the results to the top 15 entries. Each book in this category includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. This allows users to discover classic books that have been cherished over time and have made a lasting impact on readers.
+   * @param take The number of books to retrieve.
    * @returns A list of classic books that have stood the test of time, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
    */
-  async getOldiesButGoldies() {
+  async getOldiesButGoldies(take: number = 15) {
     try {
       return await this.prisma.book.findMany({
         where: {
@@ -1345,7 +1353,7 @@ export class BooksService {
             { originalPublicationYear: { lt: 2000 } },
           ],
         },
-        take: 15,
+        take: take,
         include: {
           statistics: true,
           genres: { include: { genre: { select: { name: true } } } },
