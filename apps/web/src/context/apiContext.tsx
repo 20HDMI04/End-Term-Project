@@ -1,38 +1,31 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { createContext, useContext } from "react";
+import type { MainPageData } from "../components/interfaces/interfaces";
 
 interface ApiContextType {
-    books: any[];
-    loading: boolean;
+    getData: () => Promise<MainPageData>
 }
 
-const ApiContext = createContext<ApiContextType>({
-    books: [],
-    loading: true
-});
+const ApiContext = createContext<ApiContextType>(null as any)
+
 
 export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 
-    const [books, setBooks] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch("http://localhost:3002/books")
-            .then(res => res.json())
-            .then(data => {
-                setBooks(data.data);
-                setLoading(false);
-            })
-            .catch(err => {
-                console.error(err);
-                setLoading(false);
-            });
-    }, []);
+    
+        async function getData(): Promise<MainPageData> {
+            const res = await fetch("http://localhost:3002/books/mainpage")
+            const json = await res.json()
+            return json;
+        }
+        
+    
 
     return (
-        <ApiContext.Provider value={{ books, loading }}>
+        <ApiContext.Provider value={{getData}}>
             {children}
         </ApiContext.Provider>
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApi = () => useContext(ApiContext);

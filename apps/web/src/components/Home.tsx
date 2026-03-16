@@ -1,14 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
 import "./css/home.css";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
+import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
+
 
 export function Home() {
-	const { books, loading } = useApi();
+	const api = useApi();
 
-	const top5Books = books
-		.sort((a, b) => b.rating - a.rating)
-		.slice(0, 5);
+	const [booksList, setBookList] = useState<BookSection[]>();
+	const [authorList, setAuthorList] = useState<AuthorSection[]>();
+
+	useEffect(
+		() => {
+			async function Boks() {
+				const consoleData = await api.getData()
+				setBookList(consoleData.books)
+				setAuthorList(consoleData.authors)
+			}
+			Boks();
+		},
+		[]
+
+	)
+
+
 
 	return (
 		<div className="home-container">
@@ -65,34 +82,35 @@ export function Home() {
 
 
 			<div className="books-container mt-4">
-				{loading ? (
-					<p className="text-center">Loading books...</p>
-				) : (
-					<div
-						className="d-flex justify-start gap-3"
-
-					>
-						{top5Books.map((book: any) => (
-							<div
-								key={book.id}
-								className="card book-card shadow-sm"
-							>
+				<div className="d-flex justify-start gap-3">
+					{booksList
+						?.flatMap((section: BookSection) => section.data)
+						.filter((value, index, self) =>
+							index === self.findIndex(book => book.id === value.id)
+						)
+						.sort(
+							(a: Book, b: Book) =>
+								(b.statistics?.averageRating ?? 0) - (a.statistics?.averageRating ?? 0)
+						) 
+						.slice(0, 5)
+						.map((book: Book) => (
+							<div key={book.id} className="card book-card shadow-sm">
 								<img
-									src="/logo.svg"
+									src={book.biggerCoverPic || "/logo.svg"}
 									className="card-img-top"
-									alt={book.name}
-									style={{ height: "180px", objectFit: "cover" }}  // slightly smaller height
+									alt={book.title}
+									style={{ height: "180px", objectFit: "cover" }}
 								/>
 								<div className="card-body p-2">
-									<h6 className="card-title">{book.name}</h6>
+									<h6 className="card-title">{book.title}</h6>
 									<p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
-										Books: {book._count.books}
+										Author: {book.authorId ?? "Unknown"} <br />
+										Rating: {book.statistics?.averageRating ?? "No rating"}
 									</p>
 								</div>
 							</div>
 						))}
-					</div>
-				)}
+				</div>
 			</div>
 
 			{/* Other Sections */}
