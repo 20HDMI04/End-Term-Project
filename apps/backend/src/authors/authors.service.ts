@@ -152,12 +152,17 @@ export class AuthorsService {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
-    const whereCondition: any = {
-      approveStatus: admin ? false : true,
-    };
+    const whereCondition: any = {};
+    if (!admin) {
+      whereCondition.approveStatus = true;
+    }
 
     if (search) {
-      whereCondition.name = { contains: search, mode: 'insensitive' };
+      whereCondition.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { bio: { contains: search, mode: 'insensitive' } },
+        { nationality: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     let orderBy: any = {};
@@ -187,7 +192,7 @@ export class AuthorsService {
       const [data, total] = await Promise.all([
         this.prisma.author.findMany({
           where: whereCondition,
-          skip,
+          skip: skip,
           take: limit,
           orderBy,
           include: {

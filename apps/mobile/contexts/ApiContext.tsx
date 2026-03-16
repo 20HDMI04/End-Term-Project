@@ -5,6 +5,7 @@ import { UserService } from "@/services/user.service";
 import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
 import { MainPageData } from "@/constants/interfaces";
+import { AuthorsService } from "@/services/authors.service";
 
 export interface Me {
 	biggerProfilePic: string;
@@ -19,6 +20,7 @@ interface ApiProps {
 	getMe: () => Promise<Me | { error: boolean; msg: string }>;
 	getMainPageData: () => Promise<MainPageData>;
 	getMainPageAnyWay: () => Promise<MainPageData>;
+	searchAuthors: (query: string, page?: number, limit?: number) => Promise<any>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -54,12 +56,38 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const updateMe = async () => {
+		try {
+		} catch (e: any) {
+			return {
+				error: true,
+				msg:
+					e.response?.data?.message ||
+					"An error occurred while updating user data.",
+			};
+		}
+	};
+
 	const getMainPageData = async (): Promise<MainPageData> => {
 		try {
 			const data = await MainPageService.fetchMainPageData();
 			return data;
 		} catch (error) {
 			console.error("Error fetching main page data:", error);
+			throw error;
+		}
+	};
+
+	const searchAuthors = async (
+		query: string,
+		page: number = 1,
+		limit: number = 15,
+	) => {
+		try {
+			const data = await AuthorsService.searchAuthors(query, page, limit);
+			return data;
+		} catch (error) {
+			console.error("Error searching authors:", error);
 			throw error;
 		}
 	};
@@ -80,6 +108,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				getMe,
 				getMainPageData,
 				getMainPageAnyWay,
+				searchAuthors,
 			}}
 		>
 			{children}

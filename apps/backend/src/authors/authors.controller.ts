@@ -12,6 +12,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthorsService } from './authors.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
@@ -163,6 +165,7 @@ export class AuthorsController {
     isArray: true,
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
+  @UsePipes(new ValidationPipe({ transform: true }))
   findAll(@Query() query: PaginationDto) {
     return this.authorsService.findAll(query, false);
   }

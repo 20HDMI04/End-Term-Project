@@ -47,6 +47,9 @@ export default function HomeScreen() {
 	}, []);
 
 	useEffect(() => {
+		if (authState.roles.includes("new_user")) {
+			setModalVisibility(true);
+		}
 		const fetchData = async () => {
 			try {
 				const mainPageData = await api.getMainPageData();
@@ -64,6 +67,7 @@ export default function HomeScreen() {
 			<View style={{ flex: 1, position: "relative" }}>
 				<SafeAreaView style={{ flex: 1 }}>
 					<ScrollView
+						keyboardShouldPersistTaps="handled"
 						showsVerticalScrollIndicator={false}
 						refreshControl={
 							<RefreshControl
@@ -81,10 +85,6 @@ export default function HomeScreen() {
 							/>
 						}
 					>
-						{authState.roles.includes("new_user") && (
-							<ThemedText style={styles.adminBadge}>New User Mode</ThemedText>
-						)}
-
 						<FirstSignInTaste
 							visible={modalVisibility}
 							onClose={() => {

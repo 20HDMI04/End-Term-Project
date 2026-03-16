@@ -1,12 +1,18 @@
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import {
+	View,
+	ActivityIndicator,
+	StyleSheet,
+	useColorScheme,
+} from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/theme";
 
 export default function Index() {
 	const router = useRouter();
 	const { authState } = useAuth();
+	const isDarkMode = useColorScheme() === "dark";
 
 	useEffect(() => {
 		if (authState.isAuthenticated !== null) {
@@ -26,7 +32,10 @@ export default function Index() {
 
 	return (
 		<View style={styles.container}>
-			<ActivityIndicator size="large" color={Colors.mainColorLight} />
+			<ActivityIndicator
+				size="large"
+				color={isDarkMode ? "#FFFFFF" : Colors.mainColorLight}
+			/>
 		</View>
 	);
 }

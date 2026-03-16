@@ -5,6 +5,9 @@ import { useColorScheme } from "react-native";
 import { Colors } from "@/constants/theme";
 import LottieView from "lottie-react-native";
 import ArrowRight from "@/assets/svgs/arrow-circle-right.svg";
+import ProfileEditScreen from "./ProfileEditScreen";
+import SearchBarForFirstTaste from "./SearchbarForFirstTaste";
+import { useKeyboardVisible } from "@/hooks/use-keyboard-visible";
 
 interface MultiPageOverlayProps {
 	visible: boolean;
@@ -16,6 +19,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 	const isDarkMode = useColorScheme() === "dark";
 	const animationRef = useRef<LottieView>(null);
 	const pagerRef = useRef<PagerView>(null);
+	const isKeyboardVisible = useKeyboardVisible();
 
 	const backgroundColors = isDarkMode
 		? Colors.dark.background
@@ -48,6 +52,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 					initialPage={0}
 					onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
 					ref={pagerRef}
+					keyboardDismissMode={"none"}
 				>
 					<View
 						key="1"
@@ -87,6 +92,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 									alignItems: "center",
 									justifyContent: "space-between",
 									paddingHorizontal: 10,
+									top: 88,
 								},
 							]}
 						>
@@ -111,15 +117,102 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 						key="2"
 						style={[styles.page, { backgroundColor: backgroundColors }]}
 					>
-						<Text style={[styles.text, { color: textColors }]}>
+						<Text style={[styles.textSection2, { color: textColors }]}>
 							Own your reader profile.
 						</Text>
+						<ProfileEditScreen isDarkMode={isDarkMode} />
+						{/*TODO: FIX keyboard first time opened and then closed right after it opened bug */}
+						{!isKeyboardVisible && (
+							<TouchableOpacity
+								onPress={() => {
+									pagerRef.current?.setPage(currentPage + 1);
+								}}
+								style={[
+									isDarkMode ? Colors.buttonDark : Colors.button,
+									styles.button,
+									{
+										flexDirection: "row",
+										alignItems: "center",
+										justifyContent: "space-between",
+										paddingHorizontal: 10,
+										bottom: 2,
+									},
+								]}
+							>
+								<View style={{ width: 26 }} />
+								<Text
+									style={[
+										styles.textStyle,
+										{
+											color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+										},
+									]}
+								>
+									Next Step
+								</Text>
+								<ArrowRight
+									style={{ width: 32, height: 32 }}
+									fill={isDarkMode ? "#000000" : "#ffffff"}
+								></ArrowRight>
+							</TouchableOpacity>
+						)}
 					</View>
 					<View
 						key="3"
 						style={[styles.page, { backgroundColor: backgroundColors }]}
 					>
-						<Text style={[styles.text, { color: textColors }]}>Done!</Text>
+						<Text
+							style={[
+								styles.text,
+								{
+									color: textColors,
+									bottom: 0,
+									paddingBottom: 20,
+									marginTop: 10,
+								},
+							]}
+						>
+							Stay close to your favorites
+						</Text>
+						<SearchBarForFirstTaste isDarkMode={isDarkMode} />
+						<TouchableOpacity
+							onPress={() => {
+								pagerRef.current?.setPage(currentPage + 1);
+							}}
+							disabled={isKeyboardVisible}
+							style={[
+								isDarkMode ? Colors.buttonDark : Colors.button,
+								styles.button,
+								{
+									flexDirection: "row",
+									alignItems: "center",
+									justifyContent: "space-between",
+									paddingHorizontal: 10,
+									bottom: 2,
+									opacity: isKeyboardVisible ? 0 : 1,
+									zIndex: isKeyboardVisible ? -1 : 0,
+									pointerEvents: isKeyboardVisible ? "none" : "auto",
+									transitionDuration: "300ms",
+									transitionProperty: "top, opacity",
+								},
+							]}
+						>
+							<View style={{ width: 26 }} />
+							<Text
+								style={[
+									styles.textStyle,
+									{
+										color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+									},
+								]}
+							>
+								Next Step
+							</Text>
+							<ArrowRight
+								style={{ width: 32, height: 32 }}
+								fill={isDarkMode ? "#000000" : "#ffffff"}
+							></ArrowRight>
+						</TouchableOpacity>
 					</View>
 					<View
 						key="4"
@@ -180,6 +273,14 @@ const styles = StyleSheet.create({
 		fontFamily: "modern_no_20_regular",
 		bottom: 54,
 	},
+	textSection2: {
+		fontSize: 56,
+		width: "95%",
+		marginLeft: 5,
+		textAlign: "left",
+		fontFamily: "modern_no_20_regular",
+		marginTop: 40,
+	},
 	textSmall: {
 		fontSize: 20,
 		marginLeft: 10,
@@ -214,7 +315,6 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 		borderRadius: 30,
-		top: 88,
 	},
 	buttonText: {
 		color: "white",
