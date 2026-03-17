@@ -22,6 +22,7 @@ import BookCarousel from "@/components/homeComponents/BookCarousel";
 import AuthorCarousel from "@/components/homeComponents/AuthorCarousel";
 import { Colors } from "@/constants/theme";
 import { HomeSkeleton } from "@/components/homeComponents/HomeSkeleton";
+import BookOfBookCard from "@/components/homeComponents/BookOfBookCard";
 
 export default function HomeScreen() {
 	const api = useApi();
@@ -74,6 +75,23 @@ export default function HomeScreen() {
 		await api.getMe();
 		await refreshUserSession();
 	};
+	// Temporary hardcoded book data for testing purposes, TODO: get it from api
+	const bookData = {
+		title: "The Old Man and The Sea",
+		author: "Ernest Hemingway",
+		genres: [
+			"Classics",
+			"Romance",
+			"Science fiction",
+			"Fantasy",
+			"Mystery",
+			"Thriller",
+		],
+		description:
+			"Santiago, an aging Cuban fisherman who breaks an 84-day streak of bad luck by hooking a giant marlin. The novella explores themes of perseverance, pride, and the human spirit as Santiago battles the marlin and reflects on his life and struggles.",
+		coverUrl:
+			"https://m.media-amazon.com/images/M/MV5BNGQ0OWNlYTQtZjBlYy00NDJlLTk2ZDEtYzdkMzYxZmU3OWM2XkEyXkFqcGc@._V1_.jpg",
+	};
 
 	return (
 		<>
@@ -106,6 +124,15 @@ export default function HomeScreen() {
 							/>
 						}
 					>
+						{bookData && (
+							<BookOfBookCard
+								data={bookData}
+								isDarkMode={isDarkMode}
+								onPress={() => {
+									console.log("Book card pressed");
+								}}
+							/>
+						)}
 						{mainList ? (
 							<>
 								{(() => {

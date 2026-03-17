@@ -1314,7 +1314,7 @@ export class BooksService {
       fantasy: { keywords: ['magic', 'fantasy'] },
       thriller: { keywords: ['thriller', 'horror'] },
       'social-science': { keywords: ['economics', 'politic', 'business'] },
-      'just-science': { keywords: ['science'], exclude: ['fiction'] },
+      'just-science': { keywords: ['science'] },
     };
 
     const config = genreFilters[genre];
