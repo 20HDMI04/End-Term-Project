@@ -30,9 +30,11 @@ export default function HomeScreen() {
 	const [modalVisibility, setModalVisibility] = useState(false);
 	const [mainList, setMainList] = useState<MainPageData | null>(null);
 	const [refreshing, setRefreshing] = useState(false);
+	const { refreshUserSession } = useAuth();
 
-	const onRefresh = useCallback(() => {
+	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
+		await refreshUserSession();
 		const fetchData = async () => {
 			try {
 				const mainPageData = await api.getMainPageAnyWay();
@@ -47,6 +49,7 @@ export default function HomeScreen() {
 	}, []);
 
 	useEffect(() => {
+		console.log("User roles:", authState.roles);
 		if (authState.roles.includes("new_user")) {
 			setModalVisibility(true);
 		}
@@ -62,9 +65,27 @@ export default function HomeScreen() {
 		fetchData();
 	}, []);
 
+	const handleSavePress = async () => {
+		try {
+			await api.syncProfileWithServer(true);
+		} catch (e) {
+			console.error("Error syncing profile with server:", e);
+		}
+		await api.getMe();
+		await refreshUserSession();
+	};
+
 	return (
 		<>
 			<View style={{ flex: 1, position: "relative" }}>
+				<FirstSignInTaste
+					visible={modalVisibility}
+					onClose={async () => {
+						setModalVisibility(false);
+						await handleSavePress();
+					}}
+					isDarkMode={isDarkMode}
+				></FirstSignInTaste>
 				<SafeAreaView style={{ flex: 1 }}>
 					<ScrollView
 						keyboardShouldPersistTaps="handled"
@@ -85,13 +106,6 @@ export default function HomeScreen() {
 							/>
 						}
 					>
-						<FirstSignInTaste
-							visible={modalVisibility}
-							onClose={() => {
-								setModalVisibility(false);
-							}}
-						></FirstSignInTaste>
-
 						{mainList ? (
 							<>
 								{(() => {
@@ -142,17 +156,6 @@ export default function HomeScreen() {
 						) : (
 							<HomeSkeleton darkmode={isDarkMode} />
 						)}
-						<TouchableOpacity
-							style={styles.logoutButton}
-							onPress={() => {
-								setModalVisibility(true);
-							}}
-						>
-							<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
-								Open Carousel
-							</ThemedText>
-						</TouchableOpacity>
-
 						<View style={{ height: 100 }}></View>
 					</ScrollView>
 				</SafeAreaView>

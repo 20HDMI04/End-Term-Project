@@ -17,41 +17,18 @@ import X from "@/assets/svgs/x.svg";
 import { useApi } from "@/contexts/ApiContext";
 import AuthorResultComponent from "./AuthorResultComponent";
 import LottieView from "lottie-react-native";
+import { SearchResultBook } from "@/constants/interfaces";
+import BookResultItem from "./BookResultItem";
 
-interface SearchResultAuthor {
-	data: [
-		{
-			_count: any[];
-			approveStatus: boolean;
-			biggerProfilePic: string;
-			biggerProfilePicKey: any;
-			bio: string;
-			birthDate: string;
-			createdAt: string;
-			id: string;
-			name: string;
-			nationality: any;
-			openLibraryId: string;
-			smallerProfilePic: string;
-			smallerProfilePicKey: any;
-			subjects: any;
-			topWorks: any;
-			updatedAt: string;
-			isFavorited: boolean;
-		},
-	];
-	meta: {
-		lastPage: number;
-		page: number;
-		total: number;
-	};
-}
-
-const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
+const SearchBarForFirstTasteBook = ({
+	isDarkMode,
+}: {
+	isDarkMode: boolean;
+}) => {
 	const api = useApi();
 	const [query, setQuery] = useState("");
 	const [isFocused, setIsFocused] = useState(false);
-	const [searchResults, setSearchResults] = useState<SearchResultAuthor>();
+	const [searchResults, setSearchResults] = useState<SearchResultBook>();
 	const animationRef = useRef<LottieView>(null);
 	const animValue = useRef(new Animated.Value(0)).current;
 	const inputRef = useRef<TextInput>(null);
@@ -62,7 +39,7 @@ const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
 		}
 		const delayDebounceFn = setTimeout(async () => {
 			if (query.trim().length >= 3) {
-				const res = await api.searchAuthors(query);
+				const res = await api.searchBooks(query);
 				setSearchResults(res);
 			}
 		}, 500);
@@ -145,7 +122,7 @@ const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
 						]}
 						keyboardType="default"
 						placeholder={
-							isFocused ? "Who’s on your mind?" : "Search for authors ..."
+							isFocused ? "What are you looking for?" : "Search for books ..."
 						}
 						placeholderTextColor={
 							isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight
@@ -182,12 +159,8 @@ const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
 			>
 				{searchResults &&
 					searchResults.data.length > 0 &&
-					searchResults.data.map((author) => (
-						<AuthorResultComponent
-							key={author.id}
-							item={author}
-							isDarkMode={isDarkMode}
-						/>
+					searchResults.data.map((book) => (
+						<BookResultItem key={book.id} item={book} isDarkMode={isDarkMode} />
 					))}
 				{searchResults &&
 					searchResults.meta.total === 0 &&
@@ -201,7 +174,7 @@ const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
 									},
 								]}
 							>
-								No authors found for "{query}"
+								No books found for "{query}"
 							</Text>
 							<Text
 								style={[
@@ -250,13 +223,12 @@ const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
 										fontSize: 16,
 										fontFamily: "Poppins_300Light",
 										textAlign: "center",
-										bottom: 60,
+										bottom: 50,
 										paddingHorizontal: 20,
 									},
 								]}
 							>
-								Search for authors to add to your profile and get personalized
-								recommendations.
+								Search for books to extend your taste profile.
 							</Text>
 						</View>
 					))}
@@ -311,11 +283,11 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 	},
 	errorSubText: {
-		marginTop: 20,
+		marginTop: 24,
 		fontSize: 16,
 		fontFamily: "Poppins_300Light",
 		textAlign: "center",
 	},
 });
 
-export default React.memo(SearchBarForFirstTaste);
+export default React.memo(SearchBarForFirstTasteBook);

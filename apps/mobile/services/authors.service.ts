@@ -18,4 +18,16 @@ export const AuthorsService = {
 		console.log("AuthorsService.searchAuthors response:", response.data);
 		return response.data;
 	},
+	// POST /social/authors/{authorId}/like
+	likeAuthor: async (authorId: string) => {
+		const response = await apiClient.post(`/social/authors/${authorId}/like`);
+		return response.data;
+	},
+	// PATCH /social/authors/{authorId}/unlike
+	unlikeAuthor: async (authorId: string) => {
+		const response = await apiClient.patch(
+			`/social/authors/${authorId}/unlike`,
+		);
+		return response.data;
+	},
 };

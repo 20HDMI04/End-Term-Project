@@ -34,6 +34,7 @@ import { PaginationDto } from './dto/pagination-book.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthorsService } from 'src/authors/authors.service';
 import type { GenreType } from './books.service';
+import { Session } from 'src/auth/session.decorator';
 
 @ApiTags('Books')
 @Controller('books')
@@ -138,8 +139,9 @@ export class BooksController {
       'An unexpected error occurred while retrieving the books. Please try again later.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findAll(@Query() query: PaginationDto) {
-    return this.booksService.findAll(query);
+  findAll(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userId;
+    return this.booksService.findAll(query, false, userId);
   }
 
   @Get(':id')

@@ -596,26 +596,30 @@ export class BooksService {
    * @returns A promise resolving to an object containing the list of genres and pagination metadata. The genres are returned based on the applied search and sorting criteria, and the metadata provides information about the total number of genres, current page, last page, and navigation availability for next and previous pages.
    * @remarks The method includes error handling to catch and log any issues that arise during the database query process, ensuring that the application can gracefully handle errors and provide informative feedback to the client.
    */
-  async findAll(query: PaginationDto) {
+  async findAll(query: PaginationDto, admin: boolean, userId: string) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {};
+    if (!admin) {
+      whereCondition.approveStatus = true;
+    }
+
     if (search) {
-      whereCondition.name = { contains: search, mode: 'insensitive' };
+      whereCondition.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     let orderBy: any = {};
 
     switch (sortBy) {
-      case 'name':
-        orderBy = { name: sortOrder };
+      case 'title':
+        orderBy = { title: sortOrder };
         break;
       case 'favorites':
         orderBy = { favoritedBy: { _count: sortOrder } };
-        break;
-      case 'booksCount':
-        orderBy = { books: { _count: sortOrder } };
         break;
       case 'createdAt':
         orderBy = { createdAt: sortOrder };
@@ -625,35 +629,57 @@ export class BooksService {
           whereCondition,
           skip,
           limit,
-          sortOrder,
+          sortOrder as 'asc' | 'desc',
+          userId,
         );
       default:
-        orderBy = { name: 'asc' };
+        orderBy = { title: 'asc' };
     }
 
     try {
       const [data, total] = await Promise.all([
-        this.prisma.genres.findMany({
+        this.prisma.book.findMany({
           where: whereCondition,
           skip,
           take: limit,
           orderBy,
           include: {
-            _count: {
+            author: {
+              select: { id: true, name: true },
+            },
+            genres: {
               select: {
-                books: true,
-                favoritedBy: true,
+                genre: { select: { name: true } },
               },
+            },
+            statistics: {
+              select: {
+                averageRating: true,
+                ratingCount: true,
+              },
+            },
+            _count: {
+              select: { favoritedBy: true, comments: true },
             },
           },
         }),
-        this.prisma.genres.count({ where: whereCondition }),
+        this.prisma.book.count({ where: whereCondition }),
       ]);
 
       const lastPage = Math.ceil(total / limit);
 
+      const mappedData = data.map((book) => {
+        const { _count, ...rest } = book;
+        return {
+          ...rest,
+          commentCount: _count.comments,
+          favoriteCount: _count.favoritedBy,
+          isFavorited: userId ? _count.favoritedBy > 0 : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: {
           total,
           page,
@@ -663,9 +689,9 @@ export class BooksService {
         },
       };
     } catch (error) {
-      console.error('Prisma Error in findAll:', error);
+      console.error('Prisma Error in findAll (Books):', error);
       throw new InternalServerErrorException(
-        'Error occurred while fetching genres. Please try again later.',
+        'Error occurred while fetching books. Please try again later.',
       );
     }
   }
@@ -684,18 +710,20 @@ export class BooksService {
     skip: number,
     limit: number,
     sortOrder: 'asc' | 'desc',
+    userId: string,
   ) {
     try {
       const [data, total] = await Promise.all([
         this.prisma.book.findMany({
-          where: {
-            ...whereCondition,
-          },
+          where: whereCondition,
           skip: skip,
           take: limit,
           include: {
             author: {
-              select: { name: true },
+              select: {
+                id: true,
+                name: true,
+              },
             },
             statistics: {
               select: {
@@ -708,22 +736,45 @@ export class BooksService {
                 genre: { select: { name: true } },
               },
             },
-          },
-          orderBy: {
-            statistics: {
-              averageRating: sortOrder,
+            _count: {
+              select: { favoritedBy: true, comments: true },
             },
           },
+          orderBy: [
+            {
+              statistics: {
+                averageRating: sortOrder,
+              },
+            },
+            {
+              title: 'asc',
+            },
+          ],
         }),
         this.prisma.book.count({ where: whereCondition }),
       ]);
 
+      const page = Math.floor(skip / limit) + 1;
+      const lastPage = Math.ceil(total / limit);
+
+      const mappedData = data.map((book) => {
+        const { _count, ...rest } = book;
+        return {
+          ...rest,
+          commentCount: _count.comments,
+          favoriteCount: _count.favoritedBy,
+          isFavorited: userId ? _count.favoritedBy > 0 : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: {
           total,
-          page: Math.floor(skip / limit) + 1,
-          lastPage: Math.ceil(total / limit),
+          page,
+          lastPage,
+          hasNextPage: page < lastPage,
+          hasPreviousPage: page > 1,
         },
       };
     } catch (error) {

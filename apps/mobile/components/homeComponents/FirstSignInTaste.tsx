@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View, Text, Modal, TouchableOpacity } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useColorScheme } from "react-native";
@@ -8,125 +8,95 @@ import ArrowRight from "@/assets/svgs/arrow-circle-right.svg";
 import ProfileEditScreen from "./ProfileEditScreen";
 import SearchBarForFirstTaste from "./SearchbarForFirstTaste";
 import { useKeyboardVisible } from "@/hooks/use-keyboard-visible";
+import { ToastProvider } from "@/contexts/ToastContext";
+import SearchBarForFirstTasteBook from "./SearchBarForFirstTasteBook";
+import { useApi } from "@/contexts/ApiContext";
 
 interface MultiPageOverlayProps {
 	visible: boolean;
 	onClose: () => void;
+	isDarkMode: boolean;
 }
 
-const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
+const MultiPageOverlay = ({
+	visible,
+	onClose,
+	isDarkMode,
+}: MultiPageOverlayProps) => {
 	const [currentPage, setCurrentPage] = useState(0);
-	const isDarkMode = useColorScheme() === "dark";
 	const animationRef = useRef<LottieView>(null);
-	const pagerRef = useRef<PagerView>(null);
-	const isKeyboardVisible = useKeyboardVisible();
+	const ref = useRef<PagerView>(null);
+	const keyboardVisible = useKeyboardVisible();
 
-	const backgroundColors = isDarkMode
-		? Colors.dark.background
-		: Colors.light.background;
-	const textColors = isDarkMode ? "#ffffff" : Colors.mainColorLight;
-	const secondaryTextColors = isDarkMode ? "#ffffffee" : "#597127cc";
-
-	const activeDotColor = isDarkMode ? "#ffffff" : Colors.mainColorLight;
-	const inactiveDotColor = isDarkMode ? "#ffffff6c" : "#C4C4C4";
-
-	const getLottieSource = () => {
-		try {
-			let source = require("@/assets/lottie/searchingGirlLight.json");
-			if (isDarkMode) {
-				source = require("@/assets/lottie/girlSearchingDark.json");
-			}
-			return source;
-		} catch (err) {
-			console.error("Error loading Lottie file:", err);
-			return;
+	const goToNextPage = () => {
+		if (ref.current) {
+			ref.current.setPage(currentPage + 1);
 		}
 	};
 
-	const lottieSource = getLottieSource();
+	const theme = useMemo(
+		() => ({
+			background: isDarkMode ? Colors.dark.background : Colors.light.background,
+			text: isDarkMode ? "#ffffff" : Colors.mainColorLight,
+			secondaryText: isDarkMode ? "#ffffffee" : "#597127cc",
+			activeDot: isDarkMode ? "#ffffff" : Colors.mainColorLight,
+			inactiveDot: isDarkMode ? "#ffffff6c" : "#C4C4C4",
+		}),
+		[isDarkMode],
+	);
+
+	const lottieSource = useMemo(() => {
+		try {
+			return isDarkMode
+				? require("@/assets/lottie/girlSearchingDark.json")
+				: require("@/assets/lottie/searchingGirlLight.json");
+		} catch (err) {
+			return null;
+		}
+	}, [isDarkMode]);
 	return (
 		<Modal visible={visible} animationType="slide" transparent={true}>
-			<View style={styles.container}>
-				<PagerView
-					style={styles.pagerView}
-					initialPage={0}
-					onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
-					ref={pagerRef}
-					keyboardDismissMode={"none"}
-				>
-					<View
-						key="1"
-						style={[styles.page, { backgroundColor: backgroundColors }]}
+			<ToastProvider>
+				<View style={styles.container}>
+					<PagerView
+						style={styles.pagerView}
+						initialPage={0}
+						ref={ref}
+						onPageSelected={(e) => {
+							setCurrentPage(e.nativeEvent.position);
+						}}
+						keyboardDismissMode="none"
+						scrollEnabled={true}
+						offscreenPageLimit={3}
 					>
-						<Text style={[styles.text, { color: textColors }]}>
-							Your Journey Starts Here.
-						</Text>
-						<View style={styles.lottieViewHolder}>
-							{lottieSource && (
-								<LottieView
-									autoPlay={true}
-									ref={animationRef}
-									loop={true}
-									style={styles.lottie}
-									source={lottieSource}
-									onAnimationFailure={(error) => {
-										console.error("Animation failed:", error);
-									}}
-									resizeMode="contain"
-									speed={1.0}
-								/>
-							)}
-						</View>
-						<Text style={[styles.textSmall, { color: secondaryTextColors }]}>
-							Join thousands of users who are leveling up their lives.
-						</Text>
-						<TouchableOpacity
-							onPress={() => {
-								pagerRef.current?.setPage(currentPage + 1);
-							}}
-							style={[
-								isDarkMode ? Colors.buttonDark : Colors.button,
-								styles.button,
-								{
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "space-between",
-									paddingHorizontal: 10,
-									top: 88,
-								},
-							]}
+						<View
+							key="1"
+							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							<View style={{ width: 26 }} />
-							<Text
-								style={[
-									styles.textStyle,
-									{
-										color: isDarkMode ? Colors.mainColorDark : "#ffffff",
-									},
-								]}
-							>
-								Next Step
+							<Text style={[styles.text, { color: theme.text }]}>
+								Your Journey Starts Here.
 							</Text>
-							<ArrowRight
-								style={{ width: 32, height: 32 }}
-								fill={isDarkMode ? "#000000" : "#ffffff"}
-							></ArrowRight>
-						</TouchableOpacity>
-					</View>
-					<View
-						key="2"
-						style={[styles.page, { backgroundColor: backgroundColors }]}
-					>
-						<Text style={[styles.textSection2, { color: textColors }]}>
-							Own your reader profile.
-						</Text>
-						<ProfileEditScreen isDarkMode={isDarkMode} />
-						{/*TODO: FIX keyboard first time opened and then closed right after it opened bug */}
-						{!isKeyboardVisible && (
+							<View style={styles.lottieViewHolder}>
+								{lottieSource && (
+									<LottieView
+										autoPlay={true}
+										ref={animationRef}
+										loop={true}
+										style={styles.lottie}
+										source={lottieSource}
+										onAnimationFailure={(error) => {
+											console.error("Animation failed:", error);
+										}}
+										resizeMode="contain"
+										speed={1.0}
+									/>
+								)}
+							</View>
+							<Text style={[styles.textSmall, { color: theme.secondaryText }]}>
+								Join thousands of users who are leveling up their lives.
+							</Text>
 							<TouchableOpacity
-								onPress={() => {
-									pagerRef.current?.setPage(currentPage + 1);
-								}}
+								onPress={goToNextPage}
 								style={[
 									isDarkMode ? Colors.buttonDark : Colors.button,
 									styles.button,
@@ -135,7 +105,7 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 										alignItems: "center",
 										justifyContent: "space-between",
 										paddingHorizontal: 10,
-										bottom: 2,
+										top: 88,
 									},
 								]}
 							>
@@ -155,90 +125,171 @@ const MultiPageOverlay = ({ visible, onClose }: MultiPageOverlayProps) => {
 									fill={isDarkMode ? "#000000" : "#ffffff"}
 								></ArrowRight>
 							</TouchableOpacity>
-						)}
-					</View>
-					<View
-						key="3"
-						style={[styles.page, { backgroundColor: backgroundColors }]}
-					>
-						<Text
-							style={[
-								styles.text,
-								{
-									color: textColors,
-									bottom: 0,
-									paddingBottom: 20,
-									marginTop: 10,
-								},
-							]}
+						</View>
+						<View
+							key="2"
+							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							Stay close to your favorites
-						</Text>
-						<SearchBarForFirstTaste isDarkMode={isDarkMode} />
-						<TouchableOpacity
-							onPress={() => {
-								pagerRef.current?.setPage(currentPage + 1);
-							}}
-							disabled={isKeyboardVisible}
-							style={[
-								isDarkMode ? Colors.buttonDark : Colors.button,
-								styles.button,
-								{
-									flexDirection: "row",
-									alignItems: "center",
-									justifyContent: "space-between",
-									paddingHorizontal: 10,
-									bottom: 2,
-									opacity: isKeyboardVisible ? 0 : 1,
-									zIndex: isKeyboardVisible ? -1 : 0,
-									pointerEvents: isKeyboardVisible ? "none" : "auto",
-									transitionDuration: "300ms",
-									transitionProperty: "top, opacity",
-								},
-							]}
+							<Text style={[styles.textSection2, { color: theme.text }]}>
+								Own your reader profile.
+							</Text>
+							<ProfileEditScreen isDarkMode={isDarkMode} />
+							{!keyboardVisible && (
+								<TouchableOpacity
+									onPress={goToNextPage}
+									style={[
+										isDarkMode ? Colors.buttonDark : Colors.button,
+										styles.button,
+										{
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "space-between",
+											paddingHorizontal: 10,
+											bottom: 2,
+										},
+									]}
+								>
+									<View style={{ width: 26 }} />
+									<Text
+										style={[
+											styles.textStyle,
+											{
+												color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+											},
+										]}
+									>
+										Next Step
+									</Text>
+									<ArrowRight
+										style={{ width: 32, height: 32 }}
+										fill={isDarkMode ? "#000000" : "#ffffff"}
+									></ArrowRight>
+								</TouchableOpacity>
+							)}
+						</View>
+						<View
+							key="3"
+							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							<View style={{ width: 26 }} />
 							<Text
 								style={[
-									styles.textStyle,
+									styles.text,
 									{
-										color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+										color: theme.text,
+										bottom: 0,
+										paddingBottom: 20,
+										marginTop: 40,
 									},
 								]}
 							>
-								Next Step
+								Stay close to your favorites
 							</Text>
-							<ArrowRight
-								style={{ width: 32, height: 32 }}
-								fill={isDarkMode ? "#000000" : "#ffffff"}
-							></ArrowRight>
-						</TouchableOpacity>
-					</View>
-					<View
-						key="4"
-						style={[styles.page, { backgroundColor: backgroundColors }]}
-					>
-						<Text style={[styles.text, { color: textColors }]}>Done!</Text>
-						<TouchableOpacity onPress={onClose} style={styles.button}>
-							<Text style={styles.buttonText}>Start</Text>
-						</TouchableOpacity>
-					</View>
-				</PagerView>
-
-				<View style={styles.indicatorContainer}>
-					{[0, 1, 2, 3].map((index) => (
+							<SearchBarForFirstTaste isDarkMode={isDarkMode} />
+							{!keyboardVisible && (
+								<TouchableOpacity
+									onPress={goToNextPage}
+									style={[
+										isDarkMode ? Colors.buttonDark : Colors.button,
+										styles.button,
+										{
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "space-between",
+											paddingHorizontal: 10,
+											bottom: 2,
+											transitionDuration: "300ms",
+											transitionProperty: "top, opacity",
+										},
+									]}
+								>
+									<View style={{ width: 26 }} />
+									<Text
+										style={[
+											styles.textStyle,
+											{
+												color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+											},
+										]}
+									>
+										Next Step
+									</Text>
+									<ArrowRight
+										style={{ width: 32, height: 32 }}
+										fill={isDarkMode ? "#000000" : "#ffffff"}
+									></ArrowRight>
+								</TouchableOpacity>
+							)}
+						</View>
 						<View
-							key={index}
-							style={[
-								styles.dot,
-								currentPage === index
-									? [styles.activeDot, { backgroundColor: activeDotColor }]
-									: { backgroundColor: inactiveDotColor },
-							]}
-						/>
-					))}
+							key="4"
+							style={[styles.page, { backgroundColor: theme.background }]}
+						>
+							<Text
+								style={[
+									styles.text,
+									{
+										color: theme.text,
+										bottom: 0,
+										paddingBottom: 20,
+										marginTop: 40,
+									},
+								]}
+							>
+								Help us know you better.
+							</Text>
+							<SearchBarForFirstTasteBook isDarkMode={isDarkMode} />
+							{!keyboardVisible && (
+								<TouchableOpacity
+									onPress={onClose}
+									style={[
+										isDarkMode ? Colors.buttonDark : Colors.button,
+										styles.button,
+										{
+											flexDirection: "row",
+											alignItems: "center",
+											justifyContent: "space-between",
+											paddingHorizontal: 10,
+											bottom: 2,
+											transitionDuration: "300ms",
+											transitionProperty: "top, opacity",
+										},
+									]}
+								>
+									<View style={{ width: 26 }} />
+									<Text
+										style={[
+											styles.textStyle,
+											{
+												color: isDarkMode ? Colors.mainColorDark : "#ffffff",
+											},
+										]}
+									>
+										Start Your Journey
+									</Text>
+									<ArrowRight
+										style={{ width: 32, height: 32 }}
+										fill={isDarkMode ? "#000000" : "#ffffff"}
+									></ArrowRight>
+								</TouchableOpacity>
+							)}
+						</View>
+					</PagerView>
+
+					<View style={styles.indicatorContainer}>
+						{[0, 1, 2, 3].map((index) => (
+							<View
+								key={index}
+								style={[
+									styles.dot,
+									currentPage === index
+										? [styles.activeDot, { backgroundColor: theme.activeDot }]
+										: { backgroundColor: theme.inactiveDot },
+								]}
+							/>
+						))}
+					</View>
 				</View>
-			</View>
+			</ToastProvider>
 		</Modal>
 	);
 };

@@ -38,6 +38,7 @@ import {
   ApiNotFoundResponse,
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
+import { Session } from 'src/auth/session.decorator';
 
 @ApiTags('Authors')
 @Controller('authors')
@@ -166,8 +167,9 @@ export class AuthorsController {
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   @UsePipes(new ValidationPipe({ transform: true }))
-  findAll(@Query() query: PaginationDto) {
-    return this.authorsService.findAll(query, false);
+  findAll(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userId;
+    return this.authorsService.findAll(query, false, userId);
   }
 
   @Get('stats')

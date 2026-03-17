@@ -145,10 +145,12 @@ export class AuthorsService {
    * @description Retrieves a paginated list of authors from the database. Supports filtering by approval status, search term, and sorting by various fields including name, creation date, number of favorites, and average rating.
    * @param query the pagination and filtering options
    * @param admin a boolean indicating if the request is from an admin (to filter by approval status)
+   * @param currentUserId the ID of the currently logged-in user
+   * @remark Sorting by average rating is implemented in-memory after fetching the relevant authors and their books, due to limitations in Prisma's ability to sort by related model aggregates that calculate averages.
    * @returns a paginated list of authors with metadata
    * @throws {@link InternalServerErrorException} if there is a database error during retrieval
    */
-  async findAll(query: PaginationDto, admin: boolean) {
+  async findAll(query: PaginationDto, admin: boolean, currentUserId?: string) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
@@ -204,8 +206,16 @@ export class AuthorsService {
         this.prisma.author.count({ where: whereCondition }),
       ]);
 
+      const mappedData = data.map((author) => {
+        const { _count, ...rest } = author;
+        return {
+          ...rest,
+          isFavorited: _count.favoritedBy > 0 && currentUserId ? true : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: { total, page, lastPage: Math.ceil(total / limit) },
       };
     } catch (error) {

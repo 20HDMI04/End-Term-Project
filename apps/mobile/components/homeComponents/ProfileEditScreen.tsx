@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
 	StyleSheet,
 	View,
@@ -6,23 +6,22 @@ import {
 	TextInput,
 	TouchableOpacity,
 	Image,
-	Alert,
-	KeyboardAvoidingView,
-	Platform,
 	ScrollView,
-	TouchableWithoutFeedback,
 	Keyboard,
+	Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
+import { useKeyboardVisible } from "@/hooks/use-keyboard-visible";
 
 const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 	isDarkMode,
 }) => {
 	const [image, setImage] = useState<string | null>(null);
 	const [nickname, setNickname] = useState<string>("");
+	const keyboardVisible = useKeyboardVisible();
 
 	useEffect(() => {
 		loadUserData();
@@ -39,12 +38,21 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 		}
 	};
 
+	const handleNicknameChange = (text: string) => {
+		setNickname(text);
+	};
+
+	const saveNicknameToStorage = async () => {
+		try {
+			await AsyncStorage.setItem("user_nickname", nickname);
+		} catch (e) {
+			console.error("Save error:", e);
+		}
+	};
+
 	const pickImage = async () => {
 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-		if (status !== "granted") {
-			Alert.alert("Error", "Permission required!");
-			return;
-		}
+		if (status !== "granted") return;
 
 		let result = await ImagePicker.launchImageLibraryAsync({
 			mediaTypes: "images",
@@ -60,18 +68,14 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 		}
 	};
 
-	const handleNicknameChange = async (text: string) => {
-		setNickname(text);
-		await AsyncStorage.setItem("user_nickname", text);
-	};
-
 	return (
-		<KeyboardAvoidingView style={{ flex: 1 }}>
-			<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-				<ScrollView
-					style={styles.container}
-					showsVerticalScrollIndicator={false}
-				>
+		<View style={{ flex: 1, width: "100%" }}>
+			<ScrollView
+				style={[styles.container]}
+				contentContainerStyle={styles.scrollContent}
+				showsVerticalScrollIndicator={false}
+			>
+				{!keyboardVisible && (
 					<View style={styles.imageContainer}>
 						<TouchableOpacity onPress={pickImage} activeOpacity={0.85}>
 							<View style={styles.imageWrapper}>
@@ -128,68 +132,73 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 							</View>
 						</TouchableOpacity>
 					</View>
+				)}
 
-					<View style={styles.inputWrapper}>
-						<Text
+				<View style={styles.inputWrapper}>
+					<Text
+						style={[
+							styles.label,
+							{
+								color: isDarkMode
+									? Colors.loginTextDark
+									: Colors.darkerTextLight,
+							},
+						]}
+					>
+						Nickname
+					</Text>
+					<View
+						style={[
+							styles.inputContainer,
+							{
+								backgroundColor: isDarkMode ? Colors.thirdColorDark : "#ffffff",
+							},
+						]}
+					>
+						<Ionicons
+							name="person-outline"
+							size={20}
+							color={isDarkMode ? "#ffffff" : Colors.mainColorLight}
+							style={styles.inputIcon}
+						/>
+						<TextInput
 							style={[
-								styles.label,
-								{
-									color: isDarkMode
-										? Colors.loginTextDark
-										: Colors.darkerTextLight,
-								},
+								styles.input,
+								{ color: isDarkMode ? "#ffffff" : Colors.mainColorLight },
 							]}
-						>
-							Nickname
-						</Text>
-						<View
-							style={[
-								styles.inputContainer,
-								{
-									backgroundColor: isDarkMode
-										? Colors.thirdColorDark
-										: "#ffffff",
-								},
-							]}
-						>
-							<Ionicons
-								name="person-outline"
-								size={20}
-								color={isDarkMode ? "#ffffff" : Colors.mainColorLight}
-								style={styles.inputIcon}
-							/>
-							<TextInput
-								style={[
-									styles.input,
-									{
-										color: isDarkMode ? "#ffffff" : Colors.mainColorLight,
-									},
-								]}
-								value={nickname}
-								onChangeText={handleNicknameChange}
-								placeholder="Your unique nickname"
-								placeholderTextColor={
-									isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight
-								}
-							/>
-						</View>
+							value={nickname}
+							onChangeText={handleNicknameChange}
+							onBlur={saveNicknameToStorage}
+							placeholder="Your unique nickname"
+							placeholderTextColor={
+								isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight
+							}
+							onSubmitEditing={() => {
+								Keyboard.dismiss();
+							}}
+							blurOnSubmit={false}
+							disableFullscreenUI={true}
+							underlineColorAndroid="transparent"
+						/>
 					</View>
-				</ScrollView>
-			</TouchableWithoutFeedback>
-		</KeyboardAvoidingView>
+				</View>
+			</ScrollView>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		flexGrow: 1,
+		flex: 1,
+		marginTop: 60,
 		width: "100%",
-		height: "100%",
-		marginTop: 100,
-		marginBottom: 10,
+	},
+	scrollContent: {
+		alignItems: "center",
 	},
 	imageContainer: {
 		alignItems: "center",
+		marginBottom: 20,
 	},
 	imageWrapper: {
 		position: "relative",
@@ -216,25 +225,22 @@ const styles = StyleSheet.create({
 		borderWidth: 3,
 	},
 	inputWrapper: {
+		width: 300,
 		marginTop: 10,
-		width: "100%",
 	},
 	label: {
-		fontSize: 20,
+		fontSize: 18,
 		marginBottom: 8,
-		marginLeft: 5,
 		fontFamily: "modern_no_20_regular",
 	},
 	inputContainer: {
 		flexDirection: "row",
 		alignItems: "center",
 		borderRadius: 30,
-		width: 300,
 		paddingHorizontal: 20,
 		height: 55,
 		borderWidth: 1,
 		borderColor: "rgba(0,0,0,0.05)",
-		marginBottom: 0,
 	},
 	inputIcon: {
 		marginRight: 10,
@@ -243,8 +249,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontFamily: "Poppins_300Light",
 		fontSize: 16,
-		width: "100%",
 	},
 });
 
-export default ProfileEditScreen;
+export default React.memo(ProfileEditScreen);

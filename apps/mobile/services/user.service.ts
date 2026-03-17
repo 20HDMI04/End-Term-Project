@@ -14,7 +14,7 @@ export const UserService = {
 		isFirstTime: boolean = false,
 	) => {
 		const endpoint = isFirstTime ? "/user/me-the-first-time" : "/user/me";
-
+		console.log("Updating profile. Endpoint:", endpoint);
 		let payload: FormData | any;
 		let headers: Record<string, string> = {};
 
@@ -34,6 +34,7 @@ export const UserService = {
 		}
 
 		const response = await apiClient.patch(endpoint, payload, { headers });
+		console.log("Profile updated successfully:", response.data);
 		return response.data;
 	},
 };

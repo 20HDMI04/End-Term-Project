@@ -1,35 +1,29 @@
 import React, { useState, memo, useEffect } from "react";
-import {
-	StyleSheet,
-	View,
-	Text,
-	Image,
-	TouchableOpacity,
-	Platform,
-} from "react-native";
+import { StyleSheet, View, Text, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
-import { Author } from "@/constants/interfaces";
+import { BookData } from "@/constants/interfaces";
 import { useToast } from "@/contexts/ToastContext";
 import { useApi } from "@/contexts/ApiContext";
 
-interface AuthorResultItemProps {
-	item: Author;
+interface BookResultItemProps {
+	item: BookData;
 	isDarkMode: boolean;
 }
 
-const AuthorResultItem = ({ item, isDarkMode }: AuthorResultItemProps) => {
+const BookResultItem = ({ item, isDarkMode }: BookResultItemProps) => {
 	const [hasError, setHasError] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSelected, setIsSelected] = useState(false);
 	const api = useApi();
 	const { showToast } = useToast();
+
 	useEffect(() => {
-		console.log(item);
-		if (item.isFavorited !== undefined && item.isFavorited !== false) {
-			setIsSelected(true);
+		if (item.isFavorited !== undefined) {
+			setIsSelected(item.isFavorited);
 		}
-	}, []);
+	}, [item.isFavorited]);
+
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
 		: Colors.mainColorLight;
@@ -40,18 +34,17 @@ const AuthorResultItem = ({ item, isDarkMode }: AuthorResultItemProps) => {
 		? Colors.thirdColorDark
 		: Colors.thirdColorLight;
 	const iconColor = isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight;
-	const accentColor = "#4A5D45";
 
 	return (
 		<View style={styles.container}>
 			<View style={[styles.imageWrapper, { backgroundColor: fallbackBg }]}>
 				<View style={styles.absolutePlaceholder}>
-					<Ionicons name="person" size={24} color={iconColor} />
+					<Ionicons name="book-outline" size={24} color={iconColor} />
 				</View>
 
-				{item.biggerProfilePic && !hasError && (
+				{item.smallerCoverPic && !hasError && (
 					<Image
-						source={{ uri: item.biggerProfilePic }}
+						source={{ uri: item.smallerCoverPic }}
 						style={styles.image}
 						onLoadStart={() => setIsLoading(true)}
 						onLoadEnd={() => setIsLoading(false)}
@@ -64,26 +57,48 @@ const AuthorResultItem = ({ item, isDarkMode }: AuthorResultItemProps) => {
 			</View>
 
 			<View style={styles.infoContainer}>
-				<Text style={[styles.name, { color: titleColor }]} numberOfLines={1}>
-					{item.name || "Unknown Author"}
+				<Text style={[styles.title, { color: titleColor }]} numberOfLines={1}>
+					{item.title || "Unknown Title"}
 				</Text>
-				<Text style={[styles.role, { color: subtitleColor }]}>Author</Text>
+
+				<Text
+					style={[styles.subtitle, { color: subtitleColor }]}
+					numberOfLines={1}
+				>
+					Book • {item.author?.name || "Unknown Author"}
+				</Text>
+
+				<View style={styles.genreContainer}>
+					{item.genres?.slice(0, 2).map((g, index) => (
+						<View
+							key={index}
+							style={[styles.genreBadge, { borderColor: subtitleColor + "40" }]}
+						>
+							<Text style={[styles.genreText, { color: subtitleColor }]}>
+								{g.genre.name}
+							</Text>
+						</View>
+					))}
+				</View>
 			</View>
 
 			<TouchableOpacity
 				activeOpacity={0.6}
 				hitSlop={40}
 				onPress={() => {
-					setIsSelected(!isSelected);
-					if (!isSelected) {
-						api.likeAuthor(item.id);
+					const newState = !isSelected;
+					setIsSelected(newState);
+
+					if (newState) {
+						api.likeBook(item.id);
 					} else {
-						api.unlikeAuthor(item.id);
+						api.unlikeBook(item.id);
 					}
+
 					showToast(
-						isSelected
-							? "Author removed from favorites."
-							: "Author added to favorites.",
+						newState
+							? "Book added to favorites."
+							: "Book removed from favorites.",
 					);
 				}}
 				style={styles.actionButton}
@@ -111,16 +126,22 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		paddingVertical: 12,
-		paddingHorizontal: 14,
+		paddingHorizontal: 10,
 		backgroundColor: "transparent",
 	},
 	imageWrapper: {
-		width: 50,
-		height: 50,
-		borderRadius: 25,
+		width: 65,
+		height: 100,
+		borderEndEndRadius: 10,
+		borderEndStartRadius: 10,
 		overflow: "hidden",
 		position: "relative",
-		marginRight: 15,
+		marginRight: 16,
+		elevation: 2,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.2,
+		shadowRadius: 2,
 	},
 	absolutePlaceholder: {
 		...StyleSheet.absoluteFillObject,
@@ -138,20 +159,35 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 	},
-	name: {
+	title: {
 		fontSize: 18,
 		fontFamily: "modern_no_20_regular",
-		fontWeight: "600",
+		marginBottom: 2,
 	},
-	role: {
+	subtitle: {
+		fontSize: 16,
+		fontFamily: "modern_no_20_regular",
+		opacity: 0.7,
+		marginBottom: 8,
+	},
+	genreContainer: {
+		flexDirection: "row",
+		flexWrap: "wrap",
+		gap: 6,
+	},
+	genreBadge: {
+		paddingHorizontal: 10,
+		paddingVertical: 2,
+		borderRadius: 15,
+		borderWidth: 1,
+	},
+	genreText: {
 		fontSize: 14,
 		fontFamily: "modern_no_20_regular",
-		opacity: 0.6,
-		marginTop: 2,
 	},
 	actionButton: {
-		padding: 5,
+		paddingLeft: 10,
 	},
 });
 
-export default memo(AuthorResultItem);
+export default memo(BookResultItem);

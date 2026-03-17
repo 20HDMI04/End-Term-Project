@@ -38,6 +38,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 console.log("[_layout] GoogleSignin loaded");
 
 import { ApiProvider, useApi } from "@/contexts/ApiContext";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -152,12 +153,14 @@ export default function RootLayout() {
 				<ThemeProvider
 					value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
 				>
-					{!appIsReady ? (
-						<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
-					) : (
-						<RootLayoutNav />
-					)}
-					<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+					<ToastProvider>
+						{!appIsReady ? (
+							<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
+						) : (
+							<RootLayoutNav />
+						)}
+						<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+					</ToastProvider>
 				</ThemeProvider>
 			</ApiProvider>
 		</AuthProvider>
