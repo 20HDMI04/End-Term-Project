@@ -176,6 +176,7 @@ A projekt két szinten dokumentált, hogy mind a külső integráció, mind a be
 
 - Bővebben az [Architektúránkról](https://github.com/20HDMI04/End-Term-Project/blob/main/documentation/overview.md)
 - Bővebben a projekt [SETUP](https://github.com/20HDMI04/End-Term-Project/blob/main/SETUP.md)-olásáról
+- Bővebben a mobilhoz tartozó [User Story]()-ról
 
 ## 👤 Tagok
 
