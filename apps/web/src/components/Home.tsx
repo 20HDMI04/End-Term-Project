@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
 import "./css/home.css";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
 
@@ -20,9 +19,7 @@ export function Home() {
 				setAuthorList(consoleData.authors)
 			}
 			Boks();
-		},
-		[]
-
+		}
 	)
 
 
@@ -46,13 +43,14 @@ export function Home() {
 							<li className="nav-item">
 								<h2><a className="nav-link" href="/discover">Discover</a></h2>
 							</li>
-							<a href="">
+							<a href="/profile">
 								<img src="/def_profile_icon.svg" alt="profile" className="profile-pic" />
 							</a>
 						</ul>
 					</div>
 				</div>
 			</nav>
+
 
 			{/* Header */}
 			<header className="header">
@@ -72,99 +70,108 @@ export function Home() {
 				</div>
 			</header>
 
+
 			{/* Popular Books Section */}
-			<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 50px", marginTop: "20px" }}>
-				<h1 className="listing-h1">Popular Books</h1>
-				<a href="/discover" className="see-all-link">
-					<p className="see-all mb-0">See All</p>
-				</a>
-			</div>
-
-
-			<div className="books-container mt-4">
-				<div className="d-flex justify-start gap-3">
-					{booksList
-						?.flatMap((section: BookSection) => section.data)
-						.filter((value, index, self) =>
-							index === self.findIndex(book => book.id === value.id)
-						)
-						.sort(
-							(a: Book, b: Book) =>
-								(b.statistics?.averageRating ?? 0) - (a.statistics?.averageRating ?? 0)
-						)
-						.slice(0, 6)
-						.map((book: Book) => (
-							<div key={book.id} className="card book-card shadow-sm">
-								<img
-									src={book.biggerCoverPic || "/logo.svg"}
-									className="card-img-top"
-									alt={book.title}
-									style={{ height: "180px", objectFit: "cover" }}
-								/>
-								<div className="card-body p-2">
-									<h6 className="card-title">{book.title}</h6>
-									<p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
-										{book.author.name ?? "Unknown"} <br />
-										Rating: {book.statistics?.averageRating ?? "No rating"}
-									</p>
-								</div>
-							</div>
-						))}
-				</div>
-			</div>
-
-
-			<div>{/* Explore genres */}</div>
-
-
-			<div>{/* Popular Authors */}
+			<div className="books-container-main">
 				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 50px", marginTop: "20px" }}>
-					<h1 className="listing-h1">Popular Authors</h1>
+					<h1 className="listing-h1">Popular Books</h1>
 					<a href="/discover" className="see-all-link">
-						<p className="see-all mb-0">See All</p>
+						<p className="see-all mb-0">See All➛</p>
 					</a>
 				</div>
 
-				<div className="authors-container mt-5">
-					<h2 className="text-center mb-4">Popular Authors</h2>
 
-					<div className="d-flex justify-content-center gap-5 flex-wrap">
+				<div className="books-container mt-4">
+					<div className="d-flex flex-wrap gap-3 justify-start">
 						{booksList
 							?.flatMap((section: BookSection) => section.data)
 							.filter((value, index, self) =>
 								index === self.findIndex(book => book.id === value.id)
 							)
-							.slice(0, 5)
+							.sort(
+								(a: Book, b: Book) =>
+									(b.statistics?.averageRating ?? 0) - (a.statistics?.averageRating ?? 0)
+							)
+							.slice(0, 6)
 							.map((book: Book) => (
-								<div key={book.id} className="text-center">
-
+								<div
+									key={book.id}
+									className="card book-card shadow-sm"
+									style={{
+										width: "150px",
+										display: "flex",
+										flexDirection: "column",
+									}}
+								>
 									<img
-										src={book.smallerCoverPic || book.biggerCoverPic || "/logo.svg"}
-										alt={book.author?.name}
+										src={book.biggerCoverPic || "/logo.svg"}
+										className="card-img-top"
+										alt={book.title}
 										style={{
-											width: "140px",
-											height: "140px",
+											height: "180px",
 											objectFit: "cover",
-											borderRadius: "50%",
-											border: "4px solid #4E6B3A"
+											flexShrink: 0
 										}}
 									/>
-
-									<p
-										style={{
-											marginTop: "12px",
-											fontWeight: 500,
-											color: "#4E6B3A"
-										}}
-									>
-										{book.author?.name ?? "Unknown Author"}
-									</p>
-
+									<div className="card-body p-2" style={{ flexGrow: 1 }}>
+										<h6 className="card-title">{book.title}</h6>
+										<p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
+											{book.author.name ?? "Unknown"} <br />
+											Rating: {book.statistics?.averageRating ?? "No rating"}
+										</p>
+									</div>
 								</div>
 							))}
 					</div>
 				</div>
+			</div>
 
+
+
+			<div>{/* Popular Authors */}
+				<div className="authors-container-main">
+					<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 50px", marginTop: "20px" }}>
+						<h1 className="listing-h1">Popular Authors</h1>
+						<a href="/discover" className="see-all-link">
+							<p className="see-all mb-0">See All➛</p>
+						</a>
+					</div>
+
+					<div className="authors-container mt-5">
+						<div className="d-flex justify-content-center gap-5 flex-wrap">
+							{authorList
+								?.flatMap((section: AuthorSection) => section.data)
+								.filter((value, index, self) =>
+									index === self.findIndex(author => author.id === value.id)
+								)
+								.slice(0, 6)
+								.map((author) => (
+									<div key={author.id} className="text-center">
+										<img
+											src={author.smallerProfilePic || "/logo.svg"}
+											alt={author.name}
+											style={{
+												width: "140px",
+												height: "140px",
+												objectFit: "cover",
+												borderRadius: "50%",
+												border: "4px solid #4E6B3A"
+											}}
+										/>
+										<p
+											style={{
+												marginTop: "12px",
+												fontWeight: 500,
+												color: "#4E6B3A"
+											}}
+										>
+											{author.name ?? "Unknown Author"}
+										</p>
+									</div>
+								))}
+						</div>
+					</div>
+				</div>
 			</div>
 
 			{/* Footer */}

@@ -98,7 +98,6 @@ nav {
     box-shadow: black 0px 4px 8px;
 }
 
-/* Popular Books Section */
 .popular-books-header {
     display: flex;
     align-items: center;
@@ -124,9 +123,22 @@ nav {
 }
 
 /* Books Row */
+.books-container-main{
+    margin-top: 60px;
+    align-content: center;
+    justify-content: center;
+}
+.authors-container-main{
+    background-color: #3746185a;
+    margin-top: 80px;
+    min-height: 350px;
+    align-content: center;
+}
+
 .books-container {
     margin: 0 50px;
     padding: 10px 0;
+    background-color: bl;
 }
 
 .books-row {
