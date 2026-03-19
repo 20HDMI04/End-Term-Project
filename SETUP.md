@@ -186,7 +186,7 @@ pnpm run dev --filter=web
 
 A web frontend alapértelmezés szerint a **http://localhost:5173** címen fut.
 
-### Mobil alkalmazás fejlesztése/buildelése
+### Mobil alkalmazás fejlesztése/buildelése[^1]
 
 > ❗ **Fontos**❗
 > Mindenképpen a mobil directory-ban legyél mert különben nem fog működni.
@@ -373,3 +373,7 @@ Miután minden fut:
 1. Regisztrálj egy új felhasználót (ha adtál meg admin email-t akkor érdemes azzal belépni) a webes felületen (ha nem configoltad a saját google cloud serviced ne próbáld ki a passwordless bejelentkezést)
 2. Böngészd a könyveket (ha futott a seed)
 3. Fedezd fel az API dokumentációt (Swagger: http://localhost:3002/docs)
+
+---
+
+[^1]: Az alkalmazás lokális fejlesztése során érdemes pipeline-okat setupolni amivel elérhető a backend és az S3 bucketben lévő képek. Zrok vagy Grok használata ajánlott.
