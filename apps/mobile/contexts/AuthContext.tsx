@@ -22,6 +22,7 @@ interface AuthProps {
 	onLoginWithThirdParty: () => Promise<ResponseData>;
 	onLogout: () => Promise<void>;
 	finalizeLogin: () => Promise<void>;
+	refreshUserSession: () => Promise<void>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -43,7 +44,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				if (sessionExists) {
 					const userId = await SuperTokens.getUserId();
 					const payload = await SuperTokens.getAccessTokenPayloadSecurely();
-					const roles = payload["st-role"]?.v || [];
+					const roles =
+						payload.roles || payload["st-role"]?.v || payload["roles"] || [];
 
 					setAuthState({ isAuthenticated: true, userId, roles: roles });
 				} else {
@@ -55,6 +57,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 		checkSession();
 	}, []);
+
+	const refreshUserSession = async () => {
+		try {
+			const didRefresh = await SuperTokens.attemptRefreshingSession();
+
+			if (didRefresh) {
+				const userId = await SuperTokens.getUserId();
+				const payload = await SuperTokens.getAccessTokenPayloadSecurely();
+				const roles =
+					payload.roles || payload["st-role"]?.v || payload["roles"] || [];
+				setAuthState({
+					isAuthenticated: true,
+					userId,
+					roles: roles,
+				});
+			} else {
+				console.log("[AuthContext] Refresh not needed or failed.");
+			}
+		} catch (e: any) {
+			if (e.status === 401) {
+				onLogout();
+			}
+			console.error("[AuthContext] Refresh error:", e);
+		}
+	};
 
 	const onRegister = async (
 		email: string,
@@ -144,7 +171,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		try {
 			const userId = await SuperTokens.getUserId();
 			const payload = await SuperTokens.getAccessTokenPayloadSecurely();
-			const roles = payload["st-role"]?.v || [];
+			console.log("Access token payload on finalizeLogin:", payload);
+			const roles =
+				payload.roles || payload["st-role"]?.v || payload["roles"] || [];
 
 			setAuthState({ isAuthenticated: true, userId, roles: roles });
 		} catch (e) {
@@ -161,6 +190,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				onLoginWithThirdParty,
 				onLogout,
 				finalizeLogin,
+				refreshUserSession,
 			}}
 		>
 			{children}

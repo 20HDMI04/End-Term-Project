@@ -12,6 +12,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthorsService } from './authors.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
@@ -36,6 +38,7 @@ import {
   ApiNotFoundResponse,
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
+import { Session } from 'src/auth/session.decorator';
 
 @ApiTags('Authors')
 @Controller('authors')
@@ -163,8 +166,10 @@ export class AuthorsController {
     isArray: true,
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findAll(@Query() query: PaginationDto) {
-    return this.authorsService.findAll(query, false);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  findAll(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userId;
+    return this.authorsService.findAll(query, false, userId);
   }
 
   @Get('stats')

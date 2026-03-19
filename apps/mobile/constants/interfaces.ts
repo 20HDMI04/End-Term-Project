@@ -50,6 +50,7 @@ export interface Author {
 	subjects: string | null;
 	topWorks: string | null;
 	updatedAt: string;
+	isFavorited?: boolean;
 }
 
 export interface Book {
@@ -93,4 +94,59 @@ export interface GenreInstance {
 
 export interface Genre {
 	name: string;
+}
+
+export interface SearchResultBook {
+	data: BookData[];
+	meta: {
+		total: number;
+		page: number;
+		lastPage: number;
+		hasNextPage: boolean;
+		hasPreviousPage: boolean;
+	};
+}
+
+export interface BookData {
+	id: string;
+	title: string;
+	authorId: string | null;
+	googleBookId: string | null;
+	openLibraryId: string | null;
+	smallerCoverPic: string;
+	biggerCoverPic: string;
+	smallerCoverPicKey: string | null;
+	biggerCoverPicKey: string | null;
+	originalPublisher: string | null;
+	originalPublicationYear: number | null;
+	latestPublicationYear: number | null;
+	pageNumber: number | null;
+	description: string;
+	approveStatus: boolean;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+
+	author: {
+		id: string;
+		name: string;
+	} | null;
+
+	statistics: {
+		averageRating: number;
+		ratingCount: number;
+	} | null;
+
+	genres: BookGenreRelation[];
+
+	isFavorited: boolean;
+	commentCount: number;
+	favoriteCount: number;
+}
+
+interface BookGenreRelation {
+	bookId: string;
+	genreId: string;
+	genre: {
+		name: string;
+	};
 }

@@ -21,8 +21,8 @@ export class PaginationDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: 'name' | 'booksCount' | 'rating' | 'favorites' | 'createdAt' =
-    'name';
+  sortBy?: 'title' | 'booksCount' | 'rating' | 'favorites' | 'createdAt' =
+    'title';
 
   @IsOptional()
   @IsString()

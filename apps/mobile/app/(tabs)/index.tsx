@@ -22,6 +22,7 @@ import BookCarousel from "@/components/homeComponents/BookCarousel";
 import AuthorCarousel from "@/components/homeComponents/AuthorCarousel";
 import { Colors } from "@/constants/theme";
 import { HomeSkeleton } from "@/components/homeComponents/HomeSkeleton";
+import BookOfBookCard from "@/components/homeComponents/BookOfBookCard";
 
 export default function HomeScreen() {
 	const api = useApi();
@@ -30,9 +31,11 @@ export default function HomeScreen() {
 	const [modalVisibility, setModalVisibility] = useState(false);
 	const [mainList, setMainList] = useState<MainPageData | null>(null);
 	const [refreshing, setRefreshing] = useState(false);
+	const { refreshUserSession } = useAuth();
 
-	const onRefresh = useCallback(() => {
+	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
+		await refreshUserSession();
 		const fetchData = async () => {
 			try {
 				const mainPageData = await api.getMainPageAnyWay();
@@ -47,6 +50,10 @@ export default function HomeScreen() {
 	}, []);
 
 	useEffect(() => {
+		console.log("User roles:", authState.roles);
+		if (authState.roles.includes("new_user")) {
+			setModalVisibility(true);
+		}
 		const fetchData = async () => {
 			try {
 				const mainPageData = await api.getMainPageData();
@@ -59,11 +66,47 @@ export default function HomeScreen() {
 		fetchData();
 	}, []);
 
+	const handleSavePress = async () => {
+		try {
+			await api.syncProfileWithServer(true);
+		} catch (e) {
+			console.error("Error syncing profile with server:", e);
+		}
+		await api.getMe();
+		await refreshUserSession();
+	};
+	// Temporary hardcoded book data for testing purposes, TODO: get it from api
+	const bookData = {
+		title: "The Old Man and The Sea",
+		author: "Ernest Hemingway",
+		genres: [
+			"Classics",
+			"Romance",
+			"Science fiction",
+			"Fantasy",
+			"Mystery",
+			"Thriller",
+		],
+		description:
+			"Santiago, an aging Cuban fisherman who breaks an 84-day streak of bad luck by hooking a giant marlin. The novella explores themes of perseverance, pride, and the human spirit as Santiago battles the marlin and reflects on his life and struggles.",
+		coverUrl:
+			"https://m.media-amazon.com/images/M/MV5BNGQ0OWNlYTQtZjBlYy00NDJlLTk2ZDEtYzdkMzYxZmU3OWM2XkEyXkFqcGc@._V1_.jpg",
+	};
+
 	return (
 		<>
 			<View style={{ flex: 1, position: "relative" }}>
+				<FirstSignInTaste
+					visible={modalVisibility}
+					onClose={async () => {
+						setModalVisibility(false);
+						await handleSavePress();
+					}}
+					isDarkMode={isDarkMode}
+				></FirstSignInTaste>
 				<SafeAreaView style={{ flex: 1 }}>
 					<ScrollView
+						keyboardShouldPersistTaps="handled"
 						showsVerticalScrollIndicator={false}
 						refreshControl={
 							<RefreshControl
@@ -81,17 +124,15 @@ export default function HomeScreen() {
 							/>
 						}
 					>
-						{authState.roles.includes("new_user") && (
-							<ThemedText style={styles.adminBadge}>New User Mode</ThemedText>
+						{bookData && (
+							<BookOfBookCard
+								data={bookData}
+								isDarkMode={isDarkMode}
+								onPress={() => {
+									console.log("Book card pressed");
+								}}
+							/>
 						)}
-
-						<FirstSignInTaste
-							visible={modalVisibility}
-							onClose={() => {
-								setModalVisibility(false);
-							}}
-						></FirstSignInTaste>
-
 						{mainList ? (
 							<>
 								{(() => {
@@ -142,17 +183,6 @@ export default function HomeScreen() {
 						) : (
 							<HomeSkeleton darkmode={isDarkMode} />
 						)}
-						<TouchableOpacity
-							style={styles.logoutButton}
-							onPress={() => {
-								setModalVisibility(true);
-							}}
-						>
-							<ThemedText style={{ fontSize: 16, fontWeight: "500" }}>
-								Open Carousel
-							</ThemedText>
-						</TouchableOpacity>
-
 						<View style={{ height: 100 }}></View>
 					</ScrollView>
 				</SafeAreaView>

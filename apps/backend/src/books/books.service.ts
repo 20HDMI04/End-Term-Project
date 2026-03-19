@@ -17,7 +17,7 @@ import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
 import { PaginationDto } from './dto/pagination-book.dto';
 
-type GenreType =
+export type GenreType =
   | 'history'
   | 'fiction'
   | 'romance'
@@ -26,6 +26,17 @@ type GenreType =
   | 'just-science'
   | 'thriller'
   | 'social-science';
+
+export enum GenreTypeEnum {
+  HISTORY = 'history',
+  FICTION = 'fiction',
+  ROMANCE = 'romance',
+  YOUNG_ADULT = 'young-adult',
+  FANTASY = 'fantasy',
+  JUST_SCIENCE = 'just-science',
+  THRILLER = 'thriller',
+  SOCIAL_SCIENCE = 'social-science',
+}
 
 @Injectable()
 export class BooksService {
@@ -585,26 +596,30 @@ export class BooksService {
    * @returns A promise resolving to an object containing the list of genres and pagination metadata. The genres are returned based on the applied search and sorting criteria, and the metadata provides information about the total number of genres, current page, last page, and navigation availability for next and previous pages.
    * @remarks The method includes error handling to catch and log any issues that arise during the database query process, ensuring that the application can gracefully handle errors and provide informative feedback to the client.
    */
-  async findAll(query: PaginationDto) {
+  async findAll(query: PaginationDto, admin: boolean, userId: string) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {};
+    if (!admin) {
+      whereCondition.approveStatus = true;
+    }
+
     if (search) {
-      whereCondition.name = { contains: search, mode: 'insensitive' };
+      whereCondition.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     let orderBy: any = {};
 
     switch (sortBy) {
-      case 'name':
-        orderBy = { name: sortOrder };
+      case 'title':
+        orderBy = { title: sortOrder };
         break;
       case 'favorites':
         orderBy = { favoritedBy: { _count: sortOrder } };
-        break;
-      case 'booksCount':
-        orderBy = { books: { _count: sortOrder } };
         break;
       case 'createdAt':
         orderBy = { createdAt: sortOrder };
@@ -614,35 +629,57 @@ export class BooksService {
           whereCondition,
           skip,
           limit,
-          sortOrder,
+          sortOrder as 'asc' | 'desc',
+          userId,
         );
       default:
-        orderBy = { name: 'asc' };
+        orderBy = { title: 'asc' };
     }
 
     try {
       const [data, total] = await Promise.all([
-        this.prisma.genres.findMany({
+        this.prisma.book.findMany({
           where: whereCondition,
           skip,
           take: limit,
           orderBy,
           include: {
-            _count: {
+            author: {
+              select: { id: true, name: true },
+            },
+            genres: {
               select: {
-                books: true,
-                favoritedBy: true,
+                genre: { select: { name: true } },
               },
+            },
+            statistics: {
+              select: {
+                averageRating: true,
+                ratingCount: true,
+              },
+            },
+            _count: {
+              select: { favoritedBy: true, comments: true },
             },
           },
         }),
-        this.prisma.genres.count({ where: whereCondition }),
+        this.prisma.book.count({ where: whereCondition }),
       ]);
 
       const lastPage = Math.ceil(total / limit);
 
+      const mappedData = data.map((book) => {
+        const { _count, ...rest } = book;
+        return {
+          ...rest,
+          commentCount: _count.comments,
+          favoriteCount: _count.favoritedBy,
+          isFavorited: userId ? _count.favoritedBy > 0 : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: {
           total,
           page,
@@ -652,9 +689,9 @@ export class BooksService {
         },
       };
     } catch (error) {
-      console.error('Prisma Error in findAll:', error);
+      console.error('Prisma Error in findAll (Books):', error);
       throw new InternalServerErrorException(
-        'Error occurred while fetching genres. Please try again later.',
+        'Error occurred while fetching books. Please try again later.',
       );
     }
   }
@@ -673,18 +710,20 @@ export class BooksService {
     skip: number,
     limit: number,
     sortOrder: 'asc' | 'desc',
+    userId: string,
   ) {
     try {
       const [data, total] = await Promise.all([
         this.prisma.book.findMany({
-          where: {
-            ...whereCondition,
-          },
+          where: whereCondition,
           skip: skip,
           take: limit,
           include: {
             author: {
-              select: { name: true },
+              select: {
+                id: true,
+                name: true,
+              },
             },
             statistics: {
               select: {
@@ -697,22 +736,45 @@ export class BooksService {
                 genre: { select: { name: true } },
               },
             },
-          },
-          orderBy: {
-            statistics: {
-              averageRating: sortOrder,
+            _count: {
+              select: { favoritedBy: true, comments: true },
             },
           },
+          orderBy: [
+            {
+              statistics: {
+                averageRating: sortOrder,
+              },
+            },
+            {
+              title: 'asc',
+            },
+          ],
         }),
         this.prisma.book.count({ where: whereCondition }),
       ]);
 
+      const page = Math.floor(skip / limit) + 1;
+      const lastPage = Math.ceil(total / limit);
+
+      const mappedData = data.map((book) => {
+        const { _count, ...rest } = book;
+        return {
+          ...rest,
+          commentCount: _count.comments,
+          favoriteCount: _count.favoritedBy,
+          isFavorited: userId ? _count.favoritedBy > 0 : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: {
           total,
-          page: Math.floor(skip / limit) + 1,
-          lastPage: Math.ceil(total / limit),
+          page,
+          lastPage,
+          hasNextPage: page < lastPage,
+          hasPreviousPage: page > 1,
         },
       };
     } catch (error) {
@@ -1073,6 +1135,7 @@ export class BooksService {
   /**
    * @summary Retrieves the crowd favorite books based on their average rating, limited to the top 15 entries. The method includes related data such as statistics, comments, and genres for each book.
    * @description This method fetches the books that are considered crowd favorites by ordering them based on their average rating in descending order. It limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are sorted to highlight the most popular titles according to user ratings.
+   *  @param take The number of books to retrieve. The method will return up to this number of entries, ordered by their average rating in descending order to ensure that the most popular titles are displayed first.
    * @returns A promise resolving to an array of the top 15 crowd favorite books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are ordered by average rating in descending order.
    */
   async getCrowdFavorites(take: number = 15) {
@@ -1117,6 +1180,7 @@ export class BooksService {
   /**
    * @summary Retrieves books that are considered "Short & Sweet" based on their page number, limited to those with 100 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
    * @description This method fetches books that are categorized as "Short & Sweet" by filtering them based on their page number, specifically those that have 100 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight shorter reads that can be enjoyed quickly.
+   *  @param take The number of books to retrieve.
    * @returns A promise resolving to an array of "Short & Sweet" books, each including its statistics, comments, and genres.
    */
   async getShortAndSweet(take: number = 15) {
@@ -1156,7 +1220,8 @@ export class BooksService {
   /**
    * @summary Retrieves books that are suitable for "Weekend Reads" based on their page number, limited to those with 250 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
    *  @description This method fetches books that are categorized as "Weekend Reads" by filtering them based on their page number, specifically those that have 250 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight reads that can be comfortably enjoyed over a weekend.
-   *  @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
+   *  @param take The number of books to retrieve.
+   * @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
    */
   async getWeekendReads(take: number = 15) {
     try {
@@ -1249,7 +1314,7 @@ export class BooksService {
       fantasy: { keywords: ['magic', 'fantasy'] },
       thriller: { keywords: ['thriller', 'horror'] },
       'social-science': { keywords: ['economics', 'politic', 'business'] },
-      'just-science': { keywords: ['science'], exclude: ['fiction'] },
+      'just-science': { keywords: ['science'] },
     };
 
     const config = genreFilters[genre];
@@ -1369,6 +1434,74 @@ export class BooksService {
     } catch (error) {
       throw new InternalServerErrorException(
         'Error during getting oldies but goldies books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Searches for books, authors, and genres based on a query string. The method performs a case-insensitive search for the query in book titles and descriptions, author names, and genre names. It returns a structured response containing the matching books, authors, and genres, along with related information such as statistics, comments, and associated genres for each book.
+   * @description This method allows users to search for books, authors, and genres using a query string. It performs a case-insensitive search across multiple fields, including book titles and descriptions, author names, and genre names. The method retrieves matching books along with their statistics, comments, and associated genres, as well as matching authors with their names and associated books, and matching genres with their names and associated books. The results are structured in a way that provides comprehensive information about the search results while ensuring that any errors encountered during the search process are properly handled and logged.
+   * @param query The search query string.
+   * @param take The number of results to return.
+   * @returns A structured response containing the matching books, authors, and genres. Each book includes its statistics, comments, and associated genres, while each author includes their name and associated books, and each genre includes its name and associated books.
+   * @throws {@link InternalServerErrorException} if an error occurs during the search process. The method includes error handling to ensure that any issues encountered while querying the database are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues during the search.
+   */
+  async searchforEverything(query: string, take: number = 10) {
+    try {
+      const books = await this.prisma.book.findMany({
+        where: {
+          OR: [
+            { title: { contains: query, mode: 'insensitive' } },
+            { description: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+        take: take,
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+      });
+
+      const authors = await this.prisma.author.findMany({
+        where: {
+          name: { contains: query, mode: 'insensitive' },
+        },
+        take: take,
+        include: {
+          books: {
+            omit: {
+              smallerCoverPicKey: true,
+              biggerCoverPicKey: true,
+            },
+          },
+        },
+      });
+
+      const genres = await this.prisma.genres.findMany({
+        where: {
+          name: { contains: query, mode: 'insensitive' },
+        },
+        take: take,
+        omit: {
+          id: true,
+        },
+        include: {
+          books: {
+            take: 10,
+          },
+        },
+      });
+
+      return { books: books, authors: authors, genres: genres };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during searching for everything.',
       );
     }
   }
