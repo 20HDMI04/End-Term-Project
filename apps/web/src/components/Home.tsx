@@ -45,7 +45,7 @@ export function Home() {
 			<nav className="navbar navbar-expand-lg">
 				<div className="container-fluid">
 					<div className="collapse navbar-collapse" id="navbarNavDropdown">
-						<img src="/logo.svg" alt="logo" className="logo" />
+						<img src={theme === "light" ? "/logo.svg" : "/logo2.svg"} alt="logo" className="logo" />
 
 						<ul className="navbar-nav">
 							<li className="nav-item">
@@ -61,7 +61,7 @@ export function Home() {
 								className="Darkmode-changer gomb1"
 								onClick={() => setTheme(theme === "light" ? "dark" : "light")}
 							>
-								
+
 								{theme === "light" ? (
 									<span className="icon-container sun-icon">☀️</span>
 								) : (
@@ -70,7 +70,7 @@ export function Home() {
 							</button>
 
 							<a href="/profile">
-								<img src="/def_profile_icon.svg" alt="profile" className="profile-pic" />
+								<img src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"} alt="profile" className="profile-pic" />
 							</a>
 						</ul>
 					</div>
@@ -130,7 +130,7 @@ export function Home() {
 											<p
 												className="rating-display"
 												style={{
-													backgroundImage: `url("/rating.svg")`,
+													backgroundImage: `url(${theme === "light" ? "/rating.svg" : "/rating2.svg"})`,
 													backgroundRepeat: "no-repeat",
 													backgroundSize: "cover"
 												}}
@@ -152,7 +152,7 @@ export function Home() {
 										/>
 										<div className="card-body p-2" style={{ flexGrow: 1 }}>
 											<h6 className="card-title">{book.title}</h6>
-											<p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
+											<p className="card-text">
 												{book.author.name ?? "Unknown"}
 											</p>
 										</div>
@@ -183,6 +183,7 @@ export function Home() {
 							.map((author, index) => (
 								<div key={`${author.id}-${index}`} className="text-center">
 									<img
+										className="author-ppic"
 										src={author.smallerProfilePic || "/logo.svg"}
 										alt={author.name}
 										style={{
@@ -190,17 +191,11 @@ export function Home() {
 											height: "140px",
 											objectFit: "cover",
 											borderRadius: "50%",
-											border: "2px solid #4E6B3A"
+
 										}}
 										onError={handleAuthorImageError}
 									/>
-									<p
-										style={{
-											marginTop: "12px",
-											fontWeight: 500,
-											color: "black"
-										}}
-									>
+									<p className="author-name">
 										{author.name ?? "Unknown Author"}
 									</p>
 								</div>

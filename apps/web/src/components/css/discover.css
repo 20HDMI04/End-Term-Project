@@ -1,27 +1,36 @@
-/* --- Téma színek (csak ezek változnak) --- */
 :root {
     --bg-color: #f7f4dc;
     --text-color: #374618;
     --header-bg: #485B1F;
     --accent-bg: #3746183f;
+    --ndfooter-bg: #374618;
+    --author-name-tx: rgb(0, 0, 0);
+    --card-tx: #374618;
+    --author-border-c: #4E6B3A;
 }
 
 [data-theme="dark"] {
-    --bg-color: #222E3A;   
-    --text-color: #f7f4dc; 
-    --header-bg: #324252;  
-    --accent-bg: #3242524c;  
+    --bg-color: #222E3A;
+    --text-color: #fff;
+    --header-bg: #324252;
+    --accent-bg: #3242524c;
+    --ndfooter-bg: #3242524c;
+    --author-name-tx: #ffffff;
+    --card-tx: #fff;
+    --author-border-c: black;
 }
 
 /* Base Styles */
-html, body {
+html,
+body {
     background-color: var(--bg-color);
     margin: 0;
     padding: 0;
     transition: background-color 0.3s;
 }
 
-a, a:hover{
+a,
+a:hover {
     text-decoration: none;
 }
 
@@ -35,7 +44,7 @@ a, a:hover{
     font-weight: bold;
     margin-bottom: 20px;
     max-width: 15%;
-    margin: 10%, 10%; 
+    margin: 10%, 10%;
 }
 
 nav {
@@ -44,11 +53,11 @@ nav {
 }
 
 .profile-pic {
-    width: 70%;
+    width: 60%;
     justify-items: end;
     padding-left: 20%;
     margin-top: 2%;
-    margin-left: 320%; 
+    margin-left: 250%;
 }
 
 .nav-item {
@@ -132,7 +141,7 @@ nav {
     margin-bottom: 0;
 }
 
-.listing-h1-authors{
+.listing-h1-authors {
     color: var(--text-color);
 }
 
@@ -145,12 +154,13 @@ nav {
 }
 
 /* Books Row */
-.books-container-main{
+.books-container-main {
     margin-top: 60px;
     align-content: center;
     justify-content: center;
 }
-.authors-container-main{
+
+.authors-container-main {
     background-color: var(--accent-bg);
     margin-top: 80px;
     min-height: 350px;
@@ -164,25 +174,25 @@ nav {
 
 .rating-main {
     position: absolute;
-    top: 8px;          
-    left: 80px;         
+    top: 8px;
+    left: 80px;
     padding: 3px 8px;
     border-radius: 5px;
     font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 4px;          
+    gap: 4px;
     z-index: 10;
 }
 
 .rating-display {
     color: #f7f4dc;
-    margin: 0px;       
-    min-width: 60px; 
+    margin: 0px;
+    min-width: 60px;
     padding-left: 6px;
 }
 
-.books-display-main{
+.books-display-main {
     padding-left: 10px;
     color: var(--text-color);
 }
@@ -200,6 +210,22 @@ nav {
 .book-card .card-body {
     padding: 5px;
     text-align: center;
+    font-size: 0.8rem;
+    color: var(--card-tx);
+}
+
+.card-text {
+    color: var(--card-tx);
+}
+
+.author-name {
+    margin-top: 12px;
+    font-weight: 500;
+    color: var(--author-name-tx);
+}
+
+.author-ppic {
+    border: 2px solid var(--author-border-c);
 }
 
 /* Footer */
@@ -219,7 +245,7 @@ nav {
     align-items: center;
     justify-content: space-between;
     padding: 20px 40px;
-    background-color: var(--text-color);
+    background-color: var(--ndfooter-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
@@ -227,7 +253,20 @@ nav {
 }
 
 @media (max-width: 768px) {
-    .header { flex-direction: column; padding: 30px 20px; gap: 20px; }
-    .header-images { position: relative; padding-left: 0; justify-content: flex-start; }
-    .headerAlso, .headerFelso { width: 120px; }
+    .header {
+        flex-direction: column;
+        padding: 30px 20px;
+        gap: 20px;
+    }
+
+    .header-images {
+        position: relative;
+        padding-left: 0;
+        justify-content: flex-start;
+    }
+
+    .headerAlso,
+    .headerFelso {
+        width: 120px;
+    }
 }
