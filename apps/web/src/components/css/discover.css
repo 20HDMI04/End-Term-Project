@@ -5,6 +5,11 @@ html, body {
     padding: 0;
 }
 
+a, a:hover{
+    text-decoration: none;
+}
+
+
 .home-container {
     background-color: #f7f4dc;
 }
@@ -105,10 +110,14 @@ nav {
     margin: 20px 50px 10px 50px;
 }
 
-.listing-h1 {
+.listing-h1-books {
     font-family: "Modern No. 20";
     color: #374618;
     margin-bottom: 0;
+}
+
+.listing-h1-authors{
+    color: black;
 }
 
 .see-all {
@@ -129,7 +138,7 @@ nav {
     justify-content: center;
 }
 .authors-container-main{
-    background-color: #3746185a;
+    background-color: #3746183f;
     margin-top: 80px;
     min-height: 350px;
     align-content: center;
@@ -139,6 +148,7 @@ nav {
     margin: 0 50px;
     padding: 10px 0;
     background-color: bl;
+    
 }
 
 .books-row {
@@ -146,12 +156,42 @@ nav {
     gap: 15px;
     flex-wrap: nowrap;
     overflow: hidden;
+    
 }
 
+.rating-main {
+    position: absolute;
+    top: 8px;          
+    left: 80px;         
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;          
+    z-index: 10;
+}
+
+.rating-display {
+    color: #f7f4dc;
+    margin: 0px;       
+    min-width: 60px; 
+    padding-left: 6px;
+}
+
+.books-display-main{
+    padding-left: 10px;
+    color: #374618;
+}
 .book-card {
     min-width: 160px;
     max-width: 200px;
     flex: 0 0 auto;
+    position: relative;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    
 }
 
 .book-card img {
@@ -161,6 +201,7 @@ nav {
 
 .book-card .card-body {
     padding: 5px;
+    text-align: center;
 }
 
 .book-card .card-title {
