@@ -1,17 +1,32 @@
+/* --- Téma színek (csak ezek változnak) --- */
+:root {
+    --bg-color: #f7f4dc;
+    --text-color: #374618;
+    --header-bg: #485B1F;
+    --accent-bg: #3746183f;
+}
+
+[data-theme="dark"] {
+    --bg-color: #222E3A;   
+    --text-color: #f7f4dc; 
+    --header-bg: #324252;  
+    --accent-bg: #3242524c;  
+}
+
 /* Base Styles */
 html, body {
-    background-color: #f7f4dc;
+    background-color: var(--bg-color);
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s;
 }
 
 a, a:hover{
     text-decoration: none;
 }
 
-
 .home-container {
-    background-color: #f7f4dc;
+    background-color: var(--bg-color);
 }
 
 /* Navbar */
@@ -20,11 +35,11 @@ a, a:hover{
     font-weight: bold;
     margin-bottom: 20px;
     max-width: 15%;
-    margin: 10%, 10%;
+    margin: 10%, 10%; 
 }
 
 nav {
-    background-color: #f7f4dc !important;
+    background-color: var(--bg-color) !important;
     margin-top: 1em;
 }
 
@@ -33,16 +48,17 @@ nav {
     justify-items: end;
     padding-left: 20%;
     margin-top: 2%;
-    margin-left: 450%;
+    margin-left: 320%; 
 }
 
 .nav-item {
-    color: #374618;
+    color: var(--text-color);
     font-family: "Modern No. 20";
 }
 
 .nav-link {
     font-size: x-large;
+    color: inherit !important;
 }
 
 /* Header */
@@ -51,7 +67,7 @@ nav {
     align-items: center;
     justify-content: space-between;
     padding: 50px 40px;
-    background-color: #485B1F;
+    background-color: var(--header-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 40px;
     font-family: "Modern No. 20";
@@ -96,7 +112,7 @@ nav {
 
 /* Buttons */
 .gomb1 {
-    background-color: #374618;
+    background-color: var(--text-color);
     color: white;
     border-radius: 8px;
     border-color: transparent;
@@ -112,23 +128,20 @@ nav {
 
 .listing-h1-books {
     font-family: "Modern No. 20";
-    color: #374618;
+    color: var(--text-color);
     margin-bottom: 0;
 }
 
 .listing-h1-authors{
-    color: black;
+    color: var(--text-color);
 }
 
 .see-all {
-    color: #374618;
+    color: var(--text-color);
     margin: 0;
     cursor: pointer;
     font-weight: bold;
     text-decoration: none;
-}
-.see-all-link:hover {
-    text-decoration: underline; 
 }
 
 /* Books Row */
@@ -138,7 +151,7 @@ nav {
     justify-content: center;
 }
 .authors-container-main{
-    background-color: #3746183f;
+    background-color: var(--accent-bg);
     margin-top: 80px;
     min-height: 350px;
     align-content: center;
@@ -147,16 +160,6 @@ nav {
 .books-container {
     margin: 0 50px;
     padding: 10px 0;
-    background-color: bl;
-    
-}
-
-.books-row {
-    display: flex;
-    gap: 15px;
-    flex-wrap: nowrap;
-    overflow: hidden;
-    
 }
 
 .rating-main {
@@ -181,8 +184,9 @@ nav {
 
 .books-display-main{
     padding-left: 10px;
-    color: #374618;
+    color: var(--text-color);
 }
+
 .book-card {
     min-width: 160px;
     max-width: 200px;
@@ -191,25 +195,11 @@ nav {
     background-color: transparent;
     border: none;
     box-shadow: none;
-    
-}
-
-.book-card img {
-    height: 180px;
-    object-fit: cover;
 }
 
 .book-card .card-body {
     padding: 5px;
     text-align: center;
-}
-
-.book-card .card-title {
-    font-size: 1rem;
-}
-
-.book-card .card-text {
-    font-size: 0.8rem;
 }
 
 /* Footer */
@@ -218,15 +208,10 @@ nav {
     align-items: center;
     justify-content: space-between;
     padding: 50px 40px;
-    background-color: #485B1F;
+    background-color: var(--header-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
-}
-
-.privacy {
-    float: left;
-    margin-top: 10px;
 }
 
 .footer2 {
@@ -234,41 +219,15 @@ nav {
     align-items: center;
     justify-content: space-between;
     padding: 20px 40px;
-    background-color: #374618;
+    background-color: var(--text-color);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
     max-height: 10px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        padding: 30px 20px;
-        gap: 20px;
-    }
-    .header-images {
-        position: relative;
-        padding-left: 0;
-        justify-content: flex-start;
-    }
-    .headerAlso, .headerFelso {
-        width: 120px;
-    }
-    .popular-books-header {
-        flex-direction: column;
-        align-items: flex-start;
-        margin: 20px;
-    }
-    .books-row {
-        gap: 10px;
-    }
-    .book-card {
-        min-width: 120px;
-        max-width: 140px;
-    }
-    .book-card img {
-        height: 150px;
-    }
+    .header { flex-direction: column; padding: 30px 20px; gap: 20px; }
+    .header-images { position: relative; padding-left: 0; justify-content: flex-start; }
+    .headerAlso, .headerFelso { width: 120px; }
 }

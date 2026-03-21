@@ -9,6 +9,17 @@ export function Home() {
 
 	const [booksList, setBookList] = useState<BookSection[]>();
 	const [authorList, setAuthorList] = useState<AuthorSection[]>();
+	const [theme, setTheme] = useState("light");
+
+	useEffect(() => {
+		const savedTheme = localStorage.getItem("theme");
+		if (savedTheme) setTheme(savedTheme);
+	}, []);
+
+	useEffect(() => {
+		document.documentElement.setAttribute("data-theme", theme);
+		localStorage.setItem("theme", theme);
+	}, [theme]);
 
 	useEffect(() => {
 		async function Boks() {
@@ -46,6 +57,17 @@ export function Home() {
 							<li className="nav-item">
 								<h2><a className="nav-link" href="/discover">Discover</a></h2>
 							</li>
+							<button
+								className="Darkmode-changer gomb1"
+								onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+							>
+								
+								{theme === "light" ? (
+									<span className="icon-container sun-icon">☀️</span>
+								) : (
+									<span className="icon-container moon-icon">🌙</span>
+								)}
+							</button>
 
 							<a href="/profile">
 								<img src="/def_profile_icon.svg" alt="profile" className="profile-pic" />
