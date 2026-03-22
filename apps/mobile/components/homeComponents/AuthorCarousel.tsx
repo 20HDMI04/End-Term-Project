@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { Author, AuthorSection } from "@/constants/interfaces";
+import AuthorDetailModal from "../AuthorDetailModal";
 
 const { width } = Dimensions.get("window");
 
@@ -22,9 +23,14 @@ const ITEM_WIDTH = (width - CONTAINER_PADDING * 2 - SPACING * 2) / 3;
 interface AuthorCarouselProps {
 	section: AuthorSection;
 	isDarkMode: boolean;
+	setCurrentAuthorId?: (authorId: string) => void;
 }
 
-function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
+function AuthorCarousel({
+	section,
+	isDarkMode,
+	setCurrentAuthorId,
+}: AuthorCarouselProps) {
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
 		: Colors.mainColorLight;
@@ -40,7 +46,11 @@ function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 			<TouchableOpacity
 				style={[styles.card, { width: ITEM_WIDTH }]}
 				activeOpacity={0.7}
-				onPress={() => console.log("Author selected:", item.id)}
+				onPress={() => {
+					if (setCurrentAuthorId) {
+						setCurrentAuthorId(item.id);
+					}
+				}}
 			>
 				<Text
 					style={[
@@ -95,7 +105,13 @@ function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 				showsHorizontalScrollIndicator={false}
 				contentContainerStyle={styles.listContent}
 				decelerationRate="normal"
-				renderItem={({ item }) => <AuthorCard item={item} />}
+				renderItem={({ item }) => {
+					return (
+						<>
+							<AuthorCard item={item} />
+						</>
+					);
+				}}
 			/>
 		</View>
 	);

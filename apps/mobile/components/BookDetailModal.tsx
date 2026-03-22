@@ -279,7 +279,7 @@ const BookDetailModal = ({
 	const book = bookData.foundBook;
 
 	return (
-		<Modal visible={visible} animationType="slide">
+		<Modal visible={visible} animationType="slide" transparent={true}>
 			<SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
 				<KeyboardAvoidingView
 					behavior={Platform.OS === "ios" ? "padding" : "height"}

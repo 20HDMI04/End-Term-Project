@@ -26,6 +26,8 @@ import { HomeSkeleton } from "@/components/homeComponents/HomeSkeleton";
 import BookOfBookCard from "@/components/homeComponents/BookOfBookCard";
 import BookDetailModal from "@/components/BookDetailModal";
 import { Storage } from "@/utils/storage";
+import AuthorDetailModal from "@/components/AuthorDetailModal";
+import { StatusBar } from "expo-status-bar";
 
 export default function HomeScreen() {
 	const api = useApi();
@@ -39,6 +41,8 @@ export default function HomeScreen() {
 	const [randomBookModalVisible, setRandomBookModalVisible] = useState(false);
 	const [profilePic, setProfilePic] = useState("");
 	const [email, setEmail] = useState<string | null>(null);
+	const [authorModalVisible, setAuthorModalVisible] = useState(false);
+	const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
@@ -104,6 +108,17 @@ export default function HomeScreen() {
 					}}
 					isDarkMode={isDarkMode}
 				></FirstSignInTaste>
+				<Modal visible={authorModalVisible} animationType="slide">
+					{selectedAuthorId !== null && (
+						<AuthorDetailModal
+							authorId={selectedAuthorId}
+							isDarkMode={isDarkMode}
+							onClose={() => setAuthorModalVisible(false)}
+							visible={authorModalVisible}
+						/>
+					)}
+				</Modal>
+
 				<SafeAreaView style={{ flex: 1 }}>
 					<ScrollView
 						keyboardShouldPersistTaps="handled"
@@ -167,6 +182,10 @@ export default function HomeScreen() {
 												<AuthorCarousel
 													section={authorSection}
 													isDarkMode={isDarkMode}
+													setCurrentAuthorId={(authorId) => {
+														setSelectedAuthorId(authorId);
+														setAuthorModalVisible(true);
+													}}
 												/>
 
 												{currentBooks.map((bookSection, bIndex) => (
