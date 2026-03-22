@@ -795,6 +795,7 @@ export class BooksService {
    * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
    */
   async findOne(id: string, userId: string) {
+    console.log(`Fetching book with ID: ${id} for user: ${userId}`);
     try {
       let res = await this.prisma.book.findUniqueOrThrow({
         where: { id: id },
@@ -807,7 +808,9 @@ export class BooksService {
           author: true,
           statistics: true,
           favoritedBy: {
-            where: { userId: userId },
+            where: {
+              userId: userId,
+            },
           },
           comments: {
             include: {
@@ -820,9 +823,13 @@ export class BooksService {
               },
             },
           },
+          ratings: {
+            where: { userId: userId },
+          },
         },
       });
 
+      console.log('Book found:', res.favoritedBy);
       const formattedBook = {
         ...res,
         isLikedByMe: res.favoritedBy.length > 0,

@@ -42,6 +42,15 @@ function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 				activeOpacity={0.7}
 				onPress={() => console.log("Author selected:", item.id)}
 			>
+				<Text
+					style={[
+						styles.authorName,
+						{ color: titleColor, paddingHorizontal: 4, paddingBottom: 6 },
+					]}
+					numberOfLines={1}
+				>
+					{item.name}
+				</Text>
 				<View style={[styles.imageContainer, { backgroundColor: fallbackBg }]}>
 					<View style={styles.absolutePlaceholder}>
 						<Ionicons name="person" size={ITEM_WIDTH * 0.4} color={iconColor} />

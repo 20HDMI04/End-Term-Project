@@ -6,6 +6,7 @@ import {
 	RefreshControl,
 	useColorScheme,
 	ActivityIndicator,
+	Modal,
 } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,12 +18,14 @@ import { Stack } from "expo-router";
 import FirstSignInTaste from "@/components/homeComponents/FirstSignInTaste";
 import React, { useCallback, useEffect, useState } from "react";
 import { useApi } from "@/contexts/ApiContext";
-import { MainPageData } from "@/constants/interfaces";
+import { Book, MainPageData } from "@/constants/interfaces";
 import BookCarousel from "@/components/homeComponents/BookCarousel";
 import AuthorCarousel from "@/components/homeComponents/AuthorCarousel";
 import { Colors } from "@/constants/theme";
 import { HomeSkeleton } from "@/components/homeComponents/HomeSkeleton";
 import BookOfBookCard from "@/components/homeComponents/BookOfBookCard";
+import BookDetailModal from "@/components/BookDetailModal";
+import { Storage } from "@/utils/storage";
 
 export default function HomeScreen() {
 	const api = useApi();
@@ -32,6 +35,10 @@ export default function HomeScreen() {
 	const [mainList, setMainList] = useState<MainPageData | null>(null);
 	const [refreshing, setRefreshing] = useState(false);
 	const { refreshUserSession } = useAuth();
+	const [randomBook, setRandomBook] = useState<Book | null>(null);
+	const [randomBookModalVisible, setRandomBookModalVisible] = useState(false);
+	const [profilePic, setProfilePic] = useState("");
+	const [email, setEmail] = useState<string | null>(null);
 
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
@@ -39,6 +46,8 @@ export default function HomeScreen() {
 		const fetchData = async () => {
 			try {
 				const mainPageData = await api.getMainPageAnyWay();
+				const randomBookData = await api.getRandomBook();
+				setRandomBook(randomBookData);
 				setMainList(mainPageData);
 			} catch (error) {
 				console.error("Error fetching main page data in HomeScreen:", error);
@@ -50,13 +59,21 @@ export default function HomeScreen() {
 	}, []);
 
 	useEffect(() => {
-		console.log("User roles:", authState.roles);
 		if (authState.roles.includes("new_user")) {
 			setModalVisibility(true);
 		}
 		const fetchData = async () => {
 			try {
+				const meData = await Storage.getItem("user");
+				if (meData && meData.biggerProfilePic) {
+					setProfilePic(meData.biggerProfilePic);
+				}
+				if (meData && meData.email) {
+					setEmail(meData.email);
+				}
 				const mainPageData = await api.getMainPageData();
+				const randomBookData = await api.getRandomBook();
+				setRandomBook(randomBookData);
 				setMainList(mainPageData);
 			} catch (error) {
 				console.error("Error fetching main page data in HomeScreen:", error);
@@ -74,23 +91,6 @@ export default function HomeScreen() {
 		}
 		await api.getMe();
 		await refreshUserSession();
-	};
-	// Temporary hardcoded book data for testing purposes, TODO: get it from api
-	const bookData = {
-		title: "The Old Man and The Sea",
-		author: "Ernest Hemingway",
-		genres: [
-			"Classics",
-			"Romance",
-			"Science fiction",
-			"Fantasy",
-			"Mystery",
-			"Thriller",
-		],
-		description:
-			"Santiago, an aging Cuban fisherman who breaks an 84-day streak of bad luck by hooking a giant marlin. The novella explores themes of perseverance, pride, and the human spirit as Santiago battles the marlin and reflects on his life and struggles.",
-		coverUrl:
-			"https://m.media-amazon.com/images/M/MV5BNGQ0OWNlYTQtZjBlYy00NDJlLTk2ZDEtYzdkMzYxZmU3OWM2XkEyXkFqcGc@._V1_.jpg",
 	};
 
 	return (
@@ -124,14 +124,27 @@ export default function HomeScreen() {
 							/>
 						}
 					>
-						{bookData && (
-							<BookOfBookCard
-								data={bookData}
-								isDarkMode={isDarkMode}
-								onPress={() => {
-									console.log("Book card pressed");
-								}}
-							/>
+						{randomBook && (
+							<>
+								<BookOfBookCard
+									data={randomBook}
+									isDarkMode={isDarkMode}
+									onPress={() => {
+										setRandomBookModalVisible(true);
+									}}
+								/>
+
+								<Modal visible={randomBookModalVisible} animationType="slide">
+									<BookDetailModal
+										bookId={randomBook?.id}
+										isDarkMode={isDarkMode}
+										onClose={() => setRandomBookModalVisible(false)}
+										profilePic={profilePic}
+										visible={randomBookModalVisible}
+										email={email}
+									/>
+								</Modal>
+							</>
 						)}
 						{mainList ? (
 							<>

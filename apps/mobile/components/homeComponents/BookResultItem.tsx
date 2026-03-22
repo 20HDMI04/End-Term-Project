@@ -5,6 +5,7 @@ import { Colors } from "@/constants/theme";
 import { BookData } from "@/constants/interfaces";
 import { useToast } from "@/contexts/ToastContext";
 import { useApi } from "@/contexts/ApiContext";
+import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
 
 interface BookResultItemProps {
 	item: BookData;
@@ -44,7 +45,7 @@ const BookResultItem = ({ item, isDarkMode }: BookResultItemProps) => {
 
 				{item.smallerCoverPic && !hasError && (
 					<Image
-						source={{ uri: item.smallerCoverPic }}
+						source={{ uri: useChangePicUrlToPipline(item.smallerCoverPic) }}
 						style={styles.image}
 						onLoadStart={() => setIsLoading(true)}
 						onLoadEnd={() => setIsLoading(false)}

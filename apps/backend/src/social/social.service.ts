@@ -83,6 +83,15 @@ export class SocialService {
           userId: userId,
           bookId: bookId,
         },
+        include: {
+          user: {
+            select: {
+              biggerProfilePic: true,
+              smallerProfilePic: true,
+              nickname: true,
+            },
+          },
+        },
       });
       await this.prisma.bookStatistics.update({
         where: {

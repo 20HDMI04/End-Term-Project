@@ -1,4 +1,4 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useEffect } from "react";
 import {
 	StyleSheet,
 	View,
@@ -15,6 +15,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { Book, BookSection } from "@/constants/interfaces";
+import BookDetailModal from "../BookDetailModal";
+import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
+import { ProfileData } from "@/app/(tabs)/settings";
+import { Storage } from "@/utils/storage";
 
 const { width } = Dimensions.get("window");
 
@@ -28,7 +32,16 @@ interface BookCarouselProps {
 }
 
 function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
-	const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+	const [profileData, setProfileData] = useState<ProfileData | null>(null);
+	useEffect(() => {
+		async function fetchProfileData() {
+			const data = await Storage.getItem("user");
+			setProfileData(data);
+		}
+		fetchProfileData();
+	}, []);
+	const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
+	const [modalVisible, setModalVisible] = useState(false);
 
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
@@ -62,7 +75,7 @@ function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
 
 						{!hasError && (
 							<Image
-								source={{ uri: item.biggerCoverPic }}
+								source={{ uri: useChangePicUrlToPipline(item.biggerCoverPic) }}
 								style={styles.image}
 								fadeDuration={500}
 								onError={() => setHasError(true)}
@@ -110,64 +123,22 @@ function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
 				renderItem={({ item }) => (
 					<BookCard
 						item={item}
-						onPress={(book: Book) => setSelectedBook(book)}
+						onPress={(book: Book) => {
+							setSelectedBookId(book.id);
+							setModalVisible(true);
+						}}
 					/>
 				)}
 			/>
 
-			<Modal
-				visible={selectedBook !== null}
-				animationType="slide"
-				transparent={true}
-				onRequestClose={() => setSelectedBook(null)}
-			>
-				<SafeAreaView style={styles.fullModalContainer}>
-					<View style={styles.modalHeader}>
-						<TouchableOpacity onPress={() => setSelectedBook(null)}>
-							<Ionicons name="close-outline" size={32} color="#3E4A35" />
-						</TouchableOpacity>
-						<Text style={styles.headerTitle}>Details</Text>
-						<View style={{ width: 32 }} />
-					</View>
-					<ScrollView
-						contentContainerStyle={styles.scrollContent}
-						showsVerticalScrollIndicator={false}
-					>
-						{selectedBook && (
-							<>
-								<View
-									style={[
-										styles.fullModalImageContainer,
-										{ backgroundColor: fallbackBg },
-									]}
-								>
-									<Ionicons
-										name="book"
-										size={100}
-										color={iconColor}
-										style={styles.modalPlaceholderIcon}
-									/>
-									<Image
-										source={{ uri: selectedBook.biggerCoverPic }}
-										style={styles.fullModalImage}
-									/>
-								</View>
-
-								<View style={styles.infoSection}>
-									<Text style={styles.detailTitle}>{selectedBook.title}</Text>
-									<Text style={styles.detailAuthor}>
-										by {selectedBook.authorId}
-									</Text>
-									<View style={styles.divider} />
-									<Text style={styles.description}>
-										{selectedBook.description}
-									</Text>
-								</View>
-							</>
-						)}
-					</ScrollView>
-				</SafeAreaView>
-			</Modal>
+			<BookDetailModal
+				visible={modalVisible}
+				onClose={() => setModalVisible(false)}
+				isDarkMode={isDarkMode}
+				bookId={selectedBookId ? selectedBookId : "hb-001"}
+				profilePic={profileData?.biggerProfilePic || ""}
+				email={profileData?.email || ""}
+			/>
 		</View>
 	);
 }

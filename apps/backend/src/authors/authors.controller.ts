@@ -168,7 +168,7 @@ export class AuthorsController {
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   @UsePipes(new ValidationPipe({ transform: true }))
   findAll(@Query() query: PaginationDto, @Session() session: any) {
-    const userId = session.userId;
+    const userId = session.userDataInAccessToken.email;
     return this.authorsService.findAll(query, false, userId);
   }
 

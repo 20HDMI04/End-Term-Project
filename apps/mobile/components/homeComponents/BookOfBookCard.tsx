@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	StyleSheet,
 	View,
@@ -15,9 +15,10 @@ import Animated, {
 	withRepeat,
 	withTiming,
 	Easing,
-	useDerivedValue,
 } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
+import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
+import { Book, GenreInstance } from "@/constants/interfaces";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -26,19 +27,20 @@ const BookCard = ({
 	isDarkMode,
 	onPress,
 }: {
-	data: any;
+	data: Book;
 	isDarkMode: boolean;
 	onPress: () => void;
 }) => {
 	const scrollX = useSharedValue(0);
 	const [singleListWidth, setSingleListWidth] = useState(0);
+	const [hasError, setHasError] = useState(false);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (singleListWidth > 0) {
 			scrollX.value = 0;
 			scrollX.value = withRepeat(
 				withTiming(-singleListWidth, {
-					duration: 50000,
+					duration: 200000,
 					easing: Easing.linear,
 				}),
 				-1,
@@ -57,38 +59,64 @@ const BookCard = ({
 		author: isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight,
 		text: isDarkMode ? "#CCCCCC" : "#777777",
 		tagBg: isDarkMode ? Colors.mainColorDark : Colors.mainColorLight,
-		tagText: "#FFFFFF",
+		fallbackBg: isDarkMode ? Colors.thirdColorDark : "#E8E8E3",
+		iconColor: isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight,
 		pressOverlay: isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight,
 	};
 
 	const truncatedDescription =
-		data.description.length > 100
+		data.description?.length > 100
 			? data.description.substring(0, 100) + "..."
-			: data.description;
+			: data.description || "";
 
-	const marqueeData = [...data.genres, ...data.genres];
+	const imageUrl = useChangePicUrlToPipline(
+		data.biggerCoverPic || data.smallerCoverPic,
+	);
 
 	return (
 		<View style={styles.container}>
-			<ImageBackground
-				source={{ uri: data.coverUrl }}
-				style={styles.backgroundHeader}
-				blurRadius={10}
+			<View
+				style={[styles.backgroundHeader, { backgroundColor: theme.fallbackBg }]}
 			>
-				<View
-					style={[
-						styles.backgroundOverlay,
-						{
-							backgroundColor: isDarkMode
-								? "rgba(0,0,0,0.6)"
-								: "rgba(0,0,0,0.3)",
-						},
-					]}
-				/>
-			</ImageBackground>
+				{!hasError && (
+					<ImageBackground
+						source={{ uri: imageUrl }}
+						style={StyleSheet.absoluteFill}
+						blurRadius={10}
+						onError={() => setHasError(true)}
+					>
+						<View
+							style={[
+								styles.backgroundOverlay,
+								{
+									backgroundColor: isDarkMode
+										? "rgba(0,0,0,0.6)"
+										: "rgba(0,0,0,0.3)",
+								},
+							]}
+						/>
+					</ImageBackground>
+				)}
+			</View>
 
 			<View style={styles.absoluteCoverWrapper} pointerEvents="none">
-				<Image source={{ uri: data.coverUrl }} style={styles.mainCover} />
+				<View
+					style={[
+						styles.mainCover,
+						{ backgroundColor: theme.fallbackBg, overflow: "hidden" },
+					]}
+				>
+					<View style={styles.absolutePlaceholder}>
+						<Ionicons name="book" size={60} color={theme.iconColor} />
+					</View>
+					{!hasError && (
+						<Image
+							source={{ uri: imageUrl }}
+							style={styles.mainCoverImage}
+							onError={() => setHasError(true)}
+						/>
+					)}
+				</View>
 			</View>
 
 			<Pressable
@@ -118,7 +146,7 @@ const BookCard = ({
 								{data.title}
 							</Text>
 							<Text style={[styles.author, { color: theme.author }]}>
-								{data.author}
+								{data.author?.name || "Unknown Author"}
 							</Text>
 
 							<View
@@ -140,20 +168,20 @@ const BookCard = ({
 											setSingleListWidth(e.nativeEvent.layout.width)
 										}
 									>
-										{data.genres.map((genre: string, index: number) => (
+										{data.genres?.map((genre: GenreInstance, index: number) => (
 											<Tag
 												key={`orig-${index}`}
-												genre={genre}
+												genre={genre.genre.name}
 												isFirst={index === 0}
 												theme={theme}
 											/>
 										))}
 									</View>
 									<View style={styles.row}>
-										{data.genres.map((genre: string, index: number) => (
+										{data.genres?.map((genre: GenreInstance, index: number) => (
 											<Tag
 												key={`copy-${index}`}
-												genre={genre}
+												genre={genre.genre.name}
 												isFirst={index === 0}
 												theme={theme}
 											/>
@@ -204,18 +232,36 @@ const Tag = ({ genre, isFirst, theme }: any) => (
 );
 
 const styles = StyleSheet.create({
-	container: {
-		width: SCREEN_WIDTH * 0.9,
-		alignSelf: "center",
-		borderRadius: 30,
-		marginVertical: 20,
-	},
 	backgroundHeader: {
 		height: 220,
 		width: "100%",
 		borderTopLeftRadius: 30,
 		borderTopRightRadius: 30,
 		overflow: "hidden",
+		position: "relative",
+	},
+	absolutePlaceholder: {
+		...StyleSheet.absoluteFillObject,
+		justifyContent: "center",
+		alignItems: "center",
+		zIndex: 0,
+	},
+	mainCover: {
+		width: 150,
+		height: 220,
+		borderRadius: 15,
+	},
+	mainCoverImage: {
+		width: "100%",
+		height: "100%",
+		borderRadius: 15,
+		zIndex: 1,
+	},
+	container: {
+		width: SCREEN_WIDTH * 0.9,
+		alignSelf: "center",
+		borderRadius: 30,
+		marginVertical: 20,
 	},
 	backgroundOverlay: { flex: 1 },
 	absoluteCoverWrapper: {
@@ -223,9 +269,7 @@ const styles = StyleSheet.create({
 		top: 60,
 		alignSelf: "center",
 		zIndex: 100,
-		elevation: 10,
 	},
-	mainCover: { width: 150, height: 220, borderRadius: 15 },
 	contentCard: {
 		marginTop: -60,
 		borderTopLeftRadius: 40,

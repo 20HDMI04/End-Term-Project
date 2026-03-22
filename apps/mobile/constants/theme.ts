@@ -7,6 +7,8 @@ import { Platform } from "react-native";
 
 const secondaryColorLight = "#F7F4EB";
 const mainColorDark = "#222E3A";
+const mainColorDarker = "#19222c";
+
 const mainColorLight = "#597127";
 const secondaryColorDark = "#ECEEEB";
 
@@ -28,6 +30,7 @@ export const Colors = {
 	loginTextLight: loginTextLight,
 
 	mainColorDark: mainColorDark,
+	mainColorDarker: mainColorDarker,
 	secondaryColorDark: secondaryColorDark,
 	thirdColorDark: thirdColorDark,
 

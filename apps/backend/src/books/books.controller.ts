@@ -140,7 +140,7 @@ export class BooksController {
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   findAll(@Query() query: PaginationDto, @Session() session: any) {
-    const userId = session.userId;
+    const userId = session.userDataInAccessToken.email;
     return this.booksService.findAll(query, false, userId);
   }
 
@@ -178,8 +178,8 @@ export class BooksController {
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   findOne(@Param('id') id: string, @Session() session: any) {
-    const email = session.email;
-    return this.booksService.findOne(id, email);
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.findOne(id, userId);
   }
 
   @Patch(':id')
