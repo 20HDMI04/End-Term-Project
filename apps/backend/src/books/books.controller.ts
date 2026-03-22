@@ -144,6 +144,25 @@ export class BooksController {
     return this.booksService.findAll(query, false, userId);
   }
 
+  @Get('random')
+  @ApiOperation({
+    summary: 'Find a random book',
+    description: 'Retrieves the details of a random book.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Random book retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the random book. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  findRandom() {
+    return this.booksService.findRandom();
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Find a book by ID',
@@ -158,8 +177,9 @@ export class BooksController {
       'An unexpected error occurred while retrieving the book. Please try again later.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findOne(@Param('id') id: string) {
-    return this.booksService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: any) {
+    const email = session.email;
+    return this.booksService.findOne(id, email);
   }
 
   @Patch(':id')

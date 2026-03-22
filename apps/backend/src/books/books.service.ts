@@ -794,17 +794,45 @@ export class BooksService {
    * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
    * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
    */
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
     try {
       let res = await this.prisma.book.findUniqueOrThrow({
         where: { id: id },
         include: {
+          _count: {
+            select: { favoritedBy: true },
+          },
           isbns: true,
           genres: { include: { genre: true } },
           author: true,
           statistics: true,
+          favoritedBy: {
+            where: { userId: userId },
+          },
+          comments: {
+            include: {
+              user: true,
+              votes: {
+                where: { userId: userId },
+              },
+              _count: {
+                select: { votes: true },
+              },
+            },
+          },
         },
       });
+
+      const formattedBook = {
+        ...res,
+        isLikedByMe: res.favoritedBy.length > 0,
+        comments: res.comments.map((comment) => ({
+          ...comment,
+          isLikedByMe: comment.votes.length > 0,
+          likeCount: comment._count?.votes || 0,
+        })),
+      };
+
       let similarBooks = await this.prisma.book.findMany({
         where: {
           AND: [
@@ -824,6 +852,7 @@ export class BooksService {
           statistics: true,
         },
       });
+
       similarBooks.sort((a, b) => {
         const commonA = a.genres.filter((g) =>
           res.genres.some((rg) => rg.genreId === g.genreId),
@@ -833,7 +862,11 @@ export class BooksService {
         ).length;
         return commonB - commonA;
       });
-      return { foundBook: res, similarBooks: similarBooks.slice(0, 15) };
+
+      return {
+        foundBook: formattedBook,
+        similarBooks: similarBooks.slice(0, 15),
+      };
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(
@@ -1533,6 +1566,37 @@ export class BooksService {
     } catch (error) {
       throw new InternalServerErrorException(
         'Error during searching for everything.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves a random book from the database that has been approved for display. The method counts the total number of approved books, generates a random index, and fetches a single book based on that index. It includes related data such as statistics, comments, genres, and ISBNs for the randomly selected book.
+   * @description This method is designed to provide users with a random book recommendation. It first counts the total number of books in the database that have been approved for display, then generates a random index within that count. Using this index, it retrieves a single book from the database, ensuring that the book is approved and includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. The method handles any potential errors that may occur during the database query process, ensuring that appropriate exceptions are thrown if issues arise while fetching the random book.
+   * @returns A promise resolving to the randomly selected book. The book includes its statistics, comments, genres, and ISBNs.
+   * @throws {@link InternalServerErrorException} if an error occurs while fetching the random book from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while retrieving the random book.
+   */
+  async findRandom() {
+    const count = await this.prisma.book.count();
+    const skip = Math.floor(Math.random() * count);
+    try {
+      let res = await this.prisma.book.findFirst({
+        skip: skip,
+        take: 1,
+        where: {
+          approveStatus: true,
+        },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+          statistics: true,
+        },
+      });
+      return res;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during finding a random book.',
       );
     }
   }
