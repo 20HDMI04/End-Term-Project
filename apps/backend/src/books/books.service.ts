@@ -789,20 +789,51 @@ export class BooksService {
    * @summary Retrieves a single book by its ID.
    * @description This method fetches a book from the database based on the provided ID. It includes related data such as the author's name, genre names, and rating statistics.
    * @param id - The ID of the book to retrieve.
+   * @remarks The method handles errors gracefully by checking for specific error codes to determine if the book was not found and responding with appropriate exceptions. If the book is successfully retrieved, it returns the complete details of the book along with its related data.
    * @returns A promise resolving to the book details or an error if the book is not found.
    * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
    * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
    */
   async findOne(id: string) {
     try {
-      return await this.prisma.book.findUniqueOrThrow({
-        where: { id },
+      let res = await this.prisma.book.findUniqueOrThrow({
+        where: { id: id },
         include: {
           isbns: true,
           genres: { include: { genre: true } },
           author: true,
+          statistics: true,
         },
       });
+      let similarBooks = await this.prisma.book.findMany({
+        where: {
+          AND: [
+            { id: { not: id } },
+            { approveStatus: true },
+            {
+              genres: {
+                some: { genreId: { in: res.genres.map((g) => g.genreId) } },
+              },
+            },
+          ],
+        },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+          statistics: true,
+        },
+      });
+      similarBooks.sort((a, b) => {
+        const commonA = a.genres.filter((g) =>
+          res.genres.some((rg) => rg.genreId === g.genreId),
+        ).length;
+        const commonB = b.genres.filter((g) =>
+          res.genres.some((rg) => rg.genreId === g.genreId),
+        ).length;
+        return commonB - commonA;
+      });
+      return { foundBook: res, similarBooks: similarBooks.slice(0, 15) };
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(
