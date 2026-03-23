@@ -14,6 +14,7 @@ import {
 	Platform,
 	ActivityIndicator,
 	Alert,
+	Keyboard,
 } from "react-native";
 import Animated, {
 	useSharedValue,
@@ -31,6 +32,7 @@ import BookCarousel from "./homeComponents/BookCarousel";
 import { GenreInstance } from "@/constants/interfaces";
 import { Comment } from "@/constants/interfaces";
 import { Storage } from "@/utils/storage";
+import { useGetRelativeTime } from "@/hooks/use-get-realtive-time";
 
 const { width } = Dimensions.get("window");
 
@@ -125,6 +127,7 @@ const BookDetailModal = ({
 	};
 
 	const handleCommentSubmit = async () => {
+		Keyboard.dismiss();
 		if (commentText.trim().length > 0) {
 			try {
 				const newCommentResponse: Comment = await api.addComment(
@@ -317,6 +320,7 @@ const BookDetailModal = ({
 					<ScrollView
 						showsVerticalScrollIndicator={false}
 						contentContainerStyle={{ paddingBottom: 40 }}
+						keyboardShouldPersistTaps="handled"
 					>
 						{/* Hero Section */}
 						<View style={styles.heroSection}>
@@ -556,14 +560,30 @@ const BookDetailModal = ({
 												}}
 												style={styles.commentAvatar}
 											/>
-											<Text
-												style={[
-													styles.commentUser,
-													{ color: theme.textPrimary },
-												]}
+											<View
+												style={{
+													justifyContent: "flex-start",
+												}}
 											>
-												{comment.user.nickname || "Unknown User"}
-											</Text>
+												<Text
+													style={[
+														styles.commentUser,
+														{ color: theme.textPrimary },
+													]}
+												>
+													{comment.user.nickname || "Unknown User"}
+												</Text>
+												<Text
+													style={[
+														styles.commentTime,
+														{ color: theme.textSecondary },
+													]}
+												>
+													{useGetRelativeTime(
+														comment.createdAt.toLocaleString(),
+													)}
+												</Text>
+											</View>
 										</View>
 
 										<View style={styles.row}>
@@ -579,7 +599,7 @@ const BookDetailModal = ({
 															? "thumbs-up"
 															: "thumbs-up-outline"
 													}
-													size={16}
+													size={20}
 													color={
 														comment.isLikedByMe
 															? isDarkMode
@@ -604,7 +624,7 @@ const BookDetailModal = ({
 												>
 													<Ionicons
 														name="trash-outline"
-														size={16}
+														size={20}
 														color={theme.danger}
 													/>
 												</TouchableOpacity>
@@ -612,7 +632,14 @@ const BookDetailModal = ({
 										</View>
 									</View>
 									<Text
-										style={[styles.commentText, { color: theme.textSecondary }]}
+										style={[
+											styles.commentText,
+											{
+												color: theme.textSecondary,
+												padding: 4,
+												marginLeft: 42,
+											},
+										]}
 									>
 										{comment.text}
 									</Text>
@@ -849,9 +876,9 @@ const styles = StyleSheet.create({
 	userRow: { flexDirection: "row", alignItems: "center" },
 	commentAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
 	commentUser: { fontFamily: "modern_no_20_regular", fontSize: 18 },
-	commentTime: { fontSize: 10, fontFamily: "modern_no_20_regular" },
+	commentTime: { fontSize: 14, fontFamily: "modern_no_20_regular" },
 	commentText: {
-		fontSize: 14,
+		fontSize: 16,
 		fontFamily: "modern_no_20_regular",
 		lineHeight: 20,
 	},

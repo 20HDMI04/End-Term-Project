@@ -87,7 +87,7 @@ function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
 						style={[styles.badge, { backgroundColor: badgeBackgroundColor }]}
 					>
 						<Text style={styles.badgeText}>
-							{item.statistics.averageRating}
+							{item.statistics.averageRating.toFixed(2)}
 						</Text>
 						<Ionicons
 							name="star"
