@@ -1520,24 +1520,44 @@ export class BooksService {
    * @description This method allows users to search for books, authors, and genres using a query string. It performs a case-insensitive search across multiple fields, including book titles and descriptions, author names, and genre names. The method retrieves matching books along with their statistics, comments, and associated genres, as well as matching authors with their names and associated books, and matching genres with their names and associated books. The results are structured in a way that provides comprehensive information about the search results while ensuring that any errors encountered during the search process are properly handled and logged.
    * @param query The search query string.
    * @param take The number of results to return.
+   * @param userId The ID of the user performing the search, used to determine if the user has favorited any of the matching books.
+   * @remarks The method includes error handling to catch and log any issues that arise during the search process, ensuring that the application can gracefully handle errors and provide informative feedback to the client if there are issues while performing the search. It also ensures that the search results are relevant and comprehensive by including related information for each matching book, author, and genre.
    * @returns A structured response containing the matching books, authors, and genres. Each book includes its statistics, comments, and associated genres, while each author includes their name and associated books, and each genre includes its name and associated books.
    * @throws {@link InternalServerErrorException} if an error occurs during the search process. The method includes error handling to ensure that any issues encountered while querying the database are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues during the search.
    */
-  async searchforEverything(query: string, take: number = 10) {
+  async searchforEverything(query: string, take: number = 10, userId: string) {
     try {
       const books = await this.prisma.book.findMany({
         where: {
-          OR: [
-            { title: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
+          AND: [
+            { approveStatus: true },
+            {
+              OR: [
+                { title: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } },
+                {
+                  isbns: {
+                    some: {
+                      isbnNumber: { equals: query, mode: 'insensitive' },
+                    },
+                  },
+                },
+              ],
+            },
           ],
         },
         take: take,
         include: {
-          statistics: true,
-          genres: { include: { genre: { select: { name: true } } } },
-          comments: true,
-          isbns: true,
+          favoritedBy: {
+            where: {
+              userId: userId,
+            },
+          },
+          author: {
+            select: {
+              name: true,
+            },
+          },
         },
         omit: {
           smallerCoverPicKey: true,
@@ -1551,10 +1571,9 @@ export class BooksService {
         },
         take: take,
         include: {
-          books: {
-            omit: {
-              smallerCoverPicKey: true,
-              biggerCoverPicKey: true,
+          favoritedBy: {
+            where: {
+              userId: userId,
             },
           },
         },
@@ -1565,14 +1584,6 @@ export class BooksService {
           name: { contains: query, mode: 'insensitive' },
         },
         take: take,
-        omit: {
-          id: true,
-        },
-        include: {
-          books: {
-            take: 10,
-          },
-        },
       });
 
       return { books: books, authors: authors, genres: genres };

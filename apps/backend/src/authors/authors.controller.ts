@@ -137,8 +137,9 @@ export class AuthorsController {
     type: PaginationDto,
   })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
-  findPendingApprovals(@Query() query: PaginationDto) {
-    return this.authorsService.findAll(query, true);
+  findPendingApprovals(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findAll(query, true, userId);
   }
 
   @Get()

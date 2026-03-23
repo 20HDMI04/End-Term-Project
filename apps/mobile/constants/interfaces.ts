@@ -187,3 +187,50 @@ interface BookGenreRelation {
 		name: string;
 	};
 }
+
+// --- FOR SEARCHING ---
+export interface SearchGenre {
+	id: string;
+	name: string;
+}
+
+export interface FavoriteRelation {
+	userId: string;
+}
+
+export interface SearchAuthor {
+	id: string;
+	name: string;
+	smallerProfilePic: string | null;
+	biggerProfilePic: string | null;
+	topWorks: string | null;
+	subjects: string | null;
+	bio: string | null;
+	birthDate: string | null;
+	nationality: string | null;
+	favoritedBy: FavoriteRelation[];
+}
+
+export interface SearchBook {
+	id: string;
+	title: string;
+	authorId: string | null;
+	author?: {
+		name: string;
+	};
+	smallerCoverPic: string;
+	biggerCoverPic: string;
+	originalPublisher: string | null;
+	originalPublicationYear: number | null;
+	latestPublicationYear: number | null;
+	pageNumber: number | null;
+	description: string;
+	approveStatus: boolean;
+	favoritedBy: FavoriteRelation[];
+}
+
+export interface SearchEverythingResponse {
+	books: SearchBook[];
+	authors: SearchAuthor[];
+	genres: SearchGenre[];
+}

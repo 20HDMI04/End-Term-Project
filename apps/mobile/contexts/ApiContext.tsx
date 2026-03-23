@@ -4,7 +4,11 @@ import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { UserService } from "@/services/user.service";
 import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
-import { FindOneAuthorResponse, MainPageData } from "@/constants/interfaces";
+import {
+	FindOneAuthorResponse,
+	MainPageData,
+	SearchEverythingResponse,
+} from "@/constants/interfaces";
 import { AuthorsService } from "@/services/authors.service";
 import { BooksService } from "@/services/books.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -42,6 +46,10 @@ interface ApiProps {
 	likeComment: (commentId: string) => Promise<void>;
 	unlikeComment: (commentId: string) => Promise<void>;
 	findOneAuthor: (authorId: string) => Promise<FindOneAuthorResponse>;
+	searchEverything: (
+		query: string,
+		take?: number,
+	) => Promise<SearchEverythingResponse>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -181,7 +189,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		query: string,
 		page: number = 1,
 		limit: number = 15,
-	) => {
+	): Promise<SearchEverythingResponse> => {
 		try {
 			const data = await BooksService.searchBooks(query, page, limit);
 			return data;
@@ -301,6 +309,16 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const searchEverything = async (query: string, take: number = 10) => {
+		try {
+			const data = await MainPageService.searchForEverything(query, take);
+			return data;
+		} catch (error) {
+			console.error("Error searching for everything:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -325,6 +343,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				getRandomBook,
 				likeComment,
 				unlikeComment,
+				searchEverything,
 			}}
 		>
 			{children}

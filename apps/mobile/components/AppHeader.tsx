@@ -19,29 +19,27 @@ import Sun from "@/assets/svgs/sun-dim.svg";
 import { Colors } from "@/constants/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // Vonalkód ikonhoz
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface AppHeaderProps {
 	options: any;
 	route: any;
+	onSearchPress?: (query: string) => void;
 }
 
-export function AppHeader({ options, route }: AppHeaderProps) {
+export function AppHeader({ options, route, onSearchPress }: AppHeaderProps) {
 	const [loading, setLoading] = React.useState(false);
 	const isDarkMode = useColorScheme() === "dark";
 	const iconBackgroundColor = isDarkMode ? Colors.thirdColorDark : "#ffffff";
 	const transition = useSharedValue(isDarkMode ? 1 : 0);
 
-	// Aktuális route lekérése
 	const focusedRoute = getFocusedRouteNameFromRoute(route) || "index";
 
-	// Ellenőrizzük, hogy az Explore vagy Search oldalon vagyunk-e
 	const showBarcode = focusedRoute === "explore" || focusedRoute === "search";
 
 	const handleThemeChange = () => {
 		if (loading) return;
 		transition.value = withTiming(isDarkMode ? 0 : 1, {
-			// Fixált irány
 			duration: 500,
 			easing: Easing.bezier(0.4, 0, 0.2, 1),
 		});
@@ -54,9 +52,8 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 	};
 
 	const handleBarcodePress = () => {
-		console.log("Barcode scanner megnyitása...");
-		// Ide jön majd a navigáció a kamera/scanner oldalra:
-		// router.push("/scanner");
+		console.log("Barcode scanner open...");
+		onSearchPress && onSearchPress("scan-isbn");
 	};
 
 	const getTitle = () => {
@@ -94,7 +91,6 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 			}}
 		>
 			<View style={styles.content}>
-				{/* Bal oldal: Cím */}
 				<View style={styles.leftContainer}>
 					<Text
 						style={[
@@ -106,7 +102,6 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 					</Text>
 				</View>
 
-				{/* Jobb oldal: Ikonok egy sorban */}
 				<View style={styles.rightIconsContainer}>
 					{showBarcode && (
 						<TouchableOpacity

@@ -504,7 +504,7 @@ const BookDetailModal = ({
 								>
 									{!userAvatarError && profilePic ? (
 										<Image
-											source={{ uri: profilePic }}
+											source={{ uri: useChangePicUrlToPipline(profilePic) }}
 											style={styles.inputAvatarImage}
 											onError={() => setUserAvatarError(true)}
 										/>

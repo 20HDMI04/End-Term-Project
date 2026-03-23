@@ -16,9 +16,14 @@ import { useApi } from "@/contexts/ApiContext";
 interface AuthorResultItemProps {
 	item: Author;
 	isDarkMode: boolean;
+	onPress?: (authorId: string) => void;
 }
 
-const AuthorResultItem = ({ item, isDarkMode }: AuthorResultItemProps) => {
+const AuthorResultItem = ({
+	item,
+	isDarkMode,
+	onPress,
+}: AuthorResultItemProps) => {
 	const [hasError, setHasError] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSelected, setIsSelected] = useState(false);
@@ -44,32 +49,37 @@ const AuthorResultItem = ({ item, isDarkMode }: AuthorResultItemProps) => {
 
 	return (
 		<View style={styles.container}>
-			<View style={[styles.imageWrapper, { backgroundColor: fallbackBg }]}>
-				<View style={styles.absolutePlaceholder}>
-					<Ionicons name="person" size={24} color={iconColor} />
+			<TouchableOpacity
+				activeOpacity={0.7}
+				style={{ flexDirection: "row", flex: 1 }}
+				onPress={() => onPress?.(item.id)}
+			>
+				<View style={[styles.imageWrapper, { backgroundColor: fallbackBg }]}>
+					<View style={styles.absolutePlaceholder}>
+						<Ionicons name="person" size={24} color={iconColor} />
+					</View>
+
+					{item.biggerProfilePic && !hasError && (
+						<Image
+							source={{ uri: item.biggerProfilePic }}
+							style={styles.image}
+							onLoadStart={() => setIsLoading(true)}
+							onLoadEnd={() => setIsLoading(false)}
+							onError={() => {
+								setHasError(true);
+								setIsLoading(false);
+							}}
+						/>
+					)}
 				</View>
 
-				{item.biggerProfilePic && !hasError && (
-					<Image
-						source={{ uri: item.biggerProfilePic }}
-						style={styles.image}
-						onLoadStart={() => setIsLoading(true)}
-						onLoadEnd={() => setIsLoading(false)}
-						onError={() => {
-							setHasError(true);
-							setIsLoading(false);
-						}}
-					/>
-				)}
-			</View>
-
-			<View style={styles.infoContainer}>
-				<Text style={[styles.name, { color: titleColor }]} numberOfLines={1}>
-					{item.name || "Unknown Author"}
-				</Text>
-				<Text style={[styles.role, { color: subtitleColor }]}>Author</Text>
-			</View>
-
+				<View style={styles.infoContainer}>
+					<Text style={[styles.name, { color: titleColor }]} numberOfLines={1}>
+						{item.name || "Unknown Author"}
+					</Text>
+					<Text style={[styles.role, { color: subtitleColor }]}>Author</Text>
+				</View>
+			</TouchableOpacity>
 			<TouchableOpacity
 				activeOpacity={0.6}
 				hitSlop={40}

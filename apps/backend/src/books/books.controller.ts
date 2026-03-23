@@ -301,8 +301,10 @@ export class BooksController {
   searchforEverything(
     @Query('query') query: string,
     @Query('take') take: number = 10,
+    @Session() session: any,
   ) {
-    return this.booksService.searchforEverything(query, take);
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.searchforEverything(query, take, userId);
   }
 
   @Get('specific-genre/:genre')

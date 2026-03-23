@@ -10,9 +10,10 @@ import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline"
 interface BookResultItemProps {
 	item: BookData;
 	isDarkMode: boolean;
+	onPress?: (bookId: string) => void;
 }
 
-const BookResultItem = ({ item, isDarkMode }: BookResultItemProps) => {
+const BookResultItem = ({ item, isDarkMode, onPress }: BookResultItemProps) => {
 	const [hasError, setHasError] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSelected, setIsSelected] = useState(false);
@@ -38,51 +39,59 @@ const BookResultItem = ({ item, isDarkMode }: BookResultItemProps) => {
 
 	return (
 		<View style={styles.container}>
-			<View style={[styles.imageWrapper, { backgroundColor: fallbackBg }]}>
-				<View style={styles.absolutePlaceholder}>
-					<Ionicons name="book-outline" size={24} color={iconColor} />
+			<TouchableOpacity
+				activeOpacity={0.7}
+				style={{ flexDirection: "row", flex: 1 }}
+				onPress={() => onPress && onPress(item.id)}
+			>
+				<View style={[styles.imageWrapper, { backgroundColor: fallbackBg }]}>
+					<View style={styles.absolutePlaceholder}>
+						<Ionicons name="book-outline" size={24} color={iconColor} />
+					</View>
+
+					{item.smallerCoverPic && !hasError && (
+						<Image
+							source={{ uri: useChangePicUrlToPipline(item.smallerCoverPic) }}
+							style={styles.image}
+							onLoadStart={() => setIsLoading(true)}
+							onLoadEnd={() => setIsLoading(false)}
+							onError={() => {
+								setHasError(true);
+								setIsLoading(false);
+							}}
+						/>
+					)}
 				</View>
 
-				{item.smallerCoverPic && !hasError && (
-					<Image
-						source={{ uri: useChangePicUrlToPipline(item.smallerCoverPic) }}
-						style={styles.image}
-						onLoadStart={() => setIsLoading(true)}
-						onLoadEnd={() => setIsLoading(false)}
-						onError={() => {
-							setHasError(true);
-							setIsLoading(false);
-						}}
-					/>
-				)}
-			</View>
+				<View style={styles.infoContainer}>
+					<Text style={[styles.title, { color: titleColor }]} numberOfLines={1}>
+						{item.title || "Unknown Title"}
+					</Text>
 
-			<View style={styles.infoContainer}>
-				<Text style={[styles.title, { color: titleColor }]} numberOfLines={1}>
-					{item.title || "Unknown Title"}
-				</Text>
+					<Text
+						style={[styles.subtitle, { color: subtitleColor }]}
+						numberOfLines={1}
+					>
+						Book • {item.author?.name || "Unknown Author"}
+					</Text>
 
-				<Text
-					style={[styles.subtitle, { color: subtitleColor }]}
-					numberOfLines={1}
-				>
-					Book • {item.author?.name || "Unknown Author"}
-				</Text>
-
-				<View style={styles.genreContainer}>
-					{item.genres?.slice(0, 2).map((g, index) => (
-						<View
-							key={index}
-							style={[styles.genreBadge, { borderColor: subtitleColor + "40" }]}
-						>
-							<Text style={[styles.genreText, { color: subtitleColor }]}>
-								{g.genre.name}
-							</Text>
-						</View>
-					))}
+					<View style={styles.genreContainer}>
+						{item.genres?.slice(0, 2).map((g, index) => (
+							<View
+								key={index}
+								style={[
+									styles.genreBadge,
+									{ borderColor: subtitleColor + "40" },
+								]}
+							>
+								<Text style={[styles.genreText, { color: subtitleColor }]}>
+									{g.genre.name}
+								</Text>
+							</View>
+						))}
+					</View>
 				</View>
-			</View>
-
+			</TouchableOpacity>
 			<TouchableOpacity
 				activeOpacity={0.6}
 				hitSlop={40}

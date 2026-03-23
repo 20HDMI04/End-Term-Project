@@ -26,6 +26,11 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import { View } from "react-native";
 import { StyleSheet } from "react-native";
 import { Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
+import UniversalSearch, {
+	UniversalSearchRef,
+} from "@/components/UniversalSearchForISBN";
+import { useRef } from "react";
+import UniversalSearchForISBN from "@/components/UniversalSearchForISBN";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -53,6 +58,7 @@ function RootLayoutNav() {
 	const segments = useSegments();
 	const router = useRouter();
 	const [isNavigationReady, setIsNavigationReady] = useState(false);
+	const searchRef = useRef<UniversalSearchRef>(null);
 
 	useEffect(() => {
 		setIsNavigationReady(true);
@@ -86,31 +92,47 @@ function RootLayoutNav() {
 	}, [authState.isAuthenticated]);
 
 	return (
-		<Stack
-			screenOptions={{
-				headerShown: false,
-				animation: "fade",
-			}}
-		>
-			<Stack.Screen name="index" options={{ headerShown: false }} />
-			<Stack.Screen
-				name="(authentication)/auth"
-				options={{ headerShown: false }}
-			/>
-			<Stack.Screen
-				name="(tabs)"
-				options={{
-					headerShown: true,
-					header: (props) => <AppHeader {...props} />,
+		<>
+			<Stack
+				screenOptions={{
+					headerShown: false,
+					animation: "fade",
 				}}
-			/>
-		</Stack>
+			>
+				<Stack.Screen name="index" options={{ headerShown: false }} />
+				<Stack.Screen
+					name="(authentication)/auth"
+					options={{ headerShown: false }}
+				/>
+				<Stack.Screen
+					name="(tabs)"
+					options={{
+						headerShown: true,
+						header: (props) => (
+							<AppHeader
+								onSearchPress={(query) =>
+									searchRef.current?.openWithQuery(query)
+								}
+								{...props}
+							/>
+						),
+					}}
+				/>
+			</Stack>
+			<View>
+				<UniversalSearchForISBN
+					ref={searchRef}
+					isDarkMode={useColorScheme() === "dark"}
+				/>
+			</View>
+		</>
 	);
 }
 
 export default function RootLayout() {
 	const colorScheme = useColorScheme();
 	const [appIsReady, setAppIsReady] = useState(false);
+	const searchRef = useRef<UniversalSearchRef>(null);
 
 	const [fontsLoaded, fontError] = useFonts({
 		modern_no_20_regular: require("../assets/fonts/modern_no_20_regular.otf"),
