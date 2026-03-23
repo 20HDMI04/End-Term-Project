@@ -661,6 +661,9 @@ export class BooksService {
             _count: {
               select: { favoritedBy: true, comments: true },
             },
+            favoritedBy: {
+              where: { userId },
+            },
           },
         }),
         this.prisma.book.count({ where: whereCondition }),
@@ -669,12 +672,12 @@ export class BooksService {
       const lastPage = Math.ceil(total / limit);
 
       const mappedData = data.map((book) => {
-        const { _count, ...rest } = book;
+        const { _count, favoritedBy, ...rest } = book;
         return {
           ...rest,
           commentCount: _count.comments,
           favoriteCount: _count.favoritedBy,
-          isFavorited: userId ? _count.favoritedBy > 0 : false,
+          isFavorited: userId ? favoritedBy.length > 0 : false,
         };
       });
 
@@ -739,6 +742,9 @@ export class BooksService {
             _count: {
               select: { favoritedBy: true, comments: true },
             },
+            favoritedBy: {
+              where: { userId },
+            },
           },
           orderBy: [
             {
@@ -758,12 +764,12 @@ export class BooksService {
       const lastPage = Math.ceil(total / limit);
 
       const mappedData = data.map((book) => {
-        const { _count, ...rest } = book;
+        const { _count, favoritedBy, ...rest } = book;
         return {
           ...rest,
           commentCount: _count.comments,
           favoriteCount: _count.favoritedBy,
-          isFavorited: userId ? _count.favoritedBy > 0 : false,
+          isFavorited: userId ? favoritedBy.length > 0 : false,
         };
       });
 

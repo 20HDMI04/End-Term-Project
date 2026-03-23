@@ -1,20 +1,12 @@
-console.log("[_layout] Module loading started");
-
 import {
 	DarkTheme,
 	DefaultTheme,
 	ThemeProvider,
 } from "@react-navigation/native";
-console.log("[_layout] @react-navigation/native loaded");
-
 import { Colors } from "@/constants/theme";
 import { Stack, useRouter, useSegments } from "expo-router";
-console.log("[_layout] expo-router loaded");
-
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-console.log("[_layout] react-native-reanimated loaded");
-
 import { StrictMode, useEffect, useState } from "react";
 import {
 	Poppins_300Light,
@@ -25,20 +17,15 @@ import { useFonts } from "expo-font";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initSuperTokens } from "../config/supertokens.config";
 import * as SplashScreenRN from "expo-splash-screen";
-console.log("[_layout] Basic imports done");
-
 import AnimatedSplashScreen from "@/components/splash-screen";
-console.log("[_layout] splash-screen loaded (lottie-react-native)");
-
 import { AppHeader } from "@/components/AppHeader";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-console.log("[_layout] AuthContext loaded (supertokens-react-native)");
-
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-console.log("[_layout] GoogleSignin loaded");
-
 import { ApiProvider, useApi } from "@/contexts/ApiContext";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { View } from "react-native";
+import { StyleSheet } from "react-native";
+import { Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -153,21 +140,28 @@ export default function RootLayout() {
 	};
 
 	return (
-		<AuthProvider>
-			<ApiProvider>
-				<ThemeProvider
-					value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-				>
-					<ToastProvider>
-						{!appIsReady ? (
-							<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
-						) : (
+		<GestureHandlerRootView>
+			<AuthProvider>
+				<ApiProvider>
+					<ThemeProvider
+						value={
+							colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme
+						}
+					>
+						<ToastProvider>
 							<RootLayoutNav />
-						)}
-						<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-					</ToastProvider>
-				</ThemeProvider>
-			</ApiProvider>
-		</AuthProvider>
+
+							{!appIsReady && (
+								<View style={StyleSheet.absoluteFill}>
+									<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
+								</View>
+							)}
+
+							<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+						</ToastProvider>
+					</ThemeProvider>
+				</ApiProvider>
+			</AuthProvider>
+		</GestureHandlerRootView>
 	);
 }

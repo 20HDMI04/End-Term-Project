@@ -110,9 +110,8 @@ const AuthorDetailModal = ({
 		<Modal
 			visible={visible}
 			animationType="slide"
-			presentationStyle="fullScreen"
 			onRequestClose={onClose}
-			transparent={false}
+			transparent
 		>
 			<SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
 				{loading || !authorData ? (

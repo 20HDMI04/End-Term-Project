@@ -44,7 +44,6 @@ export default function TabLayout() {
 	const tabIndex = useSharedValue(0);
 
 	useEffect(() => {
-		// Finomított útvonal keresés
 		const currentRoute = segments[segments.length - 1] || "index";
 		tabIndex.value = ROUTE_INDEX_MAP[currentRoute] ?? 0;
 	}, [segments]);
@@ -77,26 +76,25 @@ export default function TabLayout() {
 					? "rgba(255,255,255,0.5)"
 					: "rgba(0,0,0,0.4)",
 				tabBarStyle: {
-					height: Platform.OS === "ios" ? 95 : 80, // iOS-en kicsit magasabb a safe area miatt
-					paddingTop: 10,
+					height: Platform.OS === "ios" ? 95 : 90,
+					paddingTop: 20,
 					backgroundColor: tabBackgroundColor,
 					borderTopLeftRadius: 25,
 					borderTopRightRadius: 25,
 					borderTopWidth: 0,
-					elevation: 10, // Android árnyék
+					elevation: 10,
 					paddingHorizontal: TAB_BAR_PADDING,
-					position: "absolute", // Ez marad, de figyelj a HomeScreen paddingBottom-ra!
+					position: "absolute",
 					bottom: 0,
 					left: 0,
 					right: 0,
-					shadowColor: "#000",
+					shadowColor: "transparent",
 					shadowOffset: { width: 0, height: -4 },
 					shadowOpacity: isDarkMode ? 0.3 : 0.1,
 					shadowRadius: 10,
 				},
-				// A háttérben lévő indikátor fixálása
 				tabBarBackground: () => (
-					<View style={StyleSheet.absoluteFill}>
+					<View style={[StyleSheet.absoluteFill]}>
 						<View
 							style={[
 								StyleSheet.absoluteFill,
@@ -165,7 +163,7 @@ export default function TabLayout() {
 const TabIcon = memo(({ Icon, label, focused, color }: any) => {
 	return (
 		<View style={styles.tabItemContainer}>
-			<Icon width={focused ? 26 : 22} height={focused ? 26 : 22} fill={color} />
+			<Icon width={focused ? 30 : 26} height={focused ? 30 : 26} fill={color} />
 			<Text
 				numberOfLines={1}
 				style={[

@@ -150,7 +150,7 @@ export class AuthorsService {
    * @returns a paginated list of authors with metadata
    * @throws {@link InternalServerErrorException} if there is a database error during retrieval
    */
-  async findAll(query: PaginationDto, admin: boolean, currentUserId?: string) {
+  async findAll(query: PaginationDto, admin: boolean, currentUserId: string) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
@@ -185,6 +185,7 @@ export class AuthorsService {
           skip,
           limit,
           sortOrder,
+          currentUserId,
         );
       default:
         orderBy = { name: 'asc' };
@@ -201,16 +202,19 @@ export class AuthorsService {
             _count: {
               select: { favoritedBy: true, books: true },
             },
+            favoritedBy: {
+              where: { userId: currentUserId },
+            },
           },
         }),
         this.prisma.author.count({ where: whereCondition }),
       ]);
 
       const mappedData = data.map((author) => {
-        const { _count, ...rest } = author;
+        const { favoritedBy, ...rest } = author;
         return {
           ...rest,
-          isFavorited: _count.favoritedBy > 0 && currentUserId ? true : false,
+          isFavorited: favoritedBy.length > 0 ? true : false,
         };
       });
 
@@ -230,6 +234,7 @@ export class AuthorsService {
    * @param skip skip for pagination
    * @param take take for pagination
    * @param order order of sorting (asc or desc)
+   * @param currentUserId the ID of the currently logged-in user, used to determine if each author is favorited by the current user
    * @returns a paginated list of authors with metadata3,
    * @throws {@link InternalServerErrorException} if there is a database error during retrieval
    */
@@ -238,6 +243,7 @@ export class AuthorsService {
     skip: number,
     take: number,
     order: 'asc' | 'desc',
+    currentUserId: string,
   ) {
     let authors;
     // all authors matching the where condition
@@ -251,6 +257,9 @@ export class AuthorsService {
             },
           },
           _count: { select: { favoritedBy: true } },
+          favoritedBy: {
+            where: { userId: currentUserId },
+          },
         },
       });
     } catch (error) {

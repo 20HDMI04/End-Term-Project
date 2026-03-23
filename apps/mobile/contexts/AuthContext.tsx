@@ -3,6 +3,7 @@ import SuperTokens from "supertokens-react-native";
 import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { ApiProvider } from "./ApiContext";
 import { UserService } from "@/services/user.service";
+import { Storage } from "@/utils/storage";
 
 interface ResponseData {
 	error: boolean;
@@ -12,7 +13,7 @@ interface ResponseData {
 interface AuthState {
 	isAuthenticated: boolean | null;
 	userId: string | null;
-	roles: string[];
+	roles: string[] | null;
 }
 
 interface AuthProps {
@@ -155,6 +156,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		try {
 			console.log("[AuthContext] Attempting logout...");
 			await SuperTokens.signOut();
+			await Storage.clearAllItem();
+			console.log("[AuthContext] Logout successful.");
 		} catch (error) {
 			console.error("[AuthContext] Logout error (Server unreachable):", error);
 		} finally {
@@ -173,9 +176,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			const payload = await SuperTokens.getAccessTokenPayloadSecurely();
 			console.log("Access token payload on finalizeLogin:", payload);
 			const roles =
-				payload.roles || payload["st-role"]?.v || payload["roles"] || [];
-
-			setAuthState({ isAuthenticated: true, userId, roles: roles });
+				payload.roles.roles || payload["st-role"]?.v || payload["roles"] || [];
+			setAuthState({
+				isAuthenticated: true,
+				userId,
+				roles: Array.isArray(roles) ? roles : [],
+			});
 		} catch (e) {
 			console.error("Finalize error:", e);
 		}
