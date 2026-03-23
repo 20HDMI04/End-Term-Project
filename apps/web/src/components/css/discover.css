@@ -1,12 +1,13 @@
 :root {
     --bg-color: #f7f4dc;
-    --text-color: #374618;
+    --text-color: #516523;
     --header-bg: #485B1F;
     --accent-bg: #3746183f;
     --ndfooter-bg: #374618;
     --author-name-tx: rgb(0, 0, 0);
     --card-tx: #374618;
     --author-border-c: #4E6B3A;
+    --button-dark-bg: #f7f4dcea;
 }
 
 [data-theme="dark"] {
@@ -18,6 +19,8 @@
     --author-name-tx: #ffffff;
     --card-tx: #fff;
     --author-border-c: black;
+    --button-dark-bg: #222e3ade;
+
 }
 
 /* Base Styles */
@@ -52,12 +55,75 @@ nav {
     margin-top: 1em;
 }
 
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.navbar-nav {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    margin-left: 25%;
+}
+
+.navbar-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
 .profile-pic {
-    width: 60%;
-    justify-items: end;
-    padding-left: 20%;
-    margin-top: 2%;
-    margin-left: 250%;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    margin-top: -5px;
+}
+
+
+.Darkmode-changer {
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    margin-top: -3px;
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    overflow: hidden;
+    background-color: var(--button-dark-bg);
+    color: white;
+    border-radius: 50%;
+    border: 2px solid var(--text-color);
+}
+
+.icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+    opacity: 0;
+    transition:
+        transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55),
+        opacity 0.5s ease;
+}
+
+.icon.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(360deg);
+}
+
+.sun-icon {
+    color: var(--author-border-c);
+}
+
+.moon-icon {
+    color: var(--text-color);
 }
 
 .nav-item {
@@ -117,15 +183,6 @@ nav {
     z-index: 5;
     right: 20px;
     bottom: 10px;
-}
-
-/* Buttons */
-.gomb1 {
-    background-color: var(--text-color);
-    color: white;
-    border-radius: 8px;
-    border-color: transparent;
-    box-shadow: black 0px 4px 8px;
 }
 
 .popular-books-header {
@@ -270,4 +327,3 @@ nav {
         width: 120px;
     }
 }
-

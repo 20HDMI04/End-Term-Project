@@ -338,6 +338,9 @@ importers:
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@tabler/icons-react':
+        specifier: ^3.40.0
+        version: 3.40.0(react@18.3.1)
       bootstrap:
         specifier: 5.3.8
         version: 5.3.8(@popperjs/core@2.11.8)
@@ -3067,6 +3070,14 @@ packages:
     engines: {node: '>=14'}
     peerDependencies:
       '@svgr/core': '*'
+
+  '@tabler/icons-react@3.40.0':
+    resolution: {integrity: sha512-oO5+6QCnna4a//mYubx4euZfECtzQZFDGsDMIdzZUhbdyBCT+3bRVFBPueGIcemWld4Vb/0UQ39C/cmGfGylAg==}
+    peerDependencies:
+      react: 18.3.1
+
+  '@tabler/icons@3.40.0':
+    resolution: {integrity: sha512-V/Q4VgNPKubRTiLdmWjV/zscYcj5IIk+euicUtaVVqF6luSC9rDngYWgST5/yh3Mrg/mYUwRv1YVTk71Jp0twQ==}
 
   '@tokenizer/inflate@0.4.1':
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
@@ -12152,6 +12163,13 @@ snapshots:
       svgo: 3.3.3
     transitivePeerDependencies:
       - typescript
+
+  '@tabler/icons-react@3.40.0(react@18.3.1)':
+    dependencies:
+      '@tabler/icons': 3.40.0
+      react: 18.3.1
+
+  '@tabler/icons@3.40.0': {}
 
   '@tokenizer/inflate@0.4.1':
     dependencies:

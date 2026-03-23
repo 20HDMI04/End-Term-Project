@@ -3,6 +3,7 @@ import "./css/home.css";
 import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
+import { IconSun, IconMoon } from '@tabler/icons-react';
 
 export function Home() {
 	const api = useApi();
@@ -28,7 +29,7 @@ export function Home() {
 			setAuthorList(consoleData.authors);
 		}
 		Boks();
-	}, []);
+	});
 
 	const handleBookImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
 		e.currentTarget.src = "/book.png";
@@ -44,35 +45,47 @@ export function Home() {
 			{/* Navbar */}
 			<nav className="navbar navbar-expand-lg">
 				<div className="container-fluid">
-					<div className="collapse navbar-collapse" id="navbarNavDropdown">
-						<img src={theme === "light" ? "/logo.svg" : "/logo2.svg"} alt="logo" className="logo" />
+					<img
+						src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+						alt="logo"
+						className="logo"
+					/>
 
+					<div className="navbar-content">
 						<ul className="navbar-nav">
 							<li className="nav-item">
-								<h2><a className="nav-link">Home</a></h2>
+								<a className="nav-link" href="/">Home</a>
 							</li>
 							<li className="nav-item">
-								<h2><a className="nav-link" href="/search">Search</a></h2>
+								<a className="nav-link" href="/search">Search</a>
 							</li>
 							<li className="nav-item">
-								<h2><a className="nav-link" href="/discover">Discover</a></h2>
+								<a className="nav-link" href="/discover">Discover</a>
 							</li>
-							<button
-								className="Darkmode-changer gomb1"
-								onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-							>
+						</ul>
 
-								{theme === "light" ? (
-									<span className="icon-container sun-icon">☀️</span>
-								) : (
-									<span className="icon-container moon-icon">🌙</span>
-								)}
+						<div className="navbar-right">
+							<button
+								className="Darkmode-changer"
+								onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+								aria-label="Toggle color scheme"
+							>
+								<span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+									<IconSun size={20} stroke={2} />
+								</span>
+								<span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+									<IconMoon size={20} stroke={2} />
+								</span>
 							</button>
 
 							<a href="/profile">
-								<img src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"} alt="profile" className="profile-pic" />
+								<img
+									src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+									alt="profile"
+									className="profile-pic"
+								/>
 							</a>
-						</ul>
+						</div>
 					</div>
 				</div>
 			</nav>
@@ -158,6 +171,7 @@ export function Home() {
 										</div>
 									</div>
 								</div>
+
 							))}
 					</div>
 				</div>

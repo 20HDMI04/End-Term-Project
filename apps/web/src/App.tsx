@@ -55,7 +55,7 @@ import { ThirdPartyPreBuiltUI } from "supertokens-auth-react/recipe/thirdparty/p
 import { Home } from "./components/Home";
 import { Discover } from "./components/Discover";
 import { Search } from "./components/Search";
-import { Profile } from "./components/profile";
+import { Profile } from "./components/Profile";
 
 SuperTokens.init({	
 	appInfo: {
