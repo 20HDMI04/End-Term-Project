@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
 	StyleSheet,
 	View,
@@ -8,18 +8,15 @@ import {
 	TouchableOpacity,
 	Modal,
 	SafeAreaView,
-	Dimensions,
-	TextInput,
-	KeyboardAvoidingView,
-	Platform,
 	ActivityIndicator,
-	Alert,
+	Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
-import { FindOneBookResponse } from "@/constants/interfaces";
+import { Author, Book } from "@/constants/interfaces";
+import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
 import { useApi } from "@/contexts/ApiContext";
-import { StatusBar } from "expo-status-bar";
+import BookCarousel from "./homeComponents/BookCarousel";
 
 const { width } = Dimensions.get("window");
 
@@ -37,312 +34,396 @@ const AuthorDetailModal = ({
 	authorId,
 }: AuthorDetailModalProps) => {
 	const api = useApi();
-	const [liked, setLiked] = useState(false);
-	const [rating, setRating] = useState(0);
-	const [authorData, setAuthorData] = useState<any | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-
-	const onLikeUpdate = async (isLiking: boolean) => {
-		if (isLiking) {
-			await api.likeAuthor(authorId);
-		} else {
-			await api.unlikeAuthor(authorId);
-		}
-	};
-
-	useEffect(() => {
-		async function fetchAuthorData() {
-			if (!visible) return;
-			try {
-				const data = "lajos";
-			} catch (error) {
-				console.error("Error fetching author details:", error);
-			} finally {
-				setLoading(false);
-			}
-		}
-		fetchAuthorData();
-	}, [authorId, visible]);
+	const [authorData, setAuthorData] = useState<Author | null>(null);
+	const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+	const [profileError, setProfileError] = useState(false);
+	const [topBookError, setTopBookError] = useState(false);
+	const [isFavorited, setIsFavorited] = useState(false);
 
 	const theme = {
 		background: isDarkMode ? Colors.mainColorDark : "#F9F9F7",
 		card: isDarkMode ? Colors.mainColorDarker : "#FFFFFF",
-		textPrimary: isDarkMode
-			? Colors?.secondaryColorDark || "#E0E0E0"
-			: Colors?.mainColorLight || "#4A4A40",
-		textSecondary: isDarkMode ? "#A0A0A0" : Colors.darkerTextLight,
-		border: isDarkMode ? Colors.loginTextDark : "#E8E8E3",
-		fallbackBg: isDarkMode
-			? Colors?.thirdColorDark || "#333"
-			: Colors?.thirdColorLight || "#E8E8E3",
-		iconColor: isDarkMode
-			? Colors?.loginTextDark || "#CCC"
-			: Colors?.darkerTextLight || "#666",
-		tagBg: isDarkMode ? Colors.mainColorDarker : Colors.mainColorLight,
-		danger: "#E74C3C",
+		textPrimary: isDarkMode ? "#E0E0E0" : "#4A4A40",
+		textSecondary: isDarkMode ? "#A0A0A0" : "#707060",
+		border: isDarkMode ? "#404040" : "#E8E8E3",
+		accent: isDarkMode ? Colors.thirdColorDark : Colors.mainColorLight,
+		fallbackBg: isDarkMode ? Colors.thirdColorDark : Colors.thirdColorLight,
+	};
+
+	useEffect(() => {
+		async function fetchAuthor() {
+			if (!visible) return;
+			try {
+				setLoading(true);
+				const response: Author = await api.findOneAuthor(authorId);
+				setAuthorData(response);
+				setIsFavorited(!!response.isFavoritedbyCurrentUser);
+			} catch (error) {
+				console.error("Error fetching author:", error);
+			} finally {
+				setLoading(false);
+			}
+		}
+		fetchAuthor();
+	}, [authorId, visible]);
+
+	const topBook = useMemo(() => {
+		if (!authorData?.books?.length) return null;
+		return [...authorData.books].sort(
+			(a, b) =>
+				(b.statistics?.averageRating || 0) - (a.statistics?.averageRating || 0),
+		)[0];
+	}, [authorData]);
+
+	const allGenres = useMemo(() => {
+		const genres = new Set<string>();
+		authorData?.books?.forEach((book) =>
+			book.genres?.forEach((g) => genres.add(g.genre.name)),
+		);
+		return Array.from(genres);
+	}, [authorData]);
+
+	const filteredBooks = useMemo(() => {
+		if (!selectedGenre) return authorData?.books || [];
+		return (
+			authorData?.books?.filter((book) =>
+				book.genres?.some((g) => g.genre.name === selectedGenre),
+			) || []
+		);
+	}, [selectedGenre, authorData]);
+
+	const handleToggleFavorite = async () => {
+		const newStatus = !isFavorited;
+		setIsFavorited(newStatus);
+		try {
+			if (newStatus) await api.likeAuthor(authorId);
+			else await api.unlikeAuthor(authorId);
+		} catch (e) {
+			setIsFavorited(!newStatus);
+		}
 	};
 
 	if (!visible) return null;
-	if (loading) {
-		return (
-			<Modal visible={visible} animationType="fade">
-				<SafeAreaView
-					style={{
-						flex: 1,
-						backgroundColor: theme.background,
-						justifyContent: "center",
-					}}
-				>
-					<ActivityIndicator size="large" color={theme.textPrimary} />
-				</SafeAreaView>
-			</Modal>
-		);
-	}
-
-	const author = authorData?.foundAuthor;
 
 	return (
-		<Modal visible={visible} animationType="slide" transparent={true}>
+		<Modal
+			visible={visible}
+			animationType="slide"
+			presentationStyle="fullScreen"
+			onRequestClose={onClose}
+			transparent={false}
+		>
 			<SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-				<KeyboardAvoidingView
-					behavior={Platform.OS === "ios" ? "padding" : "height"}
-					style={{ flex: 1 }}
-				>
-					<View style={[styles.header, { borderBottomColor: theme.border }]}>
-						<TouchableOpacity onPress={onClose} style={styles.headerButton}>
-							<Ionicons name="close" size={26} color={theme.textPrimary} />
-						</TouchableOpacity>
-						<Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
-							AUTHOR DETAILS
-						</Text>
-						<TouchableOpacity
-							onPress={() => {
-								const newLikedStatus = !liked;
-								setLiked(newLikedStatus);
-								onLikeUpdate(newLikedStatus);
-							}}
-							style={styles.headerButton}
-						>
-							<Ionicons
-								name={liked ? "heart" : "heart-outline"}
-								size={26}
-								color={
-									liked
-										? isDarkMode
-											? "#FFFFFF"
-											: Colors.mainColorLight
-										: theme.textSecondary
-								}
-							/>
-						</TouchableOpacity>
+				{loading || !authorData ? (
+					<View style={styles.center}>
+						<ActivityIndicator size="large" color={theme.accent} />
 					</View>
+				) : (
+					<>
+						{/* Header */}
+						<View style={[styles.header, { borderBottomColor: theme.border }]}>
+							<TouchableOpacity onPress={onClose}>
+								<Ionicons name="close" size={26} color={theme.textPrimary} />
+							</TouchableOpacity>
+							<Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
+								AUTHOR PROFILE
+							</Text>
+							<TouchableOpacity onPress={handleToggleFavorite}>
+								<Ionicons
+									name={isFavorited ? "heart" : "heart-outline"}
+									size={26}
+									color={
+										isFavorited
+											? isDarkMode
+												? "#FFFFFF"
+												: Colors.mainColorLight
+											: theme.textPrimary
+									}
+								/>
+							</TouchableOpacity>
+						</View>
 
-					<ScrollView
-						showsVerticalScrollIndicator={false}
-						contentContainerStyle={{ paddingBottom: 40 }}
-					></ScrollView>
-				</KeyboardAvoidingView>
+						<ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+							{/* Hero Section */}
+							<View style={styles.heroSection}>
+								<View
+									style={[
+										styles.profileImageContainer,
+										{ backgroundColor: theme.fallbackBg },
+									]}
+								>
+									<Ionicons
+										name="person"
+										size={50}
+										color={
+											isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight
+										}
+										style={styles.placeholder}
+									/>
+									{!profileError && (
+										<Image
+											source={{
+												uri: useChangePicUrlToPipline(
+													authorData.biggerProfilePic,
+												),
+											}}
+											style={styles.profileImage}
+											onError={() => setProfileError(true)}
+										/>
+									)}
+								</View>
+								<Text style={[styles.name, { color: theme.textPrimary }]}>
+									{authorData.name}
+								</Text>
+								<Text
+									style={[styles.nationality, { color: theme.textSecondary }]}
+								>
+									{authorData.nationality || "International Author"} •{" "}
+									{authorData.birthDate
+										? new Date(authorData.birthDate).getFullYear()
+										: "N/A"}
+								</Text>
+								<View
+									style={[styles.countBadge, { backgroundColor: theme.accent }]}
+								>
+									<Text style={styles.countText}>
+										{authorData._count?.favoritedBy || 0} fans
+									</Text>
+								</View>
+							</View>
+
+							{/* Bio Section */}
+							<View style={styles.section}>
+								<Text
+									style={[styles.sectionTitle, { color: theme.textPrimary }]}
+								>
+									Biography
+								</Text>
+								<Text
+									style={[styles.description, { color: theme.textSecondary }]}
+								>
+									{authorData.bio || "No biography available for this author."}
+								</Text>
+							</View>
+
+							{/* TOP BOOK SECTION */}
+							{topBook && (
+								<View style={styles.section}>
+									<Text
+										style={[styles.sectionTitle, { color: theme.textPrimary }]}
+									>
+										Masterpiece
+									</Text>
+									<View
+										style={[
+											styles.topBookCard,
+											{ backgroundColor: theme.card },
+										]}
+									>
+										<View
+											style={[
+												styles.topBookImageContainer,
+												{ backgroundColor: theme.fallbackBg },
+											]}
+										>
+											{!topBookError && (
+												<Image
+													source={{
+														uri: useChangePicUrlToPipline(
+															topBook.smallerCoverPic,
+														),
+													}}
+													style={styles.topBookImage}
+													onError={() => setTopBookError(true)}
+												/>
+											)}
+										</View>
+										<View style={styles.topBookInfo}>
+											<Text
+												style={[styles.topBookTag, { color: theme.accent }]}
+											>
+												BEST RATED
+											</Text>
+											<Text
+												style={[
+													styles.topBookTitle,
+													{ color: theme.textPrimary },
+												]}
+												numberOfLines={2}
+											>
+												{topBook.title}
+											</Text>
+											<View style={styles.ratingRow}>
+												<Ionicons name="star" size={16} color="#F1C40F" />
+												<Text
+													style={[
+														styles.ratingText,
+														{ color: theme.textPrimary },
+													]}
+												>
+													{topBook.statistics?.averageRating?.toFixed(2) ||
+														"N/A"}
+												</Text>
+											</View>
+										</View>
+									</View>
+								</View>
+							)}
+
+							{/* GENRE FILTER SECTION */}
+							<View style={styles.section}>
+								<Text
+									style={[styles.sectionTitle, { color: theme.textPrimary }]}
+								>
+									Expertise In
+								</Text>
+								<ScrollView
+									horizontal
+									showsHorizontalScrollIndicator={false}
+									style={styles.genreScroll}
+								>
+									{allGenres.map((genre) => (
+										<TouchableOpacity
+											key={genre}
+											onPress={() =>
+												setSelectedGenre(selectedGenre === genre ? null : genre)
+											}
+											style={[
+												styles.genreChip,
+												{
+													backgroundColor:
+														selectedGenre === genre ? theme.accent : theme.card,
+													borderColor: theme.border,
+												},
+											]}
+										>
+											<Text
+												style={[
+													styles.genreText,
+													{
+														color:
+															selectedGenre === genre
+																? "#FFF"
+																: theme.textPrimary,
+													},
+												]}
+											>
+												{genre}
+											</Text>
+										</TouchableOpacity>
+									))}
+								</ScrollView>
+							</View>
+
+							{/* BOOKS LIST */}
+							<BookCarousel
+								isDarkMode={isDarkMode}
+								section={{
+									title: selectedGenre ? `${selectedGenre} Books` : "All Works",
+									subtitle: `Total: ${filteredBooks.length} titles`,
+									data: filteredBooks,
+								}}
+							/>
+						</ScrollView>
+					</>
+				)}
 			</SafeAreaView>
 		</Modal>
 	);
 };
 
 const styles = StyleSheet.create({
-	commentLikeRow: { flexDirection: "row", alignItems: "center", padding: 5 },
-	noCommentsContainer: {
-		alignItems: "center",
-		justifyContent: "center",
-		paddingVertical: 40,
-		opacity: 0.8,
-	},
-	tagContainer: { flexDirection: "row" },
-	marqueeWrapper: { width: "100%", overflow: "hidden", marginBottom: 15 },
-	tag: {
-		paddingHorizontal: 12,
-		paddingVertical: 6,
-		borderRadius: 20,
-		marginHorizontal: 4,
-	},
-	tagText: { fontSize: 12, fontWeight: "600" },
-	noCommentsText: {
-		fontFamily: "modern_no_20_regular",
-		fontSize: 16,
-		marginTop: 10,
-	},
-	commentInputWrapper: {
-		flexDirection: "row",
-		alignItems: "flex-start",
-		padding: 15,
-		borderRadius: 20,
-		marginBottom: 20,
-	},
-	inputBoxRow: {
-		flex: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		borderRadius: 15,
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		marginLeft: 10,
-		minHeight: 45,
-	},
-	textInputMain: {
-		flex: 1,
-		fontSize: 17,
-		fontFamily: "modern_no_20_regular",
-		maxHeight: 100,
-	},
-	iconPostButton: {
-		paddingLeft: 10,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	inputAvatarContainer: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		overflow: "hidden",
-		position: "relative",
-		justifyContent: "center",
-		alignItems: "center",
-		marginTop: 2,
-	},
-	inputAvatarImage: {
-		width: "100%",
-		height: "100%",
-		resizeMode: "cover",
-		zIndex: 2,
-	},
-	sectionTitle: {
-		fontSize: 22,
-		fontFamily: "modern_no_20_regular",
-		marginBottom: 15,
-		marginTop: 10,
-	},
-	commentCard: { padding: 15, borderRadius: 12, marginBottom: 12 },
+	center: { flex: 1, justifyContent: "center", alignItems: "center" },
 	header: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		paddingHorizontal: 15,
+		paddingHorizontal: 20,
 		height: 60,
 		borderBottomWidth: 0.5,
 	},
-	headerButton: { padding: 5 },
 	headerTitle: {
-		fontSize: 14,
+		fontSize: 13,
 		fontFamily: "modern_no_20_regular",
 		letterSpacing: 2,
 	},
-	heroSection: { alignItems: "center", paddingVertical: 25 },
-	coverContainer: {
-		width: 180,
-		height: 270,
-		borderRadius: 12,
+	heroSection: { alignItems: "center", paddingVertical: 30 },
+	profileImageContainer: {
+		width: 120,
+		height: 120,
+		borderRadius: 60,
 		overflow: "hidden",
-		position: "relative",
-	},
-	coverImage: { width: "100%", height: "100%", resizeMode: "cover" },
-	absolutePlaceholder: {
-		...StyleSheet.absoluteFillObject,
 		justifyContent: "center",
 		alignItems: "center",
-		zIndex: -1,
+		marginBottom: 15,
+		elevation: 5,
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.2,
+		shadowRadius: 4,
 	},
-	title: {
-		fontSize: 28,
+	profileImage: { width: "100%", height: "100%", resizeMode: "cover" },
+	placeholder: { position: "absolute" },
+	name: {
+		fontSize: 32,
 		fontFamily: "modern_no_20_regular",
-		marginTop: 20,
 		textAlign: "center",
 	},
-	authorSubtitle: {
-		fontSize: 18,
-		fontFamily: "modern_no_20_regular",
-		marginBottom: 20,
-	},
-	statsRow: {
-		flexDirection: "row",
-		width: "85%",
-		justifyContent: "space-around",
-		borderTopWidth: 0.5,
-		borderBottomWidth: 0.5,
-		paddingVertical: 15,
-	},
-	statItem: { alignItems: "center" },
-	statLabel: {
-		fontSize: 11,
-		fontFamily: "modern_no_20_regular",
-		textTransform: "uppercase",
-	},
-	statValue: { fontSize: 26, fontFamily: "modern_no_20_regular" },
-	section: { paddingHorizontal: 20, marginBottom: 30 },
-	description: {
-		lineHeight: 24,
+	nationality: {
 		fontSize: 16,
 		fontFamily: "modern_no_20_regular",
-		textAlign: "justify",
+		marginTop: 5,
 	},
-	authorCard: {
-		marginHorizontal: 20,
-		padding: 20,
-		borderRadius: 16,
-		flexDirection: "row",
-		alignItems: "flex-start",
-		marginBottom: 30,
+	countBadge: {
+		backgroundColor: Colors.mainColorLight,
+		paddingHorizontal: 12,
+		paddingVertical: 4,
+		borderRadius: 15,
+		marginTop: 10,
 	},
-	authorImageWrapper: {
-		width: 80,
-		height: 80,
-		borderRadius: 40,
-		overflow: "hidden",
-		marginRight: 15,
-	},
-	authorThumb: { width: "100%", height: "100%" },
-	authorInfoText: { flex: 1, alignItems: "flex-start" },
-	authorLabel: {
-		fontSize: 10,
-		fontFamily: "modern_no_20_regular",
-		marginBottom: 4,
-	},
-	authorName: {
+	countText: { color: "white", fontSize: 12, fontWeight: "600" },
+	section: { paddingHorizontal: 20, marginBottom: 25 },
+	sectionTitle: {
 		fontSize: 22,
 		fontFamily: "modern_no_20_regular",
-		marginBottom: 6,
+		marginBottom: 12,
 	},
-	authorBio: {
-		fontSize: 14,
-		fontFamily: "modern_no_20_regular",
-		lineHeight: 20,
-	},
-	ratingBox: {
-		marginHorizontal: 20,
-		padding: 25,
-		borderRadius: 16,
-		alignItems: "center",
-		marginBottom: 35,
-	},
-	ratingTitle: {
+	description: {
 		fontSize: 16,
 		fontFamily: "modern_no_20_regular",
-		marginBottom: 10,
+		lineHeight: 22,
+		textAlign: "justify",
 	},
-	starsRow: { flexDirection: "row" },
-	commentHeader: {
+	topBookCard: {
 		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 8,
+		borderRadius: 16,
+		padding: 12,
+		alignItems: "center",
+		elevation: 2,
+		shadowOpacity: 0.1,
 	},
-	userRow: { flexDirection: "row", alignItems: "center" },
-	commentAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
-	commentUser: { fontFamily: "modern_no_20_regular", fontSize: 18 },
-	commentTime: { fontSize: 10, fontFamily: "modern_no_20_regular" },
-	commentText: {
-		fontSize: 14,
-		fontFamily: "modern_no_20_regular",
-		lineHeight: 20,
+	topBookImageContainer: {
+		width: 70,
+		height: 100,
+		borderRadius: 8,
+		overflow: "hidden",
 	},
-	row: { flexDirection: "row" },
+	topBookImage: { width: "100%", height: "100%" },
+	topBookInfo: { flex: 1, marginLeft: 15 },
+	topBookTag: { fontSize: 10, fontWeight: "bold", marginBottom: 4 },
+	topBookTitle: { fontSize: 18, fontFamily: "modern_no_20_regular" },
+	ratingRow: { flexDirection: "row", alignItems: "center", marginTop: 5 },
+	ratingText: { marginLeft: 5, fontSize: 16, fontWeight: "600" },
+	genreScroll: { flexDirection: "row", marginBottom: 10 },
+	genreChip: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 20,
+		marginRight: 10,
+		borderWidth: 1,
+	},
+	genreText: { fontSize: 14, fontFamily: "modern_no_20_regular" },
 });
 
 export default AuthorDetailModal;

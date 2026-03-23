@@ -83,6 +83,9 @@ export function AppHeader({ options, route }: AppHeaderProps) {
 					backgroundColor: isDarkMode
 						? Colors.mainColorDark
 						: Colors.secondaryColorLight,
+					marginBottom: 0,
+					paddingBottom: 0,
+					height: 70,
 				},
 			]}
 		>
@@ -128,15 +131,12 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "space-between",
 		paddingHorizontal: 20,
-		height: 65,
-		marginBottom: -30,
+		height: 60,
 	},
 	logotext: {
 		fontSize: 60,
-		padding: 0,
-		margin: 0,
 		fontFamily: "modern_no_20_regular",
-		lineHeight: 70,
+		lineHeight: 60,
 	},
 	darkLightButton: {
 		width: 50,

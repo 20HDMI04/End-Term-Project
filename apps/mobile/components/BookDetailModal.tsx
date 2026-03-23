@@ -259,7 +259,7 @@ const BookDetailModal = ({
 			? Colors?.loginTextDark || "#CCC"
 			: Colors?.darkerTextLight || "#666",
 		tagBg: isDarkMode ? Colors.mainColorDarker : Colors.mainColorLight,
-		danger: "#E74C3C", // Univerzális piros
+		danger: "#E74C3C",
 	};
 
 	if (!visible) return null;

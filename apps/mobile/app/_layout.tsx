@@ -101,17 +101,22 @@ function RootLayoutNav() {
 	return (
 		<Stack
 			screenOptions={{
-				headerShown: true,
-				animation: "none",
-				header: (props) => <AppHeader {...props} />,
+				headerShown: false,
+				animation: "fade",
 			}}
 		>
-			<Stack.Screen name="index" options={{ headerShown: true }} />
+			<Stack.Screen name="index" options={{ headerShown: false }} />
 			<Stack.Screen
 				name="(authentication)/auth"
 				options={{ headerShown: false }}
 			/>
-			<Stack.Screen name="(tabs)" options={{ headerShown: true }} />
+			<Stack.Screen
+				name="(tabs)"
+				options={{
+					headerShown: true,
+					header: (props) => <AppHeader {...props} />,
+				}}
+			/>
 		</Stack>
 	);
 }

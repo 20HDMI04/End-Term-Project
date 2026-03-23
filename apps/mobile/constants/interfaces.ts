@@ -97,12 +97,21 @@ export interface Author {
 	topWorks: string | null;
 	updatedAt: string;
 	isFavorited?: boolean;
+
+	// --- Bővítés a findOne függvényed miatt ---
+	books?: Book[];
+	_count?: {
+		favoritedBy: number;
+	};
+	isFavoritedbyCurrentUser?: boolean;
 }
 
 export interface FindOneBookResponse {
 	foundBook: Book;
 	similarBooks: Book[];
 }
+
+export interface FindOneAuthorResponse extends Author {}
 
 export interface MainPageData {
 	authors: AuthorSection[];

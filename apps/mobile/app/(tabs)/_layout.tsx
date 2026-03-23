@@ -44,6 +44,7 @@ export default function TabLayout() {
 	const tabIndex = useSharedValue(0);
 
 	useEffect(() => {
+		// Finomított útvonal keresés
 		const currentRoute = segments[segments.length - 1] || "index";
 		tabIndex.value = ROUTE_INDEX_MAP[currentRoute] ?? 0;
 	}, [segments]);
@@ -76,22 +77,36 @@ export default function TabLayout() {
 					? "rgba(255,255,255,0.5)"
 					: "rgba(0,0,0,0.4)",
 				tabBarStyle: {
-					height: 90,
+					height: Platform.OS === "ios" ? 95 : 80, // iOS-en kicsit magasabb a safe area miatt
 					paddingTop: 10,
 					backgroundColor: tabBackgroundColor,
 					borderTopLeftRadius: 25,
 					borderTopRightRadius: 25,
 					borderTopWidth: 0,
-					elevation: 0,
+					elevation: 10, // Android árnyék
 					paddingHorizontal: TAB_BAR_PADDING,
-					position: "absolute",
+					position: "absolute", // Ez marad, de figyelj a HomeScreen paddingBottom-ra!
+					bottom: 0,
+					left: 0,
+					right: 0,
 					shadowColor: "#000",
 					shadowOffset: { width: 0, height: -4 },
-					shadowOpacity: 0.1,
+					shadowOpacity: isDarkMode ? 0.3 : 0.1,
 					shadowRadius: 10,
 				},
+				// A háttérben lévő indikátor fixálása
 				tabBarBackground: () => (
 					<View style={StyleSheet.absoluteFill}>
+						<View
+							style={[
+								StyleSheet.absoluteFill,
+								{
+									backgroundColor: tabBackgroundColor,
+									borderTopLeftRadius: 25,
+									borderTopRightRadius: 25,
+								},
+							]}
+						/>
 						<Animated.View
 							style={[
 								styles.activeIndicator,
@@ -150,16 +165,16 @@ export default function TabLayout() {
 const TabIcon = memo(({ Icon, label, focused, color }: any) => {
 	return (
 		<View style={styles.tabItemContainer}>
-			<Icon width={focused ? 28 : 24} height={focused ? 28 : 24} fill={color} />
+			<Icon width={focused ? 26 : 22} height={focused ? 26 : 22} fill={color} />
 			<Text
 				numberOfLines={1}
 				style={[
 					styles.tabLabel,
 					{
 						color,
-						fontSize: focused ? 11 : 10,
+						fontSize: 10,
 						fontWeight: focused ? "600" : "400",
-						opacity: focused ? 1 : 0.8,
+						opacity: focused ? 1 : 0.7,
 					},
 				]}
 			>
@@ -173,7 +188,6 @@ const styles = StyleSheet.create({
 	tabItemContainer: {
 		alignItems: "center",
 		justifyContent: "center",
-		top: 10,
 	},
 	activeIndicator: {
 		position: "absolute",

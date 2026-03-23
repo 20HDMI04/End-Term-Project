@@ -4,7 +4,7 @@ import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { UserService } from "@/services/user.service";
 import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
-import { MainPageData } from "@/constants/interfaces";
+import { FindOneAuthorResponse, MainPageData } from "@/constants/interfaces";
 import { AuthorsService } from "@/services/authors.service";
 import { BooksService } from "@/services/books.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -41,6 +41,7 @@ interface ApiProps {
 	getRandomBook: () => Promise<any>;
 	likeComment: (commentId: string) => Promise<void>;
 	unlikeComment: (commentId: string) => Promise<void>;
+	findOneAuthor: (authorId: string) => Promise<FindOneAuthorResponse>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -290,6 +291,16 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const findOneAuthor = async (authorId: string) => {
+		try {
+			const data = await AuthorsService.findOneAuthor(authorId);
+			return data;
+		} catch (error) {
+			console.error("Error fetching author details:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -299,6 +310,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				searchAuthors,
 				likeAuthor,
 				unlikeAuthor,
+				findOneAuthor,
 				searchBooks,
 				likeBook,
 				unlikeBook,

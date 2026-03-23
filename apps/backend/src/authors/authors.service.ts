@@ -292,15 +292,52 @@ export class AuthorsService {
   /**
    *
    * @summary Retrieves a single author by their ID. If the author does not exist, a NotFoundException is thrown.
+   * @description This method retrieves a single author from the database using their unique ID. It includes related data such as the count of users who have favorited the author, whether the current user has favorited them, and their books with associated statistics and genres. If no author is found with the provided ID, a NotFoundException is thrown to indicate that the requested resource does not exist.
+   * @remark The method also checks if the current user has favorited the author and includes this information in the response, allowing the frontend to display the appropriate UI state for favoriting.
    * @param id This is the Author Id.
+   * @param userId This is the ID of the current user. It is used to determine if the author is favorited by the current user, which allows the frontend to display the correct state for favoriting (e.g., filled heart icon if favorited).
    * @returns An instance of an author.
    * @throws {@link NotFoundException} if the author with the given ID does not exist in the database.
    */
-  findOne(id: string) {
+  async findOne(id: string, userId: string) {
     try {
-      return this.prisma.author.findUniqueOrThrow({ where: { id } });
+      const author = await this.prisma.author.findUniqueOrThrow({
+        where: { id },
+        include: {
+          _count: {
+            select: { favoritedBy: true },
+          },
+          favoritedBy: {
+            where: { userId },
+          },
+          books: {
+            include: {
+              statistics: true,
+              genres: {
+                select: {
+                  genre: { select: { name: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const isFavoritedbyCurrentUser = author.favoritedBy.length > 0;
+
+      const { favoritedBy, ...rest } = author;
+
+      return {
+        ...rest,
+        isFavoritedbyCurrentUser,
+      };
     } catch (error) {
-      throw new NotFoundException('Author not found.');
+      if (error.code === 'P2025') {
+        throw new NotFoundException('Author not found.');
+      }
+      throw new InternalServerErrorException(
+        'Database error during find one Author.',
+      );
     }
   }
 

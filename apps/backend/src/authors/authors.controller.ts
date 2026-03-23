@@ -260,8 +260,9 @@ export class AuthorsController {
     description: 'Successful retrieval of an author by ID.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findOne(@Param('id') id: string) {
-    return this.authorsService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findOne(id, userId);
   }
 
   @Patch(':id')

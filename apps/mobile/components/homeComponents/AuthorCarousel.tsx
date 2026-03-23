@@ -23,14 +23,12 @@ const ITEM_WIDTH = (width - CONTAINER_PADDING * 2 - SPACING * 2) / 3;
 interface AuthorCarouselProps {
 	section: AuthorSection;
 	isDarkMode: boolean;
-	setCurrentAuthorId?: (authorId: string) => void;
 }
 
-function AuthorCarousel({
-	section,
-	isDarkMode,
-	setCurrentAuthorId,
-}: AuthorCarouselProps) {
+function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
+	const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
+	const [authorModalVisible, setAuthorModalVisible] = useState(false);
+
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
 		: Colors.mainColorLight;
@@ -47,9 +45,8 @@ function AuthorCarousel({
 				style={[styles.card, { width: ITEM_WIDTH }]}
 				activeOpacity={0.7}
 				onPress={() => {
-					if (setCurrentAuthorId) {
-						setCurrentAuthorId(item.id);
-					}
+					setSelectedAuthorId(item.id);
+					setAuthorModalVisible(true);
 				}}
 			>
 				<Text
@@ -113,6 +110,17 @@ function AuthorCarousel({
 					);
 				}}
 			/>
+			{selectedAuthorId !== null && (
+				<AuthorDetailModal
+					authorId={selectedAuthorId}
+					isDarkMode={isDarkMode}
+					onClose={() => {
+						setAuthorModalVisible(false);
+						setSelectedAuthorId(null);
+					}}
+					visible={authorModalVisible}
+				/>
+			)}
 		</View>
 	);
 }

@@ -108,17 +108,6 @@ export default function HomeScreen() {
 					}}
 					isDarkMode={isDarkMode}
 				></FirstSignInTaste>
-				<Modal visible={authorModalVisible} animationType="slide">
-					{selectedAuthorId !== null && (
-						<AuthorDetailModal
-							authorId={selectedAuthorId}
-							isDarkMode={isDarkMode}
-							onClose={() => setAuthorModalVisible(false)}
-							visible={authorModalVisible}
-						/>
-					)}
-				</Modal>
-
 				<SafeAreaView style={{ flex: 1 }}>
 					<ScrollView
 						keyboardShouldPersistTaps="handled"
@@ -182,10 +171,6 @@ export default function HomeScreen() {
 												<AuthorCarousel
 													section={authorSection}
 													isDarkMode={isDarkMode}
-													setCurrentAuthorId={(authorId) => {
-														setSelectedAuthorId(authorId);
-														setAuthorModalVisible(true);
-													}}
 												/>
 
 												{currentBooks.map((bookSection, bIndex) => (
