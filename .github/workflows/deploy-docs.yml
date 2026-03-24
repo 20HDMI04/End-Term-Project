@@ -25,7 +25,9 @@ jobs:
 
       - name: Generate Docs
         run: |
-          npx typedoc apps/backend/src \
+          npx typedoc \
+          --entryPoints apps/backend/src \
+          --entryPointStrategy expand \
           --tsconfig apps/backend/tsconfig.json \
           --out docs_backend \
           --githubPages true
