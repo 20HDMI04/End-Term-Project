@@ -185,6 +185,7 @@ const SearchBarForFirstTaste = ({ isDarkMode }: { isDarkMode: boolean }) => {
 					searchResults.data.map((author) => (
 						<AuthorResultComponent
 							key={author.id}
+							// @ts-ignore
 							item={author}
 							isDarkMode={isDarkMode}
 						/>

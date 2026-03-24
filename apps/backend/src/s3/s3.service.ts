@@ -52,8 +52,8 @@ export class S3Service {
    * @description Deletes images from the specified S3 bucket based on the provided file keys. The method checks if the file keys are valid and limits the number of keys to prevent excessive deletions. If any error occurs during the deletion process, an InternalServerErrorException is thrown.
    * @param bucket The type of bucket from which to delete images ('author', 'book', or 'profile').
    * @param fileKeys File keys to delete
-   * @throws  {@link BadRequestException} if the number of file keys exceeds the allowed limit.
-   * @throws  {@link InternalServerErrorException} if an error occurs during the deletion process.
+   * @throws  BadRequestException if the number of file keys exceeds the allowed limit.
+   * @throws  InternalServerErrorException if an error occurs during the deletion process.
    */
   async deleteImages(
     bucket: 'author' | 'book' | 'profile',
@@ -93,8 +93,8 @@ export class S3Service {
    * @param bucket bucket type ('author' | 'book' | 'profile')
    * @param title Image name base for generating file names
    * @returns An object containing URLs and keys of the uploaded images
-   * @throws  {@link BadRequestException} if the bucket type is invalid.
-   * @throws  {@link InternalServerErrorException} if an error occurs during image processing or upload to S3.
+   * @throws  BadRequestException if the bucket type is invalid.
+   * @throws  InternalServerErrorException if an error occurs during image processing or upload to S3.
    */
   async uploadImage(
     file: UploadedFile,
@@ -158,7 +158,7 @@ export class S3Service {
    * @description Returns an array of size configurations based on the specified bucket type. Each configuration includes a name and a height for resizing images. If an invalid bucket type is provided, a BadRequestException is thrown.
    * @param bucket The type of bucket for which to retrieve size configurations ('author', 'book', or 'profile').
    * @returns An array of size configurations for the specified bucket type.
-   * @throws  {@link BadRequestException} if the bucket type is invalid.
+   * @throws  BadRequestException if the bucket type is invalid.
    */
   private getSizesForBucket(
     bucket: string,

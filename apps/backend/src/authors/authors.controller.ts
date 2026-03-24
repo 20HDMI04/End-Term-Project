@@ -137,8 +137,9 @@ export class AuthorsController {
     type: PaginationDto,
   })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
-  findPendingApprovals(@Query() query: PaginationDto) {
-    return this.authorsService.findAll(query, true);
+  findPendingApprovals(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findAll(query, true, userId);
   }
 
   @Get()
@@ -168,7 +169,7 @@ export class AuthorsController {
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   @UsePipes(new ValidationPipe({ transform: true }))
   findAll(@Query() query: PaginationDto, @Session() session: any) {
-    const userId = session.userId;
+    const userId = session.userDataInAccessToken.email;
     return this.authorsService.findAll(query, false, userId);
   }
 
@@ -260,8 +261,9 @@ export class AuthorsController {
     description: 'Successful retrieval of an author by ID.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findOne(@Param('id') id: string) {
-    return this.authorsService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findOne(id, userId);
   }
 
   @Patch(':id')

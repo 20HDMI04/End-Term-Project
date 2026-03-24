@@ -11,6 +11,7 @@ import { useKeyboardVisible } from "@/hooks/use-keyboard-visible";
 import { ToastProvider } from "@/contexts/ToastContext";
 import SearchBarForFirstTasteBook from "./SearchBarForFirstTasteBook";
 import { useApi } from "@/contexts/ApiContext";
+import { StatusBar } from "expo-status-bar";
 
 interface MultiPageOverlayProps {
 	visible: boolean;
@@ -55,9 +56,15 @@ const MultiPageOverlay = ({
 		}
 	}, [isDarkMode]);
 	return (
-		<Modal visible={visible} animationType="slide" transparent={true}>
+		<Modal
+			visible={visible}
+			animationType="slide"
+			transparent={false}
+			onRequestClose={() => {}}
+			statusBarTranslucent={false}
+		>
 			<ToastProvider>
-				<View style={styles.container}>
+				<View style={[styles.container]}>
 					<PagerView
 						style={styles.pagerView}
 						initialPage={0}

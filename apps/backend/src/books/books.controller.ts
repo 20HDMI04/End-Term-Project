@@ -140,8 +140,27 @@ export class BooksController {
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   findAll(@Query() query: PaginationDto, @Session() session: any) {
-    const userId = session.userId;
+    const userId = session.userDataInAccessToken.email;
     return this.booksService.findAll(query, false, userId);
+  }
+
+  @Get('random')
+  @ApiOperation({
+    summary: 'Find a random book',
+    description: 'Retrieves the details of a random book.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Random book retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the random book. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  findRandom() {
+    return this.booksService.findRandom();
   }
 
   @Get(':id')
@@ -158,8 +177,9 @@ export class BooksController {
       'An unexpected error occurred while retrieving the book. Please try again later.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findOne(@Param('id') id: string) {
-    return this.booksService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.findOne(id, userId);
   }
 
   @Patch(':id')
@@ -281,8 +301,10 @@ export class BooksController {
   searchforEverything(
     @Query('query') query: string,
     @Query('take') take: number = 10,
+    @Session() session: any,
   ) {
-    return this.booksService.searchforEverything(query, take);
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.searchforEverything(query, take, userId);
   }
 
   @Get('specific-genre/:genre')

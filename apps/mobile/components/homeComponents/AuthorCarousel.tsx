@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { Author, AuthorSection } from "@/constants/interfaces";
+import AuthorDetailModal from "../AuthorDetailModal";
 
 const { width } = Dimensions.get("window");
 
@@ -25,6 +26,9 @@ interface AuthorCarouselProps {
 }
 
 function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
+	const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
+	const [authorModalVisible, setAuthorModalVisible] = useState(false);
+
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
 		: Colors.mainColorLight;
@@ -40,8 +44,20 @@ function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 			<TouchableOpacity
 				style={[styles.card, { width: ITEM_WIDTH }]}
 				activeOpacity={0.7}
-				onPress={() => console.log("Author selected:", item.id)}
+				onPress={() => {
+					setSelectedAuthorId(item.id);
+					setAuthorModalVisible(true);
+				}}
 			>
+				<Text
+					style={[
+						styles.authorName,
+						{ color: titleColor, paddingHorizontal: 4, paddingBottom: 6 },
+					]}
+					numberOfLines={1}
+				>
+					{item.name}
+				</Text>
 				<View style={[styles.imageContainer, { backgroundColor: fallbackBg }]}>
 					<View style={styles.absolutePlaceholder}>
 						<Ionicons name="person" size={ITEM_WIDTH * 0.4} color={iconColor} />
@@ -86,8 +102,25 @@ function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 				showsHorizontalScrollIndicator={false}
 				contentContainerStyle={styles.listContent}
 				decelerationRate="normal"
-				renderItem={({ item }) => <AuthorCard item={item} />}
+				renderItem={({ item }) => {
+					return (
+						<>
+							<AuthorCard item={item} />
+						</>
+					);
+				}}
 			/>
+			{selectedAuthorId !== null && (
+				<AuthorDetailModal
+					authorId={selectedAuthorId}
+					isDarkMode={isDarkMode}
+					onClose={() => {
+						setAuthorModalVisible(false);
+						setSelectedAuthorId(null);
+					}}
+					visible={authorModalVisible}
+				/>
+			)}
 		</View>
 	);
 }

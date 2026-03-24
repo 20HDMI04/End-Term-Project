@@ -4,17 +4,22 @@ import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { UserService } from "@/services/user.service";
 import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
-import { MainPageData } from "@/constants/interfaces";
+import {
+	FindOneAuthorResponse,
+	MainPageData,
+	SearchEverythingResponse,
+} from "@/constants/interfaces";
 import { AuthorsService } from "@/services/authors.service";
 import { BooksService } from "@/services/books.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "./AuthContext";
+import { Comment } from "@/constants/interfaces";
 
 export interface Me {
 	biggerProfilePic: string;
 	createdAt: string;
 	email: string;
-	nickname: any;
+	nickname: string;
 	smallerProfilePic: string;
 	updatedAt: string;
 }
@@ -30,6 +35,21 @@ interface ApiProps {
 	likeBook: (bookId: string) => Promise<void>;
 	unlikeBook: (bookId: string) => Promise<void>;
 	syncProfileWithServer: (isFirstTime?: boolean) => Promise<void>;
+	getABookById: (bookId: string) => Promise<any>;
+	rateBook: (bookId: string, rating: number) => Promise<void>;
+	rateUpdateBook: (bookId: string, rating: number) => Promise<void>;
+	markAsRead: (bookId: string) => Promise<void>;
+	addComment: (bookId: string, comment: string) => Promise<Comment>;
+	updateComment: (commentId: string, comment: string) => Promise<void>;
+	deleteComment: (commentId: string) => Promise<void>;
+	getRandomBook: () => Promise<any>;
+	likeComment: (commentId: string) => Promise<void>;
+	unlikeComment: (commentId: string) => Promise<void>;
+	findOneAuthor: (authorId: string) => Promise<FindOneAuthorResponse>;
+	searchEverything: (
+		query: string,
+		take?: number,
+	) => Promise<SearchEverythingResponse>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -113,6 +133,16 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getRandomBook = async () => {
+		try {
+			const data = await BooksService.getRandomBooks();
+			return data;
+		} catch (error) {
+			console.error("Error fetching random book:", error);
+			throw error;
+		}
+	};
+
 	const searchAuthors = async (
 		query: string,
 		page: number = 1,
@@ -159,7 +189,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		query: string,
 		page: number = 1,
 		limit: number = 15,
-	) => {
+	): Promise<SearchEverythingResponse> => {
 		try {
 			const data = await BooksService.searchBooks(query, page, limit);
 			return data;
@@ -187,6 +217,108 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getABookById = async (bookId: string) => {
+		try {
+			const data = await BooksService.getBookDetails(bookId);
+			return data;
+		} catch (error) {
+			console.error("Error fetching book details:", error);
+			throw error;
+		}
+	};
+
+	const rateBook = async (bookId: string, rating: number) => {
+		try {
+			await BooksService.rateBook(bookId, rating);
+		} catch (error) {
+			console.error("Error rating book:", error);
+			throw error;
+		}
+	};
+
+	const rateUpdateBook = async (bookId: string, rating: number) => {
+		try {
+			await BooksService.rateUpdateBook(bookId, rating);
+		} catch (error) {
+			console.error("Error updating book rating:", error);
+			throw error;
+		}
+	};
+
+	const markAsRead = async (bookId: string) => {
+		try {
+			await BooksService.markAsRead(bookId);
+		} catch (error) {
+			console.error("Error marking book as read:", error);
+			throw error;
+		}
+	};
+
+	const addComment = async (bookId: string, comment: string) => {
+		try {
+			return await BooksService.addComment(bookId, comment);
+		} catch (error) {
+			console.error("Error adding comment to book:", error);
+			throw error;
+		}
+	};
+
+	const updateComment = async (commentId: string, comment: string) => {
+		try {
+			return await BooksService.updateComment(commentId, comment);
+		} catch (error) {
+			console.error("Error updating comment:", error);
+			throw error;
+		}
+	};
+
+	const deleteComment = async (commentId: string) => {
+		try {
+			return await BooksService.deleteComment(commentId);
+		} catch (error) {
+			console.error("Error deleting comment:", error);
+			throw error;
+		}
+	};
+
+	const likeComment = async (commentId: string) => {
+		try {
+			return await BooksService.likeComment(commentId);
+		} catch (error) {
+			console.error("Error liking comment:", error);
+			throw error;
+		}
+	};
+
+	const unlikeComment = async (commentId: string) => {
+		try {
+			return await BooksService.unlikeComment(commentId);
+		} catch (error) {
+			console.error("Error unliking comment:", error);
+			throw error;
+		}
+	};
+
+	const findOneAuthor = async (authorId: string) => {
+		try {
+			const data = await AuthorsService.findOneAuthor(authorId);
+			return data;
+		} catch (error) {
+			console.error("Error fetching author details:", error);
+			throw error;
+		}
+	};
+
+	const searchEverything = async (query: string, take: number = 10) => {
+		try {
+			const data = await MainPageService.searchForEverything(query, take);
+			return data;
+		} catch (error) {
+			console.error("Error searching for everything:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -196,10 +328,22 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				searchAuthors,
 				likeAuthor,
 				unlikeAuthor,
+				findOneAuthor,
 				searchBooks,
 				likeBook,
 				unlikeBook,
 				syncProfileWithServer,
+				getABookById,
+				rateBook,
+				rateUpdateBook,
+				markAsRead,
+				addComment,
+				updateComment,
+				deleteComment,
+				getRandomBook,
+				likeComment,
+				unlikeComment,
+				searchEverything,
 			}}
 		>
 			{children}

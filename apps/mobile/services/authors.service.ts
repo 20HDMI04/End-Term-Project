@@ -30,4 +30,10 @@ export const AuthorsService = {
 		);
 		return response.data;
 	},
+
+	// GET /authors/{authorId}
+	findOneAuthor: async (authorId: string) => {
+		const response = await apiClient.get(`/authors/${authorId}`);
+		return response.data;
+	},
 };
