@@ -4,23 +4,16 @@ import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from "../context/darkmodeContext";
 
 export function Home() {
 	const api = useApi();
 
 	const [booksList, setBookList] = useState<BookSection[]>();
 	const [authorList, setAuthorList] = useState<AuthorSection[]>();
-	const [theme, setTheme] = useState("light");
+	const { theme, toggleTheme } = useTheme();
 
-	useEffect(() => {
-		const savedTheme = localStorage.getItem("theme");
-		if (savedTheme) setTheme(savedTheme);
-	}, []);
 
-	useEffect(() => {
-		document.documentElement.setAttribute("data-theme", theme);
-		localStorage.setItem("theme", theme);
-	}, [theme]);
 
 	useEffect(() => {
 		async function Boks() {
@@ -67,7 +60,7 @@ export function Home() {
 						<div className="navbar-right">
 							<button
 								className="Darkmode-changer"
-								onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+								onClick={toggleTheme}
 								aria-label="Toggle color scheme"
 							>
 								<span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>

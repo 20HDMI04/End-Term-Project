@@ -1,43 +1,151 @@
-html, body {
-    background-color: #f7f4dc;
+:root {
+    --bg-color: #f7f4dc;
+    --text-color: #516523;
+    --header-bg: #485B1F;
+    --accent-bg: #3746183f;
+    --ndfooter-bg: #374618;
+    --author-name-tx: rgb(0, 0, 0);
+    --card-tx: #374618;
+    --author-border-c: #4E6B3A;
+    --button-dark-bg: #f7f4dcea;
+}
+
+[data-theme="dark"] {
+    --bg-color: #222E3A;
+    --text-color: #fff;
+    --header-bg: #324252;
+    --accent-bg: #3242524c;
+    --ndfooter-bg: #3242524c;
+    --author-name-tx: #ffffff;
+    --card-tx: #fff;
+    --author-border-c: black;
+    --button-dark-bg: #222e3ade;
+
+}
+
+/* Base Styles */
+html,
+body {
+    background-color: var(--bg-color);
     margin: 0;
     padding: 0;
-    font-family: "Modern No. 20";
+    transition: background-color 0.7s;
+}
+
+a,
+a:hover {
+    text-decoration: none;
 }
 
 .home-container {
-    background-color: #f7f4dc;
+    background-color: var(--bg-color);
+    transition: background-color 0.7s;
 }
 
-.logo{
+/* Navbar */
+.logo {
     font-size: 2em;
     font-weight: bold;
     margin-bottom: 20px;
     max-width: 15%;
     margin: 10%, 10%;
 }
-nav{
-    background-color: #f7f4dc !important;
+
+nav {
+    background-color: var(--bg-color) !important;
+    transition: background-color 0.7s;
     margin-top: 1em;
 }
-.navbar-nav{
+
+.navbar-content {
     display: flex;
-    margin-left: 20%;
-    gap: 50px;
-    color: #485b1fc4;
-}
-.profile{
-    max-width: 2000px;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
+.navbar-nav {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    margin-left: 25%;
+}
+
+.navbar-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    margin-top: -5px;
+}
 
 
+.Darkmode-changer {
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    margin-top: -3px;
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    overflow: hidden;
+    background-color: var(--button-dark-bg);
+    color: white;
+    border-radius: 50%;
+    border: 2px solid var(--text-color);
+}
+
+.icon {
+    position: absolute;
+    top: 44%;
+    left: 51%;
+    transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+    opacity: 0;
+    transition:
+        transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55),
+        opacity 0.5s ease;
+}
+
+.icon.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(360deg);
+}
+
+.sun-icon {
+    color: var(--author-border-c);
+}
+
+.moon-icon {
+    color: var(--text-color);
+}
+
+.nav-item {
+    color: var(--text-color);
+    font-family: "Modern No. 20";
+}
+
+.nav-link {
+    font-size: x-large;
+    color: inherit !important;
+}
+
+/* Header */
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 50px 40px;
-    background-color: #485b1fc4;
+    background-color: var(--header-bg);
+    transition: background-color 0.7s;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 40px;
     font-family: "Modern No. 20";
@@ -48,7 +156,7 @@ nav{
 
 .header-content {
     flex: 1;
-    text-align:inherit;
+    text-align: inherit;
 }
 
 .header-images {
@@ -59,7 +167,7 @@ nav{
     position: absolute;
     right: 0;
     gap: 20px;
-    padding-left:80% ;
+    padding-left: 80%;
 }
 
 .headerAlso {
@@ -73,50 +181,132 @@ nav{
 
 .headerFelso {
     position: relative;
-    width: 230px;
+    width: 240px;
     height: auto;
     z-index: 5;
     right: 20px;
-    bottom:10px;
+    bottom: 10px;
 }
 
+.popular-books-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 50px 10px 50px;
+}
 
-
-.listing-h1 {
+.listing-h1-books {
     font-family: "Modern No. 20";
-    color: #485b1fc4;
-    margin-bottom: 20px;
-    margin-left: 1em;
-}
-.nav-item{
-    color: #485b1fc4;
-    font-family: "Modern No. 20";
-}
-.nav-link{
-    font-size: x-large;
+    color: var(--text-color);
+    margin-bottom: 0;
 }
 
-.footer{
-     display: flex;
+.listing-h1-authors {
+    color: var(--text-color);
+}
+
+.see-all {
+    color: var(--text-color);
+    margin: 0;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* Books Row */
+.books-container-main {
+    margin-top: 60px;
+    align-content: center;
+    justify-content: center;
+}
+
+.authors-container-main {
+    background-color: var(--accent-bg);
+    transition: background-color 0.7s;
+    margin-top: 80px;
+    min-height: 350px;
+    align-content: center;
+}
+
+.books-container {
+    margin: 0 50px;
+    padding: 10px 0;
+}
+
+.rating-main {
+    position: absolute;
+    top: 8px;
+    left: 80px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 10;
+}
+
+.rating-display {
+    color: #f7f4dc;
+    margin: 0px;
+    min-width: 60px;
+    padding-left: 6px;
+}
+
+.books-display-main {
+    padding-left: 10px;
+    color: var(--text-color);
+}
+
+.book-card {
+    min-width: 160px;
+    max-width: 200px;
+    flex: 0 0 auto;
+    position: relative;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.book-card .card-body {
+    padding: 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--card-tx);
+}
+
+.card-text {
+    color: var(--card-tx);
+}
+
+.author-name {
+    margin-top: 12px;
+    font-weight: 500;
+    color: var(--author-name-tx);
+}
+
+.author-ppic {
+    border: 2px solid var(--author-border-c);
+}
+
+/* Footer */
+.footer {
+    display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 50px 40px;
-    background-color: #485b1fc4;
-    
+    background-color: var(--header-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
 }
-.privacy{
-    float: left;
-    margin-top: 10px;
-}
-.footer2{
+
+.footer2 {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 20px 40px;
-    background-color: #485b1f;
+    background-color: var(--ndfooter-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
@@ -129,30 +319,15 @@ nav{
         padding: 30px 20px;
         gap: 20px;
     }
-    
-
-    .header-content {
-        width: 100%;
-        text-align: center;
-    }
 
     .header-images {
         position: relative;
-        right: auto;
         padding-left: 0;
-        justify-content: center;
-        gap: 10px;
+        justify-content: flex-start;
     }
 
-    .headerAlso {
-        width: 110px;
-        left: 0;
-        top: 0;
-    }
-
+    .headerAlso,
     .headerFelso {
-        width: 130px;
-        right: 0;
-        bottom: 0;
+        width: 120px;
     }
 }

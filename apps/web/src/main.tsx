@@ -14,15 +14,17 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import App from "./App";
 import { ApiProvider } from "./context/apiContext";
-	
+import { ThemeProvider } from "./context/darkmodeContext";
+
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
 		<ApiProvider>
-			<App />
+			<ThemeProvider>
+				<App />
+			</ThemeProvider>
 		</ApiProvider>
 	</StrictMode>
 );
