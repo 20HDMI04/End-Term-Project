@@ -55,8 +55,10 @@ import { ThirdPartyPreBuiltUI } from "supertokens-auth-react/recipe/thirdparty/p
 import { Home } from "./components/Home";
 import { Discover } from "./components/Discover";
 import { Search } from "./components/Search";
+import { BooksPage } from "./components/BooksPage";
+import { BookDetails } from "./components/BookDetails";
 
-SuperTokens.init({	
+SuperTokens.init({
 	appInfo: {
 		appName: "Readsy",
 		apiDomain: "http://localhost:3002", // Backend API domain
@@ -135,6 +137,28 @@ export default function App() {
 						element={
 							<SessionAuth>
 								<Search />
+							</SessionAuth>
+						}
+					/>
+
+					{/* BOOKS' PAGE - To see all the books */}
+					{/* File: src/components/BooksPage.tsx */}
+					<Route
+						path="/bookspage"
+						element={
+							<SessionAuth>
+								<BooksPage />
+							</SessionAuth>
+						}
+					/>
+
+					{/* BOOKS' DETAILS - To see all information about the books */}
+					{/* File: src/components/BooksDetails.tsx */}
+					<Route
+						path="/book/:id"
+						element={
+							<SessionAuth>
+								<BookDetails />
 							</SessionAuth>
 						}
 					/>

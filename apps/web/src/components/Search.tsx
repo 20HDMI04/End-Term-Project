@@ -1,34 +1,102 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import "bootstrap/dist/css/bootstrap.css";
+import React, { useEffect, useState } from "react";
+import { useApi } from "../context/apiContext";
+import { Link } from "react-router-dom";
+import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
+
 export function Search() {
-    return (
-        <div>
-            <header>
-                {/* Search bar */}
-            </header>
+  const api = useApi();
+  const [booksList, setBooksList] = useState<Book[]>([]);
+  const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
+  const [query, setQuery] = useState("");
 
-            <div>
-                {/* Explore */}
-            </div>
-            
-            <div>
-                {/* For You */}
-            </div>
+  // Betöltjük az összes könyvet és szerzőt
+  useEffect(() => {
+    async function fetchData() {
+      const data = await api.getData();
+      setAuthorList(data.authors);
 
-            <div>
-                {/* Popular Books */}
-            </div>
+      const allBooks = data.books
+        .flatMap((section: BookSection) => section.data)
+        .filter((value: Book, index: number, self: Book[]) =>
+          index === self.findIndex((b) => b.id === value.id)
+        );
+      setBooksList(allBooks);
+    }
+    fetchData();
+  }, []);
 
-            <div>
-                {/* Popular Authors */}
-            </div>
+  // Author név lekérése
+  function getAuthorName(authorId: string | undefined): string {
+    if (!authorList) return "Unknown author";
+    for (const section of authorList) {
+      const author = section.data.find((a) => a.id === authorId);
+      if (author) return author.name;
+    }
+    return "Unknown author";
+  }
 
-            <footer>
-                {/*Logo*/}
-                <p>
-                    "Jani ajánlásával lorem ipsum stb"
-                </p>
-                {/*contacts*/}
-            </footer>
+  // Keresés szűrés
+  const filteredBooks = booksList.filter((book) => {
+    const titleMatch = book.title.toLowerCase().includes(query.toLowerCase());
+    const authorMatch = getAuthorName(book.authorId).toLowerCase().includes(query.toLowerCase());
+    return titleMatch || authorMatch;
+  });
 
+  return (
+    <div className="container mt-4">
+      {/* Navbar */}
+      <nav className="navbar navbar-expand-lg mb-4">
+        <div className="container-fluid">
+          <div className="collapse navbar-collapse" id="navbarNavDropdown">
+            <img src="/logo.svg" alt="logo" className="logo" />
+            <ul className="navbar-nav">
+              <li className="nav-item"><h2><Link className="nav-link" to="/">Home</Link></h2></li>
+              <li className="nav-item"><h2><Link className="nav-link" to="/search">Search</Link></h2></li>
+              <li className="nav-item"><h2><Link className="nav-link" to="/discover">Discover</Link></h2></li>
+            </ul>
+          </div>
         </div>
-    );
+      </nav>
+
+      {/* Search bar */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by book title or author..."
+          className="form-control"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Találatok */}
+      {query.trim() !== "" && (
+        <div className="row g-3">
+          {filteredBooks.map((book) => (
+            <div key={book.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+              <Link to={`/book/${book.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                <div className="card h-100 shadow-sm book-card">
+                  <img
+                    src={book.biggerCoverPic || "/logo.svg"}
+                    className="card-img-top"
+                    alt={book.title}
+                    style={{ height: "180px", objectFit: "cover" }}
+                  />
+                  <div className="card-body p-2">
+                    <h6 className="card-title">{book.title}</h6>
+                    <p className="card-text text-muted" style={{ fontSize: "0.8rem" }}>
+                      {getAuthorName(book.authorId)}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          ))}
+          {filteredBooks.length === 0 && <p className="mt-3">No books found.</p>}
+        </div>
+      )}
+    </div>
+  );
 }
