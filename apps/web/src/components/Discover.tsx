@@ -40,7 +40,7 @@
  */
 import "./css/discover.css"
 import "bootstrap/dist/css/bootstrap.css";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
 import { Link } from "react-router-dom";
@@ -77,7 +77,7 @@ export function Discover() {
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                        <img src="../public/logo.svg" alt="" className="logo" />
+                        <img src="../public/logo.svg" alt="" className="logo"/>
                         <ul className="navbar-nav">
                             <li className="nav-item">
                                 <h2><a className="nav-link" href="/">Home</a></h2>

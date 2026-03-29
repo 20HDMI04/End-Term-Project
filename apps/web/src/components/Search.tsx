@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import { Link } from "react-router-dom";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";

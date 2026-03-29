@@ -57,6 +57,9 @@ import { Discover } from "./components/Discover";
 import { Search } from "./components/Search";
 import { BooksPage } from "./components/BooksPage";
 import { BookDetails } from "./components/BookDetails";
+import { AuthorDetails } from "./components/AuthorDetails";
+import { UserProfile } from "./components/UserProfile";
+import { AuthorsPage } from "./components/AuthorsPage";
 
 SuperTokens.init({
 	appInfo: {
@@ -152,13 +155,46 @@ export default function App() {
 						}
 					/>
 
-					{/* BOOKS' DETAILS - To see all information about the books */}
+					{/* BOOKS' DETAILS - To see all information about a book */}
 					{/* File: src/components/BooksDetails.tsx */}
 					<Route
 						path="/book/:id"
 						element={
 							<SessionAuth>
 								<BookDetails />
+							</SessionAuth>
+						}
+					/>
+
+					{/* AUTHORS' DETAILS - To see all information about the an author */}
+					{/* File: src/components/AuthorDetails.tsx */}
+					<Route 
+						path="/author/:id"
+						element={
+							<SessionAuth>
+								<AuthorDetails />
+							</SessionAuth>
+						}
+					/>
+
+					{/* AUTHORS' PAGE - To see all authors */}
+					{/* File: src/components/AuthorsPage.tsx */}
+					<Route
+						path="/authorspage"
+						element={
+							<SessionAuth>
+								<AuthorsPage />
+							</SessionAuth>
+						}
+					/>
+
+					{/* USER PROFILE - To see all information about the current user */}
+					{/* File: src/components/UserProfile.tsx */}
+					<Route 
+						path="/user/:userId"
+						element={
+							<SessionAuth>
+								<UserProfile />
 							</SessionAuth>
 						}
 					/>
