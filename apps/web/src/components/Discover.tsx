@@ -74,25 +74,33 @@ export function Discover() {
 
     return (
         <div className="home-container">
-            <nav className="navbar navbar-expand-lg">
-                <div className="container-fluid">
-                    <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                        <img src="../public/logo.svg" alt="" className="logo"/>
-                        <ul className="navbar-nav">
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/">Home</a></h2>
-                            </li>
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/search">Search</a></h2>
-                            </li>
-                            <li className="nav-item">
-                                <h2><a className="nav-link">Discover</a></h2>
-                            </li>
+            {/* Navbar */}
+			<nav className="navbar navbar-expand-lg">
+				<div className="container-fluid">
+					<div className="collapse navbar-collapse" id="navbarNavDropdown">
+						<img src="/logo.svg" alt="logo" className="logo" />
 
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+						<ul className="navbar-nav">
+							<li className="nav-item">
+								<h2><a className="nav-link" href="/">Home</a></h2>
+							</li>
+							<li className="nav-item">
+								<h2><a className="nav-link" href="/search">Search</a></h2>
+							</li>
+							<li className="nav-item">
+								<h2><a className="nav-link" href="/discover">Discover</a></h2>
+							</li>
+							<a href="/user/me">
+								<img
+									src={"/def_profile_icon.svg"}
+									alt="profile"
+									className="profile-pic"
+								/>
+							</a>
+						</ul>
+					</div>
+				</div>
+			</nav>
             
             {/* Header */}
 			<header className="header">
