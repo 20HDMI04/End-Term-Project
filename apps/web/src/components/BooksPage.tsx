@@ -14,7 +14,7 @@ export function BooksPage() {
     useEffect(() => {
         async function fetchBooks() {
             const data = await api.getData();
-
+            
             const allBooks = data.books
                 .flatMap((section: BookSection) => section.data)
                 .filter(
@@ -26,7 +26,7 @@ export function BooksPage() {
         }
 
         fetchBooks();
-    }, []);
+    }, [api]);
 
     function getAuthorName(authorId: string | undefined): string {
         if (!authorList) return "Unknown author";
