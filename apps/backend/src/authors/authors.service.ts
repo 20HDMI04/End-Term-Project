@@ -943,6 +943,7 @@ export class AuthorsService {
         title: 'More Like',
         subtitle: `${getRecommendedAuthors?.basedOn?.name}`,
         data: getRecommendedAuthors.data,
+        profilePic: getRecommendedAuthors?.basedOn?.smallerProfilePic,
       },
     ];
     return discoverAuthorsContent;
@@ -1084,6 +1085,7 @@ export class AuthorsService {
         id: true,
         name: true,
         smallerProfilePic: true,
+        biggerProfilePic: true,
         topWorks: true,
         nationality: true,
       },

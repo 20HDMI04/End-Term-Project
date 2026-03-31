@@ -1711,11 +1711,11 @@ export class BooksService {
         title: 'For the Fans of',
         subtitle: favoriteAuthorBooks.authorName,
         data: favoriteAuthorBooks.books,
-        image: favoriteAuthorBooks.authorImage,
+        profilePic: favoriteAuthorBooks.authorImage,
       },
       {
         title: `${genreBooksSimilars2} Essentials`,
-        subtitle: 'The defining chapters and timeless voices of the genre.',
+        subtitle: 'The timeless voices of the genre',
         data: lovedBooksSimilars2.data,
         image: null,
       },
@@ -1726,8 +1726,8 @@ export class BooksService {
         image: lovedBooksSimilars.coverImage,
       },
       {
-        title: `More ${forProd}, Just For You`,
-        subtitle: `Explore a curated collection of ${forProd} masterpieces, tailored to your journey.`,
+        title: `More ${forProd}, For You`,
+        subtitle: `Explore the collection of ${forProd}`,
         data: randomGenreBooks,
         image: null,
       },
@@ -1967,7 +1967,7 @@ export class BooksService {
     });
     return {
       title: theBestBook?.title,
-      coverImage: theBestBook?.smallerCoverPicKey,
+      coverImage: theBestBook?.smallerCoverPic,
       data: theBestBook
         ? await this.getSimilarBooksByAnotherBook(theBestBook.id, take)
         : [],

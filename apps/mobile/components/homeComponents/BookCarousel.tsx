@@ -42,6 +42,13 @@ function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
 	}, []);
 	const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 	const [modalVisible, setModalVisible] = useState(false);
+	const [imageTitleError, setImageTitleError] = useState(false);
+	const [bookImageTitleError, setBookImageTitleError] = useState(false);
+
+	useEffect(() => {
+		setImageTitleError(false);
+		setBookImageTitleError(false);
+	}, [section]);
 
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
@@ -103,13 +110,76 @@ function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.headerContainer}>
-				<Text style={[styles.title, { color: titleColor }]}>
-					{section.title}
-				</Text>
-				<Text style={[styles.subtitle, { color: titleColor }]}>
-					{section.subtitle}
-				</Text>
+			<View
+				style={{
+					flexDirection: "row",
+					paddingHorizontal: CONTAINER_PADDING,
+				}}
+			>
+				{imageTitleError && (
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							marginRight: 8,
+							backgroundColor: fallbackBg,
+							width: 50,
+							height: 50,
+							borderRadius: 25,
+						}}
+					>
+						<Ionicons
+							name="person"
+							size={28}
+							color={iconColor}
+							style={{ paddingHorizontal: 12 }}
+						/>
+					</View>
+				)}
+				{section.profilePic && !imageTitleError && (
+					<Image
+						source={{ uri: section.profilePic }}
+						style={{
+							width: 50,
+							height: 50,
+							borderRadius: 25,
+							resizeMode: "cover",
+							marginVertical: 2,
+							marginRight: 8,
+						}}
+						fadeDuration={500}
+						onError={() => {
+							setImageTitleError(true);
+						}}
+					/>
+				)}
+				{section.image && !bookImageTitleError && (
+					<Image
+						source={{ uri: section.image }}
+						style={{
+							height: 50,
+							width: 40,
+							resizeMode: "cover",
+							borderBottomRightRadius: 8,
+							borderTopRightRadius: 8,
+							marginVertical: 2,
+							marginRight: 8,
+						}}
+						fadeDuration={500}
+						onError={() => {
+							setBookImageTitleError(true);
+						}}
+					/>
+				)}
+				<View style={styles.headerContainer}>
+					<Text style={[styles.title, { color: titleColor }]}>
+						{section.title}
+					</Text>
+
+					<Text style={[styles.subtitle, { color: titleColor }]}>
+						{section.subtitle}
+					</Text>
+				</View>
 			</View>
 
 			<FlatList
@@ -151,7 +221,6 @@ const styles = StyleSheet.create({
 		marginBottom: 24,
 	},
 	headerContainer: {
-		paddingHorizontal: CONTAINER_PADDING,
 		marginBottom: 8,
 	},
 	title: {

@@ -122,14 +122,16 @@ export interface AuthorSection {
 	data: Author[];
 	subtitle: string;
 	title: string;
-	coverImage?: string;
+	image?: string;
+	profilePic?: string;
 }
 
 export interface BookSection {
 	data: Book[];
 	subtitle: string;
 	title: string;
-	coverImage?: string;
+	image?: string;
+	profilePic?: string;
 }
 
 export interface SearchResultBook {

@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react"; // Ne felejtsd el a useState-et!
+import React, { memo, useEffect, useState } from "react";
 import {
 	StyleSheet,
 	View,
@@ -28,6 +28,11 @@ interface AuthorCarouselProps {
 function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 	const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
 	const [authorModalVisible, setAuthorModalVisible] = useState(false);
+	const [imageTitleError, setImageTitleError] = useState(false);
+
+	useEffect(() => {
+		setImageTitleError(false);
+	}, [section]);
 
 	const titleColor = isDarkMode
 		? Colors.secondaryColorDark
@@ -85,14 +90,58 @@ function AuthorCarousel({ section, isDarkMode }: AuthorCarouselProps) {
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.headerContainer}>
-				<Text style={[styles.title, { color: titleColor }]}>
-					{section.title}
-				</Text>
+			<View
+				style={{
+					flexDirection: "row",
+					paddingHorizontal: CONTAINER_PADDING,
+				}}
+			>
+				{imageTitleError && (
+					<View
+						style={{
+							flexDirection: "row",
+							alignItems: "center",
+							marginRight: 8,
+							backgroundColor: fallbackBg,
+							width: 50,
+							height: 50,
+							borderRadius: 25,
+						}}
+					>
+						<Ionicons
+							name="person"
+							size={28}
+							color={iconColor}
+							style={{ paddingHorizontal: 12 }}
+						/>
+					</View>
+				)}
+				{section.profilePic && !imageTitleError && (
+					<Image
+						source={{ uri: section.profilePic }}
+						style={{
+							width: 50,
+							height: 50,
+							borderRadius: 25,
+							resizeMode: "cover",
+							marginVertical: 2,
+							marginRight: 8,
+						}}
+						fadeDuration={500}
+						onError={() => {
+							setImageTitleError(true);
+						}}
+					/>
+				)}
+				<View style={styles.headerContainer}>
+					<Text style={[styles.title, { color: titleColor }]}>
+						{section.title}
+					</Text>
 
-				<Text style={[styles.subtitle, { color: titleColor }]}>
-					{section.subtitle}
-				</Text>
+					<Text style={[styles.subtitle, { color: titleColor }]}>
+						{section.subtitle}
+					</Text>
+				</View>
 			</View>
 
 			<FlatList
@@ -132,7 +181,6 @@ const styles = StyleSheet.create({
 		marginVertical: 8,
 	},
 	headerContainer: {
-		paddingHorizontal: CONTAINER_PADDING,
 		marginBottom: 0,
 	},
 	title: {

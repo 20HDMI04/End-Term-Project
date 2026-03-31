@@ -70,10 +70,6 @@ export default function SearchScreen() {
 		prefetchSearchPageData();
 	}, []);
 
-	useEffect(() => {
-		console.log("Main list search data updated:", mainListSearch);
-	}, [mainListSearch]);
-
 	const goToNext = () => router.replace("/collections");
 	const goToPrevious = () => router.replace("/explore");
 
