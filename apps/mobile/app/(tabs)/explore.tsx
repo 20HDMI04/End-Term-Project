@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { Platform, StyleSheet, Text, useColorScheme } from "react-native";
+import { Platform, StyleSheet, Text, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { runOnJS } from "react-native-reanimated";
 import {
@@ -168,6 +168,7 @@ export default function TabTwoScreen() {
 						<HomeSkeleton darkmode={isDarkMode} />
 					)}
 				</SafeAreaView>
+				<View style={{ height: 40 }}></View>
 			</ScrollView>
 		</GestureDetector>
 	);
