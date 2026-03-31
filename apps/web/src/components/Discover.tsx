@@ -44,8 +44,6 @@ import { useTheme } from "../context/darkmodeContext";
 
 
 
-export function Discover() {
-    const { theme, toggleTheme } = useTheme();
 import "./css/discover.css"
 import "bootstrap/dist/css/bootstrap.css";
 import { useEffect, useState } from "react";
@@ -54,6 +52,8 @@ import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
 import { Link } from "react-router-dom";
 
 export function Discover() {
+    const { theme, toggleTheme } = useTheme();
+
     const api = useApi();
 
     const [booksList, setBookList] = useState<BookSection[]>();
@@ -118,7 +118,7 @@ export function Discover() {
                                 </span>
                             </button>
 
-                            <a href="/profile">
+                            <a href="/user/me">
                                 <img
                                     src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
                                     alt="profile"
@@ -129,54 +129,25 @@ export function Discover() {
                     </div>
                 </div>
             </nav>
-
-            <header className="header">
-
-            </header>
-			<nav className="navbar navbar-expand-lg">
-				<div className="container-fluid">
-					<div className="collapse navbar-collapse" id="navbarNavDropdown">
-						<img src="/logo.svg" alt="logo" className="logo" />
-
-						<ul className="navbar-nav">
-							<li className="nav-item">
-								<h2><a className="nav-link" href="/">Home</a></h2>
-							</li>
-							<li className="nav-item">
-								<h2><a className="nav-link" href="/search">Search</a></h2>
-							</li>
-							<li className="nav-item">
-								<h2><a className="nav-link" href="/discover">Discover</a></h2>
-							</li>
-							<a href="/user/me">
-								<img
-									src={"/def_profile_icon.svg"}
-									alt="profile"
-									className="profile-pic"
-								/>
-							</a>
-						</ul>
-					</div>
-				</div>
-			</nav>
             
+
             {/* Header */}
-			<header className="header">
-				<div className="header-content">
-					<h1>
-						Explore the World of <br />
-						Books
-					</h1>
-					<h3>
-						Dive into our collection of bestsellers <br />
-						and compelling reads
-					</h3>
-				</div>
-				<div className="header-images">
-					<img src="/headerImgAlso.svg" alt="" className="headerAlso" />
-					<img src="/headerImgFelso.svg" alt="" className="headerFelso" />
-				</div>
-			</header>
+            <header className="header">
+                <div className="header-content">
+                    <h1>
+                        Explore the World of <br />
+                        Books
+                    </h1>
+                    <h3>
+                        Dive into our collection of bestsellers <br />
+                        and compelling reads
+                    </h3>
+                </div>
+                <div className="header-images">
+                    <img src="/headerImgAlso.svg" alt="" className="headerAlso" />
+                    <img src="/headerImgFelso.svg" alt="" className="headerFelso" />
+                </div>
+            </header>
 
 
             <div>

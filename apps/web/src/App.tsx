@@ -55,7 +55,6 @@ import { ThirdPartyPreBuiltUI } from "supertokens-auth-react/recipe/thirdparty/p
 import { Home } from "./components/Home";
 import { Discover } from "./components/Discover";
 import { Search } from "./components/Search";
-import { Profile } from "./components/Profile";
 import { ThemeProvider } from "./context/darkmodeContext";
 import { BooksPage } from "./components/BooksPage";
 import { BookDetails } from "./components/BookDetails";
@@ -146,82 +145,73 @@ export default function App() {
 								</SessionAuth>
 							}
 						/>
-						{/* Profile - Profile settings */}
-						{/*File: src/components/Profile.tsx */}
+
+
+						{/* ===== ROUTE REDIRECTS ===== */}
+						{/* Old route names redirect to new ones */}
+						<Route path="/dashboard" element={<Navigate to="/" replace />} />
+
+
+						{/* BOOKS' PAGE - To see all the books */}
+						{/* File: src/components/BooksPage.tsx */}
 						<Route
-							path="/profile"
+							path="/bookspage"
 							element={
 								<SessionAuth>
-									<Profile />
+									<BooksPage />
 								</SessionAuth>
 							}
 						/>
 
+						{/* BOOKS' DETAILS - To see all information about a book */}
+						{/* File: src/components/BooksDetails.tsx */}
+						<Route
+							path="/book/:id"
+							element={
+								<SessionAuth>
+									<BookDetails />
+								</SessionAuth>
+							}
+						/>
+
+						{/* AUTHORS' DETAILS - To see all information about the an author */}
+						{/* File: src/components/AuthorDetails.tsx */}
+						<Route
+							path="/author/:id"
+							element={
+								<SessionAuth>
+									<AuthorDetails />
+								</SessionAuth>
+							}
+						/>
+
+						{/* AUTHORS' PAGE - To see all authors */}
+						{/* File: src/components/AuthorsPage.tsx */}
+						<Route
+							path="/authorspage"
+							element={
+								<SessionAuth>
+									<AuthorsPage />
+								</SessionAuth>
+							}
+						/>
+
+						{/* USER PROFILE - To see all information about the current user */}
+						{/* File: src/components/UserProfile.tsx */}
+						<Route
+							path="/user/:userId"
+							element={
+								<SessionAuth>
+									<UserProfile />
+								</SessionAuth>
+							}
+						/>
 
 						{/* ===== ROUTE REDIRECTS ===== */}
 						{/* Old route names redirect to new ones */}
 						<Route path="/dashboard" element={<Navigate to="/" replace />} />
 					</Routes>
 				</ThemeProvider>
-					{/* BOOKS' PAGE - To see all the books */}
-					{/* File: src/components/BooksPage.tsx */}
-					<Route
-						path="/bookspage"
-						element={
-							<SessionAuth>
-								<BooksPage />
-							</SessionAuth>
-						}
-					/>
-
-					{/* BOOKS' DETAILS - To see all information about a book */}
-					{/* File: src/components/BooksDetails.tsx */}
-					<Route
-						path="/book/:id"
-						element={
-							<SessionAuth>
-								<BookDetails />
-							</SessionAuth>
-						}
-					/>
-
-					{/* AUTHORS' DETAILS - To see all information about the an author */}
-					{/* File: src/components/AuthorDetails.tsx */}
-					<Route 
-						path="/author/:id"
-						element={
-							<SessionAuth>
-								<AuthorDetails />
-							</SessionAuth>
-						}
-					/>
-
-					{/* AUTHORS' PAGE - To see all authors */}
-					{/* File: src/components/AuthorsPage.tsx */}
-					<Route
-						path="/authorspage"
-						element={
-							<SessionAuth>
-								<AuthorsPage />
-							</SessionAuth>
-						}
-					/>
-
-					{/* USER PROFILE - To see all information about the current user */}
-					{/* File: src/components/UserProfile.tsx */}
-					<Route 
-						path="/user/:userId"
-						element={
-							<SessionAuth>
-								<UserProfile />
-							</SessionAuth>
-						}
-					/>
-
-					{/* ===== ROUTE REDIRECTS ===== */}
-					{/* Old route names redirect to new ones */}
-					<Route path="/dashboard" element={<Navigate to="/" replace />} />
-				</Routes>
 			</BrowserRouter>
 		</SuperTokensWrapper>
 	);

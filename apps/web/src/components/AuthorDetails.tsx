@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { AuthorSection, BookSection } from "./interfaces/interfaces";
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from "../context/darkmodeContext";
 
 export function AuthorDetails() {
     const { id } = useParams();
     const api = useApi();
-
+    const { theme, toggleTheme } = useTheme();
     const [author, setAuthor] = useState<any>(null);
     const [books, setBooks] = useState<any[]>([]);
 
@@ -42,30 +44,54 @@ export function AuthorDetails() {
     if (!author) return <div className="container mt-5">Loading...</div>;
 
     return (
-        <div>
+        <div className="home-container">
             {/* Navbar */}
-			<nav className="navbar navbar-expand-lg">
-				<div className="container-fluid">
-					<div className="collapse navbar-collapse" id="navbarNavDropdown">
-						<img src="/logo.svg" alt="logo" className="logo" />
+            <nav className="navbar navbar-expand-lg">
+                <div className="container-fluid">
+                    <img
+                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                        alt="logo"
+                        className="logo"
+                    />
 
-						<ul className="navbar-nav">
-							<li className="nav-item">
-								<h2><a className="nav-link" href="/">Home</a></h2>
-							</li>
-							<li className="nav-item">
-								<h2><a className="nav-link" href="/search">Search</a></h2>
-							</li>
-							<li className="nav-item">
-								<h2><a className="nav-link" href="/discover">Discover</a></h2>
-							</li>
-							<a href="">
-								<img src="/def_profile_icon.svg" alt="profile" className="profile-pic" />
-							</a>
-						</ul>
-					</div>
-				</div>
-			</nav>
+                    <div className="navbar-content">
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <a className="nav-link" href="/">Home</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/search">Search</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/discover">Discover</a>
+                            </li>
+                        </ul>
+
+                        <div className="navbar-right">
+                            <button
+                                className="Darkmode-changer"
+                                onClick={toggleTheme}
+                                aria-label="Toggle color scheme"
+                            >
+                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+                                    <IconSun size={20} stroke={2} />
+                                </span>
+                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+                                    <IconMoon size={20} stroke={2} />
+                                </span>
+                            </button>
+
+                            <a href="/user/me">
+                                <img
+                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    alt="profile"
+                                    className="profile-pic"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
 
             <div className="container mt-4">
                 <div className="row">
@@ -79,7 +105,7 @@ export function AuthorDetails() {
                             height: "fit-content"
                         }}
                     >
-                        <div className="text-center">
+                        <div className="card-text-center">
                             <img
                                 src={author.biggerProfilePic || "/def_profile_icon.svg"}
                                 alt={author.name}
@@ -95,24 +121,24 @@ export function AuthorDetails() {
                     </div>
 
                     {/* 📄 RIGHT SIDE */}
-                    <div className="col-md-9">
+                    <div className="author-page-text col-md-9">
                         <h2>{author.name}</h2>
 
-                        <p className="text-muted">
+                        <p className="author-page-text">
                             {author.nationality ?? "Unknown nationality"}
                             {author.birthDate && ` • ${new Date(author.birthDate).getFullYear()}`}
                         </p>
 
-                        <p style={{ maxWidth: "700px" }}>
+                        <p  className="author-page-text" style={{ maxWidth: "700px" }}>
                             {author.bio ?? "No biography available."}
                         </p>
 
                         <hr />
 
                         {/* 📚 BOOKS */}
-                        <h4>Books by {author.name}</h4>
+                        <h4 className="author-page-text">Books by {author.name}</h4>
 
-                        <div className="row mt-3">
+                        <div className="author-page-text row mt-3">
                             {books.length > 0 ? (
                                 books.map((book) => (
                                     <div key={book.id} className="col-md-3 mb-4 text-center">

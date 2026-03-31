@@ -8,6 +8,8 @@
     --card-tx: #374618;
     --author-border-c: #4E6B3A;
     --button-dark-bg: #f7f4dcea;
+    --book-genre-bg: #6c8f5e;
+    --button-add-bg: #6c8f5e;
 }
 
 [data-theme="dark"] {
@@ -20,6 +22,8 @@
     --card-tx: #fff;
     --author-border-c: black;
     --button-dark-bg: #222e3ade;
+    --book-genre-bg: #3a6187dc;
+    --button-add-bg: #3a6187dc;
 
 }
 
@@ -218,6 +222,26 @@ nav {
     margin-top: 60px;
     align-content: center;
     justify-content: center;
+}
+
+.author-page-text {
+    color: var(--text-color);
+}
+
+.book-page-text {
+    color: var(--text-color);
+}
+
+.book-genres {
+    background-color: var(--book-genre-bg);
+}
+
+.btn {
+    background-color: var(--button-add-bg);
+    color: white;
+    border: none;
+    transition: background-color 0.7s;
+    color: white;
 }
 
 .authors-container-main {

@@ -37,4 +37,5 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 // Hook az ApiContext használatához
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApi = () => useContext(ApiContext);

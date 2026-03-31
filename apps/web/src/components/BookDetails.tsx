@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from "../context/darkmodeContext";
 
 export function BookDetails() {
     const { id } = useParams();
     const api = useApi();
-
+    const { theme, toggleTheme } = useTheme();
     const [book, setBook] = useState<Book | null>(null);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
 
@@ -45,36 +47,60 @@ export function BookDetails() {
 
     if (!book) return <div className="container mt-5">Loading...</div>;
 
-    const author = getAuthor(book.authorId);
+    const author = getAuthor(book.author.name);
 
     return (
-        <div>
-            {/* NAVBAR */}
-            <nav className="navbar navbar-expand-lg">
-                <div className="container-fluid">
-                    <div className="collapse navbar-collapse">
-                        <img src="/logo.svg" alt="logo" className="logo" />
+        <div className="home-container">
+            {/* Navbar */}
+			<nav className="navbar navbar-expand-lg">
+				<div className="container-fluid">
+					<img
+						src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+						alt="logo"
+						className="logo"
+					/>
 
-                        <ul className="navbar-nav">
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/">Home</a></h2>
-                            </li>
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/search">Search</a></h2>
-                            </li>
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/discover">Discover</a></h2>
-                            </li>
-                            <a href="">
-                                <img src="/def_profile_icon.svg" alt="profile" className="profile-pic" />
-                            </a>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+					<div className="navbar-content">
+						<ul className="navbar-nav">
+							<li className="nav-item">
+								<a className="nav-link" href="/">Home</a>
+							</li>
+							<li className="nav-item">
+								<a className="nav-link" href="/search">Search</a>
+							</li>
+							<li className="nav-item">
+								<a className="nav-link" href="/discover">Discover</a>
+							</li>
+						</ul>
+
+						<div className="navbar-right">
+							<button
+								className="Darkmode-changer"
+								onClick={toggleTheme}
+								aria-label="Toggle color scheme"
+							>
+								<span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+									<IconSun size={20} stroke={2} />
+								</span>
+								<span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+									<IconMoon size={20} stroke={2} />
+								</span>
+							</button>
+
+							<a href="/user/me">
+								<img
+									src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+									alt="profile"
+									className="profile-pic"
+								/>
+							</a>
+						</div>
+					</div>
+				</div>
+			</nav>
 
             <div className="container mt-4">
-                <div className="row">
+                <div className="book-page-text row">
 
                     {/* 📌 LEFT SIDE - STICKY */}
                     <div
@@ -87,7 +113,7 @@ export function BookDetails() {
                     >
                         <img
                             src={book.biggerCoverPic || "/logo.svg"}
-                            className="img-fluid rounded shadow"
+                            className="book-page-text img-fluid rounded shadow"
                             alt={book.title}
                         />
 
@@ -97,26 +123,26 @@ export function BookDetails() {
                     </div>
 
                     {/* RIGHT SIDE */}
-                    <div className="col-md-9">
+                    <div className=" book-page-text book-page-text col-md-9">
                         <h2>{book.title}</h2>
-                        <h5 className="text-muted">
+                        <h5 className="book-page-text">
                             <a href={`/author/${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
-                                {getAuthorName(book.authorId)}
+                                {book.author.name}
                             </a>
                         </h5>
 
                         {/* ⭐ RATING */}
-                        <div className="d-flex align-items-center gap-2 mb-2">
+                        <div className="book-page-text d-flex align-items-center gap-2 mb-2">
                             <strong>
                                 {book.statistics?.averageRating?.toFixed(2) ?? "N/A"} ⭐
                             </strong>
-                            <span className="text-muted">
+                            <span className="book-page-text">
                                 {book.statistics?.ratingCount ?? 0} ratings | {book.statistics?.reviewCount ?? 0} reviews
                             </span>
                         </div>
 
                         {/* DESCRIPTION */}
-                        <p className="mt-3">
+                        <p className="book-page-text mt-3">
                             {book.description || "No description available."}
                         </p>
 
@@ -130,8 +156,8 @@ export function BookDetails() {
                                     g.genre ? (
                                         <span
                                             key={g.genre.id}
+                                            className="book-genres"
                                             style={{
-                                                backgroundColor: "#6c8f5e",
                                                 color: "white",
                                                 borderRadius: "20px",
                                                 padding: "6px 14px",
@@ -148,7 +174,7 @@ export function BookDetails() {
                         </div>
 
                         {/* 📊 BOOK META */}
-                        <div className="text-muted">
+                        <div className="book-page-text">
                             <p>
                                 <strong>{book.pageNumber ?? "?"}</strong> pages <br />
                                 First published in <strong>{book.originalPublicationYear ?? "Unknown"}</strong><br />
@@ -174,13 +200,13 @@ export function BookDetails() {
                                 />
 
                                 <div>
-                                    <h5 className="text-muted">
+                                    <h5 className="book-page-text">
                                         <a href={`/author/${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
-                                            {getAuthorName(book.authorId)}
+                                            {book.author.name}
                                         </a>
                                     </h5>
 
-                                    <p className="text-muted mb-1">
+                                    <p className="book-page-text mb-1">
                                         {author.nationality ?? "Unknown nationality"}
                                         {author.birthDate && ` • ${new Date(author.birthDate).getFullYear()}`}
                                     </p>

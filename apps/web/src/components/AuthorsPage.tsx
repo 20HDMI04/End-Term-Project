@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
 import "./css/home.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useApi } from "../context/apiContext";
 import type { AuthorSection } from "./interfaces/interfaces";
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from "../context/darkmodeContext";
 
 export function AuthorsPage() {
     const api = useApi();
     const [authorList, setAuthorList] = useState<AuthorSection[]>();
     const [authors, setAuthors] = useState<any[]>([]);
+    const { theme, toggleTheme } = useTheme();
 
     // Adatok betöltése
     useEffect(() => {
@@ -24,51 +27,74 @@ export function AuthorsPage() {
                 );
 
             setAuthors(allAuthors);
+            
         }
 
         fetchAuthors();
     }, []);
 
+	const handleAuthorImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+		const currentTheme = e.currentTarget.getAttribute('data-theme');
+		if(currentTheme === "light") {
+			e.currentTarget.src = "/user.png";
+		} else {
+			e.currentTarget.src = "/user2.png";
+		}
+	}, []);
+
     return (
-        <div>
-            {/* NAVBAR */}
+        <div className="home-container">
+            {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
-                    <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                        <img src="/logo.svg" alt="logo" className="logo" />
+                    <img
+                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                        alt="logo"
+                        className="logo"
+                    />
 
+                    <div className="navbar-content">
                         <ul className="navbar-nav">
                             <li className="nav-item">
-                                <h2>
-                                    <a className="nav-link" href="/">Home</a>
-                                </h2>
+                                <a className="nav-link" href="/">Home</a>
                             </li>
                             <li className="nav-item">
-                                <h2>
-                                    <a className="nav-link" href="/search">Search</a>
-                                </h2>
+                                <a className="nav-link" href="/search">Search</a>
                             </li>
                             <li className="nav-item">
-                                <h2>
-                                    <a className="nav-link" href="/discover">Discover</a>
-                                </h2>
+                                <a className="nav-link" href="/discover">Discover</a>
                             </li>
+                        </ul>
+
+                        <div className="navbar-right">
+                            <button
+                                className="Darkmode-changer"
+                                onClick={toggleTheme}
+                                aria-label="Toggle color scheme"
+                            >
+                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+                                    <IconSun size={20} stroke={2} />
+                                </span>
+                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+                                    <IconMoon size={20} stroke={2} />
+                                </span>
+                            </button>
+
                             <a href="/user/me">
                                 <img
-                                    src="/def_profile_icon.svg"
+                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
                                     alt="profile"
                                     className="profile-pic"
                                 />
                             </a>
-                        </ul>
+                        </div>
                     </div>
                 </div>
             </nav>
 
             {/* CONTENT */}
             <div className="container mt-4">
-                <h1 className="mb-4" style={{ color: "#556b2f", fontFamily: "'Georgia', serif" }}>All Authors</h1>
-
+                <h1 className="listing-h1-books">All Authors</h1>
                 <div className="row g-3">
                     {authors.map((author) => (
                         <div
@@ -82,6 +108,7 @@ export function AuthorsPage() {
                                 <img
                                     src={author.smallerProfilePic || "/def_profile_icon.svg"}
                                     alt={author.name}
+                                    data-theme={theme}
                                     style={{
                                         width: "120px",
                                         height: "120px",
@@ -92,10 +119,11 @@ export function AuthorsPage() {
                                         cursor: "pointer",
                                         marginBottom: "5px",
                                     }}
-                                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-                                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                                    onError={handleAuthorImageError}
                                 />
-                                <p>{author.name}</p>
+                                <p className="card-text">
+                                    {author.name ?? "Unknown"}
+                                </p>
                             </a>
                         </div>
                     ))}
