@@ -34,9 +34,9 @@ Azért választottuk ezt a témát mert célunk, hogy áthidaljuk a könyvválas
 
 🧭 **Segítenek egymásnak a könyvválasztásban:** A userek ajánlanak és értékelnek, így könnyű megtalálni a következő kedvencet!
 
-🗣️💬 **Ösztönzi a beszélgetést:** Lehet vitatkozni, megosztani a gondolatokat, és mélyebben elmerülni a könyvek világában.
+🗣️💬 **Beszélgetést kezdenek a másikkal:** Lehet vitatkozni, megosztani a gondolatokat, és mélyebben elmerülni a könyvek világában.
 
-🫂 **Aktív közösséget épít:** Minél több ember csatlakozik, annál több a segítség és az inspiráció!
+🫂 **Aktívan részt vesznek a közösség építésben:** Minél több ember csatlakozik, annál több a segítség és az inspiráció!
 
 ## 📱 Megjelenés és UI (Showcase)
 
@@ -61,8 +61,6 @@ A mobil applikáció az on-the-go olvasóknak készült, gyors hozzáféréssel 
     <p align="center"><i>Intuitív mobil felület és keresés nézet</i></p>
 </div>
 
----
-
 ## 🌟 Technológiai Stack
 
 | Részleg              | Fő technológia          | Leírás                                                    |
@@ -77,27 +75,23 @@ A mobil applikáció az on-the-go olvasóknak készült, gyors hozzáféréssel 
 | **Séma Validáció**   | **Class Validator**     | End-to-end type-safe adatsémák.                           |
 | **Tesztelés**        | **Vitest**              | Megfelelő működés biztosítása backenden.                  |
 
----
-
 ## 📦 Monorepo Struktúra
 
 A projekt a következő kulcsfontosságú munkaterületeket tartalmazza:
 
-| Mappa                       | Leírás                                                                                                                                            |
-| :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `apps/backend`              | A **NestJS API** a Fastify adapterrel. Felelős a business logika, adatbázis-kommunikáció és a SuperTokens autentikáció szerveroldali kezeléséért. |
-| `apps/web`                  | A **React webalkalmazás**, Vite-tel buildelve.                                                                                                    |
-| `apps/mobile`               | A **React Native mobilalkalmazás** (Expo-val konfigurálva).                                                                                       |
-| `packages/database`         | A **Prisma** konfiguráció (`schema.prisma`), migrációk, és a kliens kód.                                                                          |
-| `apps/mobile/.env.example`  | A **.env Fájl** mobilhoz. Felelős a Google passwordless módon való bejelentkezésért.                                                              |
-| `apps/backend/.env.example` | A **.env Fájl** backendhez. Felelős a Google kapcsolatokért, az adatbázis, S3 bucket-ek kapcsolatáért.                                            |
-
----
+| Mappa                       | Leírás                                                                                                                                        |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/backend`              | **NestJS API** Fastify adapterrel. Felelős a business logika, adatbázis-kommunikáció és a SuperTokens autentikáció szerveroldali kezeléséért. |
+| `apps/web`                  | **React webalkalmazás**, Vite-tel buildelve.                                                                                                  |
+| `apps/mobile`               | **React Native mobilalkalmazás** (Expo-val konfigurálva).                                                                                     |
+| `packages/database`         | A **Prisma** konfiguráció (`schema.prisma`), migrációk, és a kliens kód.                                                                      |
+| `apps/mobile/.env.example`  | A **.env Fájl** mobilhoz. Felelős a Google passwordless módon való bejelentkezésért.                                                          |
+| `apps/backend/.env.example` | A **.env Fájl** backendhez. Felelős a Google kapcsolatokért, az adatbázis, S3 bucket-ek kapcsolatáért.                                        |
 
 ## 🛠️ Beüzemelés (Local Development)
 
 - Bővebben a beüzemeléséről a projektnek a [SETUP.md fájlban](https://github.com/20HDMI04/End-Term-Project/blob/main/SETUP.md) értekezek.
-- Amennyiben szeretnéd hogy az alkalmazás zökkenőmentesen fusson kérlek vedd figyelembe az alkalmazás szükségleteit **.env.example** fájlokban.
+- Amennyiben szeretnéd hogy az alkalmazás zökkenőmentesen fusson lásd **.env.example** fájlokat.
 
 ## 📚 A projekt erősségei: Type-Safety, Biztonság és Képkezelés
 
@@ -109,18 +103,18 @@ A projekt fő erőssége a **type-safety** :
 
 Ezek mellet a projekt fő célja volt még a magas fokú biztonság is ezt **SuperTokens**-el valósítjuk meg:
 
-- **RBAC:** A projekt részét képezi a Role Based Authentication melynek segítségével a userek között különbségeket tudunk tenni admin és sima userek között.
-- **Rotating Tokens:** A felhasználó maximális kényelme érdekében session alapú a token kezelés ezért automatikusan frissíti a tokent ha lejárt. Ezenkívül ha bármelyik munkamenet korruptálódik a SuperTokens biztosít arról hogy megmaradjon a teljes biztonság mindezt úgy hogy leállítja az összes munkamenetet és újra be kell jelentkezni.
+- **RBAC:** A projekt részét képezi a Role Based Authentication melynek segítségével különbséget tudunk tenni admin és sima felhasználók között.
+- **Rotating Tokens:** A felhasználó maximális kényelme érdekében session alapú a token kezelését is implementáltuk.
 
 **Képkezelés** S3 bucket-okkal:
 
 - **Seeding:** Ahhoz hogy könnyű legyen az S3 setupolása van előre megírva egy init bash script amely létrehozza a permission-öket, a vödröket amelyben tároljuk a képeket és a default képeket is betölti amelyek biztosítják hogy az alkalmazás és könyvek mindenképpen kapjanak egy filler képet.
 - **Kép feltöltés:** A kép feltöltés az alkalmazás gyors betöltése érdekében sharp könyvtárat használva butítva vannak ezáltal a képek minősége kisebb lesz de viszont a betöltési idő növelve lesz.
-- **Ingyenes opció:** Mivel szerettünk volna egy olyan projektet ahol szinte semmiért maximum az üzemeltetésért kelljen fizetni úgy gondoltuk hogy a localstack-et használjuk mely biztosít számunkra egy AWS instance-t amely ezáltal lehet egy olcsóbb megoldást biztosít és megadja a biztonságot abból a szempontból hogy az adatok a mi szervereinken helyezzük el.
+- **Ingyenes opció:** Mivel szerettünk volna egy olyan projektet ahol szinte semmiért maximum az üzemeltetésért kelljen fizetni úgy gondoltuk hogy a localstack-et használjuk mely biztosít számunkra egy AWS instance-t amely ezáltal egy olcsóbb megoldást biztosít és megadja a biztonságot abból a szempontból hogy az adatok a mi szervereinken vannak.
 
 ## ✨ Főbb Funkciók
 
-A projekt közösségi platform a következő, felhasználói élményt növelő funkciók lesznek beépítve:
+A projekt közösségi platformként üzemel ezért a következő, felhasználói élményt növelő funkciók lesznek beépítve:
 
 1.  ⭐️ Értékelés és Véleményezés
     Ez a funkció teszi a platformot igazán közösségivé és interaktívvá.
@@ -146,7 +140,7 @@ A projekt közösségi platform a következő, felhasználói élményt növelő
 
 ## 🧪 Minőségbiztosítás és Dokumentáció
 
-A projekt hosszú távú fenntarthatóságát és a fejlesztői élményt (DX) modern eszközökkel biztosítjuk.
+A projekt hosszú távú fenntarthatóságát és a fejlesztői élményt modern eszközökkel biztosítjuk.
 
 ### ✅ Tesztelési Stratégia
 
@@ -155,8 +149,6 @@ A stabilitásért a **Vitest** felel, amely villámgyors visszacsatolást ad a f
 - **Unit Teszt fókusz:** A logika nagy részét izolált egységtesztek fedik le, biztosítva a szolgáltatások (services) és segédfüggvények helyes működését.
 - **Prisma Mocking:** Az adatbázis-műveleteket a tesztek során mockoljuk, így nincs szükség futó adatbázisra a teszteléshez, ami konzisztens és gyors futtatást tesz lehetővé.
 - **Type-safe tesztelés:** A TypeScript szoros integrációjával a mockolt adatok is követik a sémákat.
-
----
 
 ### 📄 Dokumentációs Rendszer
 
@@ -175,6 +167,7 @@ A projekt két szinten dokumentált, hogy mind a külső integráció, mind a be
 - Bővebben a projekt [SETUP](https://github.com/20HDMI04/End-Term-Project/blob/main/SETUP.md)-olásáról
 - Bővebben a mobilhoz tartozó [User Story](https://github.com/20HDMI04/End-Term-Project/blob/main/documentation/mobile_user_story.md)-ról
 - Bővebben a [Servicekről](https://20hdmi04.github.io/End-Term-Project/) (TypeDoc Dokumentáció)
+- A Projekt Wiki-je megtalálható [itt](https://github.com/20HDMI04/End-Term-Project/wiki)
 
 ## 👤 Tagok
 

@@ -276,9 +276,21 @@ const UniversalSearchForISBN = forwardRef<
 						</Text>
 					);
 				if (item.type === "author")
-					return <AuthorResultItem item={item} isDarkMode={isDarkMode} />;
+					return (
+						<AuthorResultItem
+							item={item}
+							isDarkMode={isDarkMode}
+							onPress={onAuthorPress}
+						/>
+					);
 				if (item.type === "book")
-					return <BookResultItem item={item} isDarkMode={isDarkMode} />;
+					return (
+						<BookResultItem
+							item={item}
+							isDarkMode={isDarkMode}
+							onPress={onBookPress}
+						/>
+					);
 				if (item.type === "genre")
 					return (
 						<TouchableOpacity style={styles.genreItem}>
@@ -396,13 +408,22 @@ const UniversalSearchForISBN = forwardRef<
 									<ActivityIndicator color={theme.iconColor} />
 								</View>
 							) : (
-								<Animated.FlatList
-									data={renderListData()}
-									keyExtractor={(item, index) => index.toString()}
-									renderItem={renderItem}
-									keyboardShouldPersistTaps="handled"
-									contentContainerStyle={{ paddingBottom: 40 }}
-								/>
+								query.trim().length >= 3 && (
+									<Animated.FlatList
+										data={renderListData()}
+										keyExtractor={(item, index) => index.toString()}
+										renderItem={renderItem}
+										keyboardShouldPersistTaps="handled"
+										contentContainerStyle={{ paddingBottom: 40 }}
+										ListEmptyComponent={() => (
+											<View style={styles.centerContainer}>
+												<Text style={{ color: theme.textSecondary }}>
+													No results found.
+												</Text>
+											</View>
+										)}
+									/>
+								)
 							)}
 						</View>
 					</SafeAreaView>

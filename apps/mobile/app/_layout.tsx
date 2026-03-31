@@ -23,7 +23,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { ApiProvider, useApi } from "@/contexts/ApiContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-import { View } from "react-native";
+import { Modal, View } from "react-native";
 import { StyleSheet } from "react-native";
 import { Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
 import UniversalSearch, {
@@ -31,6 +31,11 @@ import UniversalSearch, {
 } from "@/components/UniversalSearchForISBN";
 import { useRef } from "react";
 import UniversalSearchForISBN from "@/components/UniversalSearchForISBN";
+import BarcodeScanner from "@/components/BarCodeScanner";
+import AuthorDetailModal from "@/components/AuthorDetailModal";
+import BookDetailModal from "@/components/BookDetailModal";
+import { ProfileData } from "./(tabs)/settings";
+import { Storage } from "@/utils/storage";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -59,6 +64,8 @@ function RootLayoutNav() {
 	const router = useRouter();
 	const [isNavigationReady, setIsNavigationReady] = useState(false);
 	const searchRef = useRef<UniversalSearchRef>(null);
+	const isDarkMode = useColorScheme() === "dark";
+	const [showScanner, setShowScanner] = useState(false);
 
 	useEffect(() => {
 		setIsNavigationReady(true);
@@ -89,10 +96,86 @@ function RootLayoutNav() {
 		if (authState.isAuthenticated) {
 			api.getMe();
 		}
+		async function fetchProfileData() {
+			const data = await Storage.getItem("user");
+			setProfileData(data);
+		}
+		fetchProfileData();
 	}, [authState.isAuthenticated]);
 
+	const [profileData, setProfileData] = useState<ProfileData | null>(null);
+	const [bookDetailVisible, setBookDetailVisible] = useState(false);
+	const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
+
+	const handleBookPress = (bookId: string) => {
+		setSelectedBookId(bookId);
+		setBookDetailVisible(true);
+	};
+	const handleCloseBookDetail = () => {
+		setBookDetailVisible(false);
+		setSelectedBookId(null);
+	};
+
+	const [authorDetailVisible, setAuthorDetailVisible] = useState(false);
+	const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(null);
+	const handleAuthorPress = (authorId: string) => {
+		setSelectedAuthorId(authorId);
+		setAuthorDetailVisible(true);
+	};
+	const handleCloseAuthorDetail = () => {
+		setAuthorDetailVisible(false);
+		setSelectedAuthorId(null);
+	};
+
 	return (
-		<>
+		<View style={{ flex: 1 }}>
+			<View
+				style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 }}
+			>
+				{selectedBookId && profileData && profileData.smallerProfilePic && (
+					<BookDetailModal
+						bookId={selectedBookId}
+						email={profileData.email || null}
+						isDarkMode={isDarkMode}
+						onClose={handleCloseBookDetail}
+						visible={bookDetailVisible}
+						profilePic={profileData.smallerProfilePic}
+					/>
+				)}
+				{selectedAuthorId && (
+					<AuthorDetailModal
+						authorId={selectedAuthorId}
+						isDarkMode={isDarkMode}
+						onClose={handleCloseAuthorDetail}
+						visible={authorDetailVisible}
+					/>
+				)}
+				<UniversalSearchForISBN
+					ref={searchRef}
+					isDarkMode={isDarkMode}
+					onAuthorPress={handleAuthorPress}
+					onBookPress={handleBookPress}
+				/>
+
+				<Modal
+					visible={showScanner}
+					animationType="slide"
+					onRequestClose={() => setShowScanner(false)}
+					statusBarTranslucent
+					transparent
+				>
+					<BarcodeScanner
+						isDarkMode={isDarkMode}
+						onScan={(data: string) => {
+							setShowScanner(false);
+							searchRef.current?.openWithQuery(data);
+						}}
+						onClose={() => {
+							setShowScanner(false);
+						}}
+					/>
+				</Modal>
+			</View>
 			<Stack
 				screenOptions={{
 					headerShown: false,
@@ -113,19 +196,14 @@ function RootLayoutNav() {
 								onSearchPress={(query) =>
 									searchRef.current?.openWithQuery(query)
 								}
+								setShowScanner={setShowScanner}
 								{...props}
 							/>
 						),
 					}}
 				/>
 			</Stack>
-			<View>
-				<UniversalSearchForISBN
-					ref={searchRef}
-					isDarkMode={useColorScheme() === "dark"}
-				/>
-			</View>
-		</>
+		</View>
 	);
 }
 
@@ -162,7 +240,7 @@ export default function RootLayout() {
 	};
 
 	return (
-		<GestureHandlerRootView>
+		<GestureHandlerRootView style={{ flex: 1 }}>
 			<AuthProvider>
 				<ApiProvider>
 					<ThemeProvider

@@ -334,4 +334,53 @@ export class BooksController {
     }
     return this.booksService.getBooksByASpecificGenre(genre, take);
   }
+
+  @Get('searchpage')
+  @ApiOperation({
+    summary: 'Get search page content',
+    description:
+      'Retrieves the content needed for the search page, including popular authors and books.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Search page content retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the search page content. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  async getSearchPageContent() {
+    const searchPageContent = {
+      author: await this.authorsService.getSearchAuthorContent(),
+      book: await this.booksService.getSearchPageContent(),
+    };
+    return searchPageContent;
+  }
+
+  @Get('discoverpage')
+  @ApiOperation({
+    summary: 'Get discover page content',
+    description:
+      'Retrieves the content needed for the discover page, including recommended authors and books.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Discover page content retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the discover page content. Please try again later.',
+  })
+  @ApiCookieAuth()
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  async getDiscoverPageContent(@Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    const discoverPageContent = {
+      author: await this.authorsService.getDiscoverAuthorsContent(userId),
+      book: await this.booksService.getDiscoverPageContent(userId),
+    };
+    return discoverPageContent;
+  }
 }

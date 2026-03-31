@@ -15,6 +15,8 @@ import { Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { PaginationDto } from './dto/pagination.dto';
 import { title } from 'process';
+import { GenreType } from 'src/books/books.service';
+import { get } from 'axios';
 
 @Injectable()
 export class AuthorsService {
@@ -866,5 +868,235 @@ export class AuthorsService {
         'Error during getting top books authors.',
       );
     }
+  }
+
+  /**
+   * @summary Retrieves a random selection of approved authors. This method is used to provide a diverse and dynamic set of authors for features such as "Discover Random Authors". It first counts the total number of approved authors in the database, then generates a random index to skip a random number of records, and finally retrieves a specified number of authors starting from that random index. The profile picture keys are omitted from the returned data for security and privacy reasons.
+   * @description This method retrieves a random selection of authors that have been approved. It begins by counting the total number of authors with approveStatus set to true. If there are no approved authors, it returns an empty array. Otherwise, it generates a random index to skip a random number of records and retrieves a specified number of authors (default is 15) starting from that index. The method also omits the smallerProfilePicKey and biggerProfilePicKey fields from the returned author data to ensure that sensitive information related to image storage is not exposed.
+   * @param take The number of authors to retrieve. Defaults to 15 if not specified.
+   * @returns A promise resolving to an array of randomly selected approved authors.
+   * @throws InternalServerErrorException if there is an error during the database queries to count the authors or retrieve the random selection.
+   */
+  async getRandomAuthors(take: number = 15) {
+    try {
+      const totalAuthors = await this.prisma.author.count({
+        where: { approveStatus: true },
+      });
+
+      if (totalAuthors === 0) {
+        return [];
+      }
+
+      const randomIndex = Math.floor(Math.random() * totalAuthors);
+      const authors = await this.prisma.author.findMany({
+        where: { approveStatus: true },
+        skip: randomIndex,
+        take,
+        omit: {
+          smallerProfilePicKey: true,
+          biggerProfilePicKey: true,
+        },
+      });
+
+      return authors;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting random authors.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves content for the author search page, including a random selection of approved authors. This method is used to provide dynamic content for the author search page, allowing users to discover new authors through a random selection. It calls the getRandomAuthors method to fetch a random set of approved authors and structures the content with a title and subtitle for display on the search page.
+   * @description This method retrieves content for the author search page by fetching a random selection of approved authors. It utilizes the getRandomAuthors method to obtain a list of random authors and then structures the content into an array of objects, each containing a title, subtitle, and the list of authors. This structured content is intended to be displayed on the author search page, providing users with an engaging way to discover new authors. The method returns this content in a format that can be easily rendered on the frontend.
+   * @returns A promise resolving to an array of objects containing the search page content. Each object includes a title, subtitle, and a list of randomly selected approved authors.
+   * @throws InternalServerErrorException if there is an error during the retrieval of random authors for the search page content.
+   */
+  async getSearchAuthorContent() {
+    const randomAuthors = await this.getRandomAuthors();
+    const searchPageContent = [
+      {
+        title: 'Discover New Authors',
+        subtitle:
+          'Explore a random selection of approved authors from our collection.',
+        data: randomAuthors,
+      },
+    ];
+    return searchPageContent;
+  }
+
+  /**
+   * @summary Retrieves content for the "Discover Authors" section, including a genre spotlight and personalized recommendations based on the user's favorite authors. This method is used to provide dynamic and personalized content for the "Discover Authors" section, allowing users to explore authors based on a random genre spotlight and receive recommendations based on their preferences. It calls the getAuthorByGenreSpotlight method to fetch authors related to a randomly selected genre and the getRecommendedAuthors method to fetch personalized recommendations based on the user's favorite authors. The content is structured with titles and subtitles for display in the "Discover Authors" section.
+   * @description This method retrieves content for the "Discover Authors" section by combining a genre spotlight and personalized recommendations. It first calls the getAuthorByGenreSpotlight method to fetch authors related to a randomly selected genre, which provides a dynamic and engaging way for users to discover authors based on different genres. Then, it calls the getRecommendedAuthors method, passing the user's ID, to fetch personalized recommendations based on the user's favorite authors. The results from both methods are structured into an array of objects, each containing a title, subtitle, and the corresponding list of authors. This structured content is intended to be displayed in the "Discover Authors" section, offering users both genre-based discovery and personalized recommendations.
+   * @param userId The ID of the user for whom to retrieve personalized recommendations.
+   * @returns A promise resolving to an array of objects containing the discover authors content.
+   */
+  async getDiscoverAuthorsContent(userId: string) {
+    const getAuthorGenreSpotlight = await this.getAuthorByGenreSpotlight();
+    const getRecommendedAuthors = await this.getRecommendedAuthors(userId);
+    const discoverAuthorsContent = [
+      {
+        title: `${getAuthorGenreSpotlight.genre} Unfolded`,
+        subtitle: 'Handpicked authors just for you.',
+        data: getAuthorGenreSpotlight.data,
+      },
+      {
+        title: 'More Like',
+        subtitle: `${getRecommendedAuthors?.basedOn?.name}`,
+        data: getRecommendedAuthors.data,
+      },
+    ];
+    return discoverAuthorsContent;
+  }
+
+  /**
+   * @summary Returns a random genre from a predefined list.
+   * @description This method selects a genre at random from a list of available genres.
+   * @returns The name of the randomly selected genre.
+   */
+  getRandomGenre() {
+    const GENRE_LIST = [
+      'history',
+      'fiction',
+      'romance',
+      'young-adult',
+      'fantasy',
+      'just-science',
+      'thriller',
+      'social-science',
+    ];
+    const randomIndex = Math.floor(Math.random() * GENRE_LIST.length);
+    return GENRE_LIST[randomIndex];
+  }
+
+  /**
+   * @summary Retrieves authors for a genre spotlight feature by selecting a random genre and finding authors who have books in that genre. This method is used to provide dynamic content for a genre spotlight feature, allowing users to discover authors based on different genres. It first selects a random genre using the getRandomGenre method, then defines filters for each genre to identify relevant keywords. Finally, it queries the database to find authors who have approved status and have books that match the genre filters, returning the authors along with the name of the genre for display in the spotlight.
+   * @description This method retrieves authors for a genre spotlight feature by first selecting a random genre from a predefined list. It then defines specific keyword filters for each genre to identify relevant books. The method queries the database to find authors who have an approved status and have books that match the genre filters based on the defined keywords. The results include the authors that fit the criteria and the name of the genre, which can be used to display a spotlight section on the frontend, allowing users to explore authors associated with different genres.
+   * @returns A promise resolving to an object containing the list of authors and the name of the genre.
+   */
+  async getAuthorByGenreSpotlight() {
+    const randomGenre = this.getRandomGenre();
+    const forProd =
+      randomGenre.charAt(0).toUpperCase() +
+      randomGenre
+        .slice(1)
+        .replace(/-\w/, (match) => ' ' + match[1].toUpperCase());
+
+    const genreFilters: Record<GenreType, any> = {
+      history: { keywords: ['history'] },
+      fiction: { keywords: ['fiction'] },
+      romance: { keywords: ['romance', 'love'] },
+      'young-adult': { keywords: ['adult'] },
+      fantasy: { keywords: ['magic', 'fantasy'] },
+      thriller: { keywords: ['thriller', 'horror'] },
+      'social-science': { keywords: ['economics', 'politic', 'business'] },
+      'just-science': { keywords: ['science'] },
+    };
+
+    const filters = genreFilters[randomGenre as GenreType];
+
+    const authors = await this.prisma.author.findMany({
+      where: {
+        AND: [
+          { approveStatus: true },
+          {
+            books: {
+              some: {
+                genres: {
+                  some: {
+                    OR: filters.keywords.map((kw) => ({
+                      genre: { name: { contains: kw, mode: 'insensitive' } },
+                    })),
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+    return { data: authors, genre: forProd };
+  }
+
+  /**
+   * @summary Retrieves personalized author recommendations for a user based on their favorite authors. This method is used to provide personalized content for users by recommending authors that are similar to their favorite authors. It first retrieves the user's favorite authors, then selects one of them at random (or a random author if the user has no favorites) to identify the genres associated with that author. Finally, it queries the database to find other approved authors who have books in those genres, returning a list of recommended authors along with the name and profile picture of the author that the recommendations are based on.
+   * @description This method retrieves personalized author recommendations for a user by first fetching the user's favorite authors from the database. If the user has favorite authors, it randomly selects one of them; if not, it randomly selects any approved author. It then identifies the genres associated with the selected author by querying the book genres linked to that author. Using the identified genres, the method queries the database to find other approved authors who have books in those genres. The results include a list of recommended authors and information about the author that served as the basis for the recommendations, such as their name and profile picture, which can be used to display personalized recommendations on the frontend.
+   * @param userId The ID of the user for whom to retrieve personalized author recommendations.
+   * @param take The number of recommended authors to return.
+   * @returns A promise resolving to an object containing the list of recommended authors and information about the author that served as the basis for the recommendations.
+   */
+  async getRecommendedAuthors(userId: string, take: number = 15) {
+    const favoriteAuthors = await this.prisma.favoriteAuthor.findMany({
+      where: { userId: userId },
+      select: { authorId: true },
+    });
+
+    let selectedAuthorId: string;
+
+    if (favoriteAuthors.length > 0) {
+      const randomIndex = Math.floor(Math.random() * favoriteAuthors.length);
+      selectedAuthorId = favoriteAuthors[randomIndex].authorId;
+    } else {
+      const totalAuthors = await this.prisma.author.count();
+
+      const skip = Math.floor(Math.random() * totalAuthors);
+      const randomAuthor = await this.prisma.author.findFirst({
+        skip: skip,
+        select: { id: true },
+      });
+      selectedAuthorId = randomAuthor!.id;
+    }
+
+    const authorGenres = await this.prisma.bookGenres.findMany({
+      where: {
+        book: { authorId: selectedAuthorId },
+      },
+      select: {
+        genre: { select: { name: true } },
+      },
+    });
+
+    const genreNames = [...new Set(authorGenres.map((ag) => ag.genre.name))];
+
+    if (genreNames.length === 0) {
+      return {
+        title: 'More Like',
+        subtitle: ``,
+        data: [],
+      };
+    }
+
+    const recommendedAuthors = await this.prisma.author.findMany({
+      where: {
+        id: { not: selectedAuthorId },
+        books: {
+          some: {
+            genres: {
+              some: {
+                genre: {
+                  name: { in: genreNames },
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        smallerProfilePic: true,
+        topWorks: true,
+        nationality: true,
+      },
+      take: take,
+    });
+
+    return {
+      data: recommendedAuthors,
+      basedOn: await this.prisma.author.findUnique({
+        where: { id: selectedAuthorId },
+        select: { name: true, smallerProfilePic: true },
+      }),
+    };
   }
 }

@@ -25,9 +25,15 @@ interface AppHeaderProps {
 	options: any;
 	route: any;
 	onSearchPress?: (query: string) => void;
+	setShowScanner?: (show: boolean) => void;
 }
 
-export function AppHeader({ options, route, onSearchPress }: AppHeaderProps) {
+export function AppHeader({
+	options,
+	route,
+	onSearchPress,
+	setShowScanner,
+}: AppHeaderProps) {
 	const [loading, setLoading] = React.useState(false);
 	const isDarkMode = useColorScheme() === "dark";
 	const iconBackgroundColor = isDarkMode ? Colors.thirdColorDark : "#ffffff";
@@ -52,8 +58,7 @@ export function AppHeader({ options, route, onSearchPress }: AppHeaderProps) {
 	};
 
 	const handleBarcodePress = () => {
-		console.log("Barcode scanner open...");
-		onSearchPress && onSearchPress("scan-isbn");
+		setShowScanner && setShowScanner(true);
 	};
 
 	const getTitle = () => {
