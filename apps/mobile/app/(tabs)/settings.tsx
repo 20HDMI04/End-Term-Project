@@ -11,6 +11,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Storage } from "@/utils/storage";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { runOnJS } from "react-native-reanimated";
+import {
+	Directions,
+	Gesture,
+	GestureDetector,
+} from "react-native-gesture-handler";
+import { router } from "expo-router";
+import { G } from "react-native-svg";
 
 export interface ProfileData {
 	biggerProfilePic: string;
@@ -22,6 +30,13 @@ export interface ProfileData {
 }
 
 export default function TabThreeScreen() {
+	const goToPrevious = () => router.replace("/collections");
+
+	const swipeRight = Gesture.Fling()
+		.direction(Directions.RIGHT)
+		.onEnd(() => {
+			runOnJS(goToPrevious)();
+		});
 	const [profileData, setProfileData] = useState<ProfileData | null>(null);
 	useEffect(() => {
 		async function fetchProfileData() {
@@ -32,7 +47,7 @@ export default function TabThreeScreen() {
 	}, []);
 
 	return (
-		<>
+		<GestureDetector gesture={swipeRight}>
 			<ProfileScreen
 				biggerProfilePic={profileData?.biggerProfilePic}
 				createdAt={profileData?.createdAt}
@@ -41,6 +56,6 @@ export default function TabThreeScreen() {
 				smallerProfilePic={profileData?.smallerProfilePic}
 				updatedAt={profileData?.updatedAt}
 			/>
-		</>
+		</GestureDetector>
 	);
 }

@@ -12,6 +12,7 @@ import { S3Service } from 'src/s3/s3.service';
 import UserRoles from 'supertokens-node/recipe/userroles';
 import Session from 'supertokens-node/recipe/session';
 import { getUserContext } from 'supertokens-node/lib/build/utils';
+import SuperTokens from 'supertokens-node';
 
 @Injectable()
 export class UserService {
@@ -25,7 +26,7 @@ export class UserService {
    * @description Retrieves the user profile information based on the provided email address. If the user is not found, a NotFoundException is thrown.
    * @param email The email address of the user whose profile is to be retrieved.
    * @returns The user profile information, excluding sensitive fields such as id and S3 keys.
-   * @throws  {@link NotFoundException} if no user with the specified email is found in the database.
+   * @throws  NotFoundException if no user with the specified email is found in the database.
    */
   async findOne(email: string) {
     try {
@@ -53,9 +54,9 @@ export class UserService {
    * @param updateUserDto The data for updating the user's profile.
    * @param isFirstTime A flag indicating whether this is the first time the user is updating their profile.
    * @returns The updated user profile information, excluding sensitive fields such as id and S3 keys.
-   * @throws  {@link NotFoundException} if no user with the specified email is found in the database.
-   * @throws  {@link BadRequestException} if the nickname is required for first-time update but not provided.
-   * @throws  {@link InternalServerErrorException} if an unexpected error occurs while updating the user or uploading images.
+   * @throws  NotFoundException if no user with the specified email is found in the database.
+   * @throws  BadRequestException if the nickname is required for first-time update but not provided.
+   * @throws  InternalServerErrorException if an unexpected error occurs while updating the user or uploading images.
    */
   async update(
     email: string,
@@ -119,26 +120,40 @@ export class UserService {
 
       if (isFirstTime) {
         const stUserId = user.username;
+        console.log('SuperTokens user ID:', stUserId);
+        const stUser = await SuperTokens.getUser(stUserId);
+        const tenantId = stUser?.tenantIds[0] || 'public';
+
+        const removeResult = await UserRoles.removeUserRole(
+          tenantId,
+          stUserId,
+          'new_user',
+        );
+        console.log("Result of removing 'new_user' role:", removeResult);
+        if (removeResult.status !== 'OK') {
+          console.error(
+            'Error removing new_user role from user:',
+            removeResult.status,
+          );
+        }
+
+        const rolesResponse = await UserRoles.getRolesForUser(
+          tenantId,
+          stUserId,
+        );
+        console.log('Current roles for user after update:', rolesResponse);
+        const currentRoles = rolesResponse.roles;
 
         const sessionHandles =
           await Session.getAllSessionHandlesForUser(stUserId);
-
-        await UserRoles.removeUserRole('public', stUserId, 'new_user');
-
-        const rolesResponse = await UserRoles.getRolesForUser(
-          'public',
-          stUserId,
-        );
-        const currentRoles = rolesResponse.roles;
-
         for (const sessionHandle of sessionHandles) {
           await Session.mergeIntoAccessTokenPayload(sessionHandle, {
             roles: currentRoles,
             _updatedAt: Date.now(),
           });
         }
-        console.log('Roles updated in database and sessions:', currentRoles);
       }
+      console.log('Updated user profile:', updatedUser);
       return updatedUser;
     } catch (error) {
       console.error('Error updating user in database:', error);

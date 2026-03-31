@@ -11,4 +11,12 @@ export const Storage = {
 	removeItem: async (key: string) => {
 		await AsyncStorage.removeItem(key);
 	},
+	clearAllItem: async () => {
+		try {
+			await AsyncStorage.clear();
+			console.log("AsyncStorage successfully cleared.");
+		} catch (e) {
+			console.error("Error occurred while clearing AsyncStorage:", e);
+		}
+	},
 };

@@ -8,6 +8,7 @@ import {
 import { StyleSheet, View, Text, Animated, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
 import StarFilled from "@/assets/svgs/star-fill.svg";
+import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
 
 export function BookCard({
 	item,

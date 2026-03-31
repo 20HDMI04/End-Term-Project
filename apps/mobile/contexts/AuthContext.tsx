@@ -3,6 +3,7 @@ import SuperTokens from "supertokens-react-native";
 import { googleSignInAndSuperTokensAuth } from "@/hooks/useGoogleOneTapAuth";
 import { ApiProvider } from "./ApiContext";
 import { UserService } from "@/services/user.service";
+import { Storage } from "@/utils/storage";
 
 interface ResponseData {
 	error: boolean;
@@ -12,7 +13,7 @@ interface ResponseData {
 interface AuthState {
 	isAuthenticated: boolean | null;
 	userId: string | null;
-	roles: string[];
+	roles: string[] | null;
 }
 
 interface AuthProps {
@@ -22,6 +23,7 @@ interface AuthProps {
 	onLoginWithThirdParty: () => Promise<ResponseData>;
 	onLogout: () => Promise<void>;
 	finalizeLogin: () => Promise<void>;
+	refreshUserSession: () => Promise<void>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -43,7 +45,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				if (sessionExists) {
 					const userId = await SuperTokens.getUserId();
 					const payload = await SuperTokens.getAccessTokenPayloadSecurely();
-					const roles = payload["st-role"]?.v || [];
+					const roles =
+						payload.roles || payload["st-role"]?.v || payload["roles"] || [];
 
 					setAuthState({ isAuthenticated: true, userId, roles: roles });
 				} else {
@@ -55,6 +58,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 		checkSession();
 	}, []);
+
+	const refreshUserSession = async () => {
+		try {
+			const didRefresh = await SuperTokens.attemptRefreshingSession();
+
+			if (didRefresh) {
+				const userId = await SuperTokens.getUserId();
+				const payload = await SuperTokens.getAccessTokenPayloadSecurely();
+				const roles =
+					payload.roles || payload["st-role"]?.v || payload["roles"] || [];
+				setAuthState({
+					isAuthenticated: true,
+					userId,
+					roles: roles,
+				});
+			} else {
+				console.log("[AuthContext] Refresh not needed or failed.");
+			}
+		} catch (e: any) {
+			if (e.status === 401) {
+				onLogout();
+			}
+			console.error("[AuthContext] Refresh error:", e);
+		}
+	};
 
 	const onRegister = async (
 		email: string,
@@ -128,6 +156,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		try {
 			console.log("[AuthContext] Attempting logout...");
 			await SuperTokens.signOut();
+			await Storage.clearAllItem();
+			console.log("[AuthContext] Logout successful.");
 		} catch (error) {
 			console.error("[AuthContext] Logout error (Server unreachable):", error);
 		} finally {
@@ -144,9 +174,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		try {
 			const userId = await SuperTokens.getUserId();
 			const payload = await SuperTokens.getAccessTokenPayloadSecurely();
-			const roles = payload["st-role"]?.v || [];
-
-			setAuthState({ isAuthenticated: true, userId, roles: roles });
+			console.log("Access token payload on finalizeLogin:", payload);
+			const roles =
+				payload.roles.roles || payload["st-role"]?.v || payload["roles"] || [];
+			setAuthState({
+				isAuthenticated: true,
+				userId,
+				roles: Array.isArray(roles) ? roles : [],
+			});
 		} catch (e) {
 			console.error("Finalize error:", e);
 		}
@@ -161,6 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 				onLoginWithThirdParty,
 				onLogout,
 				finalizeLogin,
+				refreshUserSession,
 			}}
 		>
 			{children}

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SocialController } from './social.controller';
 import { SocialService } from './social.service';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('SocialController', () => {
   let controller: SocialController;

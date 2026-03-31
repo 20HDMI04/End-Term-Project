@@ -8,8 +8,9 @@ import {
   Delete,
   UseInterceptors,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
-import { BooksService } from './books.service';
+import { BooksService, GenreTypeEnum } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { File } from 'src/common/decorators/file.decorator';
@@ -21,6 +22,7 @@ import { SearchByIsbnDto } from './dto/search-by-isbn.dto';
 import { Query, Res } from '@nestjs/common/decorators';
 import axios from 'axios';
 import {
+  ApiBadRequestResponse,
   ApiConflictResponse,
   ApiCookieAuth,
   ApiInternalServerErrorResponse,
@@ -31,6 +33,8 @@ import {
 import { PaginationDto } from './dto/pagination-book.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthorsService } from 'src/authors/authors.service';
+import type { GenreType } from './books.service';
+import { Session } from 'src/auth/session.decorator';
 
 @ApiTags('Books')
 @Controller('books')
@@ -135,8 +139,28 @@ export class BooksController {
       'An unexpected error occurred while retrieving the books. Please try again later.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findAll(@Query() query: PaginationDto) {
-    return this.booksService.findAll(query);
+  findAll(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.findAll(query, false, userId);
+  }
+
+  @Get('random')
+  @ApiOperation({
+    summary: 'Find a random book',
+    description: 'Retrieves the details of a random book.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Random book retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the random book. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  findRandom() {
+    return this.booksService.findRandom();
   }
 
   @Get(':id')
@@ -153,8 +177,9 @@ export class BooksController {
       'An unexpected error occurred while retrieving the book. Please try again later.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findOne(@Param('id') id: string) {
-    return this.booksService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.findOne(id, userId);
   }
 
   @Patch(':id')
@@ -255,5 +280,58 @@ export class BooksController {
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   findOneByIsbn(@Param('isbn') isbn: string) {
     return this.booksService.findOneByIsbn(isbn);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search for books, authors, and genres',
+    description:
+      'Searches for books, authors, and genres based on a query string.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Search results retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while searching. Please try again later.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  searchforEverything(
+    @Query('query') query: string,
+    @Query('take') take: number = 10,
+    @Session() session: any,
+  ) {
+    const userId = session.userDataInAccessToken.email;
+    return this.booksService.searchforEverything(query, take, userId);
+  }
+
+  @Get('specific-genre/:genre')
+  @ApiOperation({
+    summary: 'Get books by a specific genre',
+    description: 'Retrieves books that belong to a specific genre.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Books retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the books. Please try again later.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid genre type provided.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  getBooksByASpecificGenre(
+    @Param('genre') genre: GenreType,
+    @Query('take') take: number = 15,
+  ) {
+    if (!Object.values(GenreTypeEnum).includes(genre as GenreTypeEnum)) {
+      throw new BadRequestException('Invalid genre type.');
+    }
+    return this.booksService.getBooksByASpecificGenre(genre, take);
   }
 }

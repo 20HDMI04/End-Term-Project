@@ -17,7 +17,7 @@ import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
 import { PaginationDto } from './dto/pagination-book.dto';
 
-type GenreType =
+export type GenreType =
   | 'history'
   | 'fiction'
   | 'romance'
@@ -26,6 +26,17 @@ type GenreType =
   | 'just-science'
   | 'thriller'
   | 'social-science';
+
+export enum GenreTypeEnum {
+  HISTORY = 'history',
+  FICTION = 'fiction',
+  ROMANCE = 'romance',
+  YOUNG_ADULT = 'young-adult',
+  FANTASY = 'fantasy',
+  JUST_SCIENCE = 'just-science',
+  THRILLER = 'thriller',
+  SOCIAL_SCIENCE = 'social-science',
+}
 
 @Injectable()
 export class BooksService {
@@ -43,8 +54,8 @@ export class BooksService {
    * @param file - An optional uploaded file for the book cover image. If not provided, default images will be used.
    * @param createBookDto - A DTO containing the details of the book to be created, including title, description, identifiers (ISBNs, Google Book ID, Open Library ID), author information, publication details, and genre names.
    * @returns The created book record, including associated genres and ISBNs.
-   * @throws {@link ConflictException} if a book with the same ISBN, Google Book ID, or Open Library ID already exists.
-   * @throws {@link InternalServerErrorException} if there is an error during S3 upload or database operations.
+   * @throws ConflictException if a book with the same ISBN, Google Book ID, or Open Library ID already exists.
+   * @throws InternalServerErrorException if there is an error during S3 upload or database operations.
    * @remarks The method performs a duplicate check to prevent multiple entries of the same book based on key identifiers. It also ensures that any uploaded images are rolled back (deleted from S3) if the database operation fails, maintaining data integrity between S3 and the database.
    */
   async create(file: UploadedFile | null, createBookDto: CreateBookDto) {
@@ -414,7 +425,7 @@ export class BooksService {
    * @summary Approves a book by setting its approveStatus to true in the database. The method takes the book ID as a parameter and updates the corresponding record. If the book with the given ID does not exist, it throws a NotFoundException. If any other error occurs during the update process, it throws an InternalServerErrorException.
    * @description This method is used to approve a book entry in the database by updating its approveStatus field to true. It first attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while approving the book.
    * @param id - The unique identifier of the book to be approved. This ID is used to locate the specific book record in the database that needs to be updated.
-   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
+   * @throws NotFoundException if the book with the given ID does not exist in the database.
    * @returns The updated book record with approveStatus set to true if the operation is successful. If the book is not found, it returns a NotFoundException. If any other error occurs, it returns an InternalServerErrorException.
    */
   async approve(id: string) {
@@ -440,7 +451,7 @@ export class BooksService {
    * @description This method is used to disapprove a book entry in the database by updating its approveStatus field to false. Similar to the approve method, it attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while disapproving the book.
    * @param id - The unique identifier of the book to be disapproved.
    * @returns The updated book record with approveStatus set to false if the operation is successful.
-   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
+   * @throws NotFoundException if the book with the given ID does not exist in the database.
    */
   async disapprove(id: string) {
     try {
@@ -585,26 +596,30 @@ export class BooksService {
    * @returns A promise resolving to an object containing the list of genres and pagination metadata. The genres are returned based on the applied search and sorting criteria, and the metadata provides information about the total number of genres, current page, last page, and navigation availability for next and previous pages.
    * @remarks The method includes error handling to catch and log any issues that arise during the database query process, ensuring that the application can gracefully handle errors and provide informative feedback to the client.
    */
-  async findAll(query: PaginationDto) {
+  async findAll(query: PaginationDto, admin: boolean, userId: string) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {};
+    if (!admin) {
+      whereCondition.approveStatus = true;
+    }
+
     if (search) {
-      whereCondition.name = { contains: search, mode: 'insensitive' };
+      whereCondition.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     let orderBy: any = {};
 
     switch (sortBy) {
-      case 'name':
-        orderBy = { name: sortOrder };
+      case 'title':
+        orderBy = { title: sortOrder };
         break;
       case 'favorites':
         orderBy = { favoritedBy: { _count: sortOrder } };
-        break;
-      case 'booksCount':
-        orderBy = { books: { _count: sortOrder } };
         break;
       case 'createdAt':
         orderBy = { createdAt: sortOrder };
@@ -614,35 +629,60 @@ export class BooksService {
           whereCondition,
           skip,
           limit,
-          sortOrder,
+          sortOrder as 'asc' | 'desc',
+          userId,
         );
       default:
-        orderBy = { name: 'asc' };
+        orderBy = { title: 'asc' };
     }
 
     try {
       const [data, total] = await Promise.all([
-        this.prisma.genres.findMany({
+        this.prisma.book.findMany({
           where: whereCondition,
           skip,
           take: limit,
           orderBy,
           include: {
-            _count: {
+            author: {
+              select: { id: true, name: true },
+            },
+            genres: {
               select: {
-                books: true,
-                favoritedBy: true,
+                genre: { select: { name: true } },
               },
+            },
+            statistics: {
+              select: {
+                averageRating: true,
+                ratingCount: true,
+              },
+            },
+            _count: {
+              select: { favoritedBy: true, comments: true },
+            },
+            favoritedBy: {
+              where: { userId },
             },
           },
         }),
-        this.prisma.genres.count({ where: whereCondition }),
+        this.prisma.book.count({ where: whereCondition }),
       ]);
 
       const lastPage = Math.ceil(total / limit);
 
+      const mappedData = data.map((book) => {
+        const { _count, favoritedBy, ...rest } = book;
+        return {
+          ...rest,
+          commentCount: _count.comments,
+          favoriteCount: _count.favoritedBy,
+          isFavorited: userId ? favoritedBy.length > 0 : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: {
           total,
           page,
@@ -652,9 +692,9 @@ export class BooksService {
         },
       };
     } catch (error) {
-      console.error('Prisma Error in findAll:', error);
+      console.error('Prisma Error in findAll (Books):', error);
       throw new InternalServerErrorException(
-        'Error occurred while fetching genres. Please try again later.',
+        'Error occurred while fetching books. Please try again later.',
       );
     }
   }
@@ -673,18 +713,20 @@ export class BooksService {
     skip: number,
     limit: number,
     sortOrder: 'asc' | 'desc',
+    userId: string,
   ) {
     try {
       const [data, total] = await Promise.all([
         this.prisma.book.findMany({
-          where: {
-            ...whereCondition,
-          },
+          where: whereCondition,
           skip: skip,
           take: limit,
           include: {
             author: {
-              select: { name: true },
+              select: {
+                id: true,
+                name: true,
+              },
             },
             statistics: {
               select: {
@@ -697,22 +739,48 @@ export class BooksService {
                 genre: { select: { name: true } },
               },
             },
-          },
-          orderBy: {
-            statistics: {
-              averageRating: sortOrder,
+            _count: {
+              select: { favoritedBy: true, comments: true },
+            },
+            favoritedBy: {
+              where: { userId },
             },
           },
+          orderBy: [
+            {
+              statistics: {
+                averageRating: sortOrder,
+              },
+            },
+            {
+              title: 'asc',
+            },
+          ],
         }),
         this.prisma.book.count({ where: whereCondition }),
       ]);
 
+      const page = Math.floor(skip / limit) + 1;
+      const lastPage = Math.ceil(total / limit);
+
+      const mappedData = data.map((book) => {
+        const { _count, favoritedBy, ...rest } = book;
+        return {
+          ...rest,
+          commentCount: _count.comments,
+          favoriteCount: _count.favoritedBy,
+          isFavorited: userId ? favoritedBy.length > 0 : false,
+        };
+      });
+
       return {
-        data,
+        data: mappedData,
         meta: {
           total,
-          page: Math.floor(skip / limit) + 1,
-          lastPage: Math.ceil(total / limit),
+          page,
+          lastPage,
+          hasNextPage: page < lastPage,
+          hasPreviousPage: page > 1,
         },
       };
     } catch (error) {
@@ -727,20 +795,91 @@ export class BooksService {
    * @summary Retrieves a single book by its ID.
    * @description This method fetches a book from the database based on the provided ID. It includes related data such as the author's name, genre names, and rating statistics.
    * @param id - The ID of the book to retrieve.
+   * @remarks The method handles errors gracefully by checking for specific error codes to determine if the book was not found and responding with appropriate exceptions. If the book is successfully retrieved, it returns the complete details of the book along with its related data.
    * @returns A promise resolving to the book details or an error if the book is not found.
-   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
-   * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
+   * @throws NotFoundException if the book with the given ID does not exist in the database.
+   * @throws InternalServerErrorException if an error occurs while fetching the book details.
    */
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
+    console.log(`Fetching book with ID: ${id} for user: ${userId}`);
     try {
-      return await this.prisma.book.findUniqueOrThrow({
-        where: { id },
+      let res = await this.prisma.book.findUniqueOrThrow({
+        where: { id: id },
+        include: {
+          _count: {
+            select: { favoritedBy: true },
+          },
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+          statistics: true,
+          favoritedBy: {
+            where: {
+              userId: userId,
+            },
+          },
+          comments: {
+            include: {
+              user: true,
+              votes: {
+                where: { userId: userId },
+              },
+              _count: {
+                select: { votes: true },
+              },
+            },
+          },
+          ratings: {
+            where: { userId: userId },
+          },
+        },
+      });
+
+      console.log('Book found:', res.favoritedBy);
+      const formattedBook = {
+        ...res,
+        isLikedByMe: res.favoritedBy.length > 0,
+        comments: res.comments.map((comment) => ({
+          ...comment,
+          isLikedByMe: comment.votes.length > 0,
+          likeCount: comment._count?.votes || 0,
+        })),
+      };
+
+      let similarBooks = await this.prisma.book.findMany({
+        where: {
+          AND: [
+            { id: { not: id } },
+            { approveStatus: true },
+            {
+              genres: {
+                some: { genreId: { in: res.genres.map((g) => g.genreId) } },
+              },
+            },
+          ],
+        },
         include: {
           isbns: true,
           genres: { include: { genre: true } },
           author: true,
+          statistics: true,
         },
       });
+
+      similarBooks.sort((a, b) => {
+        const commonA = a.genres.filter((g) =>
+          res.genres.some((rg) => rg.genreId === g.genreId),
+        ).length;
+        const commonB = b.genres.filter((g) =>
+          res.genres.some((rg) => rg.genreId === g.genreId),
+        ).length;
+        return commonB - commonA;
+      });
+
+      return {
+        foundBook: formattedBook,
+        similarBooks: similarBooks.slice(0, 15),
+      };
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(
@@ -758,8 +897,8 @@ export class BooksService {
    * @description This method is designed to fetch a book's details based on its ISBN number. It queries the database for a unique record matching the provided ISBN and includes related information such as the author's name, genre names, and rating statistics. The method handles errors gracefully by checking for specific error codes to determine if the book was not found and responding with appropriate exceptions. If the book is successfully retrieved, it returns the complete details of the book along with its related data.
    * @param isbn - The ISBN number of the book to retrieve. The method will clean the ISBN by removing any hyphens or spaces before processing.
    * @returns A promise resolving to the book details or an error if the book is not found.
-   * @throws {@link NotFoundException} if the book with the given ISBN does not exist in the database.
-   * @throws {@link InternalServerErrorException} if an error occurs while fetching the book details.
+   * @throws NotFoundException if the book with the given ISBN does not exist in the database.
+   * @throws InternalServerErrorException if an error occurs while fetching the book details.
    */
   async findOneByIsbn(isbn: string) {
     try {
@@ -797,9 +936,9 @@ export class BooksService {
    * @param file - The uploaded cover image file, if applicable.
    * @param updateBookDto - The data transfer object containing the updated book details.
    * @returns A promise resolving to the updated book information or an error if the update fails.
-   * @throws {@link NotFoundException} if the book with the given ID does not exist in the database.
-   * @throws {@link ConflictException} if the provided identifiers (ISBN, Google ID, or Open Library ID) are already associated with another book.
-   * @throws {@link InternalServerErrorException} if an error occurs while updating the book details or managing images in S3.
+   * @throws NotFoundException if the book with the given ID does not exist in the database.
+   * @throws ConflictException if the provided identifiers (ISBN, Google ID, or Open Library ID) are already associated with another book.
+   * @throws InternalServerErrorException if an error occurs while updating the book details or managing images in S3.
    */
   async update(
     id: string,
@@ -937,8 +1076,8 @@ export class BooksService {
    * @summary Deletes a book from the database and its associated images from S3. The method first retrieves the book's image keys, then deletes the book record from the database, and finally attempts to delete the images from S3. It handles potential errors during both the database deletion and the S3 deletion processes, ensuring that appropriate exceptions are thrown if issues arise.
    * @description This method is responsible for removing a book from the database and its associated cover images from S3. It first retrieves the book's smaller and bigger cover image keys to ensure that it has the necessary information to delete the images after the book record is removed. It then attempts to delete the book record from the database, handling any potential errors that may occur during this process, such as the book not existing. After successfully deleting the book record, it proceeds to delete the associated images from S3 using the retrieved keys. If any errors occur during the S3 deletion process, it logs the error and throws an InternalServerErrorException to indicate that there was an issue while deleting the images.
    * @param id - The unique identifier of the book to be deleted. This ID is used to locate the specific book record in the database and retrieve its associated image keys for deletion from S3.
-   * @throws {@link ConflictException} if the book with the given ID does not exist in the database.
-   * @throws {@link InternalServerErrorException} if an error occurs while deleting the book record from the database or while deleting the images from S3.
+   * @throws ConflictException if the book with the given ID does not exist in the database.
+   * @throws InternalServerErrorException if an error occurs while deleting the book record from the database or while deleting the images from S3.
    * @returns A promise resolving to an object containing a success message and the deleted book's information.
    */
   async remove(id: string) {
@@ -984,7 +1123,7 @@ export class BooksService {
    * @description This method compiles various sections of books to be displayed on the main page of the application. It fetches different sets of books based on specific criteria, such as the most recently added books, the highest-rated books according to user ratings, shorter books that can be read quickly, books suitable for weekend reading, a spotlight on a random genre with handpicked essentials, books that have multiple editions indicating their popularity and longevity, and classic books that have stood the test of time. Each section is structured with a title, a subtitle that provides context for the category, and the corresponding list of books that meet the criteria for that section.
    * @returns A promise resolving to an array of curated book sections. Each section contains a title, subtitle, and a list of books that fit the specific criteria for that category. The sections include Latest Added, Crowd Favorites, Short & Sweet, Weekend Reads, Genre Spotlights, Multi-Edition Hits, and Oldies but Goldies.
    * @remarks The method includes error handling to ensure that any issues encountered while fetching the different sets of books are properly logged and handled, allowing the application to gracefully manage errors and provide a consistent user experience on the main page. It also utilizes helper methods to fetch books for each specific category, ensuring that the logic for retrieving books is organized and maintainable.
-   * @throws {@link InternalServerErrorException} if an error occurs while fetching any of the book sections for the main page. Each helper method responsible for fetching a specific category of books includes its own error handling to ensure that issues are properly logged and managed.
+   * @throws InternalServerErrorException if an error occurs while fetching any of the book sections for the main page. Each helper method responsible for fetching a specific category of books includes its own error handling to ensure that issues are properly logged and managed.
    */
   async getMainPageBooksWithSections() {
     const LatestBooks = await this.getLatestAddedBooks();
@@ -1073,6 +1212,7 @@ export class BooksService {
   /**
    * @summary Retrieves the crowd favorite books based on their average rating, limited to the top 15 entries. The method includes related data such as statistics, comments, and genres for each book.
    * @description This method fetches the books that are considered crowd favorites by ordering them based on their average rating in descending order. It limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are sorted to highlight the most popular titles according to user ratings.
+   *  @param take The number of books to retrieve. The method will return up to this number of entries, ordered by their average rating in descending order to ensure that the most popular titles are displayed first.
    * @returns A promise resolving to an array of the top 15 crowd favorite books, each including its statistics, comments, and genres. The method ensures that only approved books are retrieved and that the results are ordered by average rating in descending order.
    */
   async getCrowdFavorites(take: number = 15) {
@@ -1117,6 +1257,7 @@ export class BooksService {
   /**
    * @summary Retrieves books that are considered "Short & Sweet" based on their page number, limited to those with 100 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
    * @description This method fetches books that are categorized as "Short & Sweet" by filtering them based on their page number, specifically those that have 100 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight shorter reads that can be enjoyed quickly.
+   *  @param take The number of books to retrieve.
    * @returns A promise resolving to an array of "Short & Sweet" books, each including its statistics, comments, and genres.
    */
   async getShortAndSweet(take: number = 15) {
@@ -1156,7 +1297,8 @@ export class BooksService {
   /**
    * @summary Retrieves books that are suitable for "Weekend Reads" based on their page number, limited to those with 250 pages or fewer. The method includes related data such as statistics, comments, and genres for each book.
    *  @description This method fetches books that are categorized as "Weekend Reads" by filtering them based on their page number, specifically those that have 250 pages or fewer. It limits the results to entries that meet this criterion and includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method ensures that only approved books are retrieved and that the results are filtered to highlight reads that can be comfortably enjoyed over a weekend.
-   *  @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
+   *  @param take The number of books to retrieve.
+   * @returns A promise resolving to an array of "Weekend Reads" books, each including its statistics, comments, and genres.
    */
   async getWeekendReads(take: number = 15) {
     try {
@@ -1238,7 +1380,7 @@ export class BooksService {
    * @param genre The genre for which to retrieve books. The genre is used to determine the relevant keywords for filtering the books in the database query.
    * @param take The number of books to retrieve.
    * @returns A list of books that fit the genre criteria, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
-   * @throws {@link InternalServerErrorException} if an error occurs while fetching the books for the specified genre. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
+   * @throws InternalServerErrorException if an error occurs while fetching the books for the specified genre. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
    */
   async getBooksByASpecificGenre(genre: GenreType, take: number = 15) {
     const genreFilters: Record<GenreType, any> = {
@@ -1249,7 +1391,7 @@ export class BooksService {
       fantasy: { keywords: ['magic', 'fantasy'] },
       thriller: { keywords: ['thriller', 'horror'] },
       'social-science': { keywords: ['economics', 'politic', 'business'] },
-      'just-science': { keywords: ['science'], exclude: ['fiction'] },
+      'just-science': { keywords: ['science'] },
     };
 
     const config = genreFilters[genre];
@@ -1369,6 +1511,116 @@ export class BooksService {
     } catch (error) {
       throw new InternalServerErrorException(
         'Error during getting oldies but goldies books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Searches for books, authors, and genres based on a query string. The method performs a case-insensitive search for the query in book titles and descriptions, author names, and genre names. It returns a structured response containing the matching books, authors, and genres, along with related information such as statistics, comments, and associated genres for each book.
+   * @description This method allows users to search for books, authors, and genres using a query string. It performs a case-insensitive search across multiple fields, including book titles and descriptions, author names, and genre names. The method retrieves matching books along with their statistics, comments, and associated genres, as well as matching authors with their names and associated books, and matching genres with their names and associated books. The results are structured in a way that provides comprehensive information about the search results while ensuring that any errors encountered during the search process are properly handled and logged.
+   * @param query The search query string.
+   * @param take The number of results to return.
+   * @param userId The ID of the user performing the search, used to determine if the user has favorited any of the matching books.
+   * @remarks The method includes error handling to catch and log any issues that arise during the search process, ensuring that the application can gracefully handle errors and provide informative feedback to the client if there are issues while performing the search. It also ensures that the search results are relevant and comprehensive by including related information for each matching book, author, and genre.
+   * @returns A structured response containing the matching books, authors, and genres. Each book includes its statistics, comments, and associated genres, while each author includes their name and associated books, and each genre includes its name and associated books.
+   * @throws InternalServerErrorException if an error occurs during the search process. The method includes error handling to ensure that any issues encountered while querying the database are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues during the search.
+   */
+  async searchforEverything(query: string, take: number = 10, userId: string) {
+    try {
+      const books = await this.prisma.book.findMany({
+        where: {
+          AND: [
+            { approveStatus: true },
+            {
+              OR: [
+                { title: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } },
+                {
+                  isbns: {
+                    some: {
+                      isbnNumber: { equals: query, mode: 'insensitive' },
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        take: take,
+        include: {
+          favoritedBy: {
+            where: {
+              userId: userId,
+            },
+          },
+          author: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        omit: {
+          smallerCoverPicKey: true,
+          biggerCoverPicKey: true,
+        },
+      });
+
+      const authors = await this.prisma.author.findMany({
+        where: {
+          name: { contains: query, mode: 'insensitive' },
+        },
+        take: take,
+        include: {
+          favoritedBy: {
+            where: {
+              userId: userId,
+            },
+          },
+        },
+      });
+
+      const genres = await this.prisma.genres.findMany({
+        where: {
+          name: { contains: query, mode: 'insensitive' },
+        },
+        take: take,
+      });
+
+      return { books: books, authors: authors, genres: genres };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during searching for everything.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves a random book from the database that has been approved for display. The method counts the total number of approved books, generates a random index, and fetches a single book based on that index. It includes related data such as statistics, comments, genres, and ISBNs for the randomly selected book.
+   * @description This method is designed to provide users with a random book recommendation. It first counts the total number of books in the database that have been approved for display, then generates a random index within that count. Using this index, it retrieves a single book from the database, ensuring that the book is approved and includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. The method handles any potential errors that may occur during the database query process, ensuring that appropriate exceptions are thrown if issues arise while fetching the random book.
+   * @returns A promise resolving to the randomly selected book. The book includes its statistics, comments, genres, and ISBNs.
+   * @throws InternalServerErrorException if an error occurs while fetching the random book from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while retrieving the random book.
+   */
+  async findRandom() {
+    const count = await this.prisma.book.count();
+    const skip = Math.floor(Math.random() * count);
+    try {
+      let res = await this.prisma.book.findFirst({
+        skip: skip,
+        take: 1,
+        where: {
+          approveStatus: true,
+        },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+          statistics: true,
+        },
+      });
+      return res;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during finding a random book.',
       );
     }
   }
