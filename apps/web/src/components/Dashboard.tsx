@@ -7,13 +7,13 @@
  * File: src/components/Dashboard.tsx
  * Route: /
  * Protected: Yes (SessionAuth wrapper in src/App.tsx)
- * 
+ *
  * Purpose:
  * - Main landing page after user login
  * - Display user information and session data
  * - Role-based access control
  * - Navigation to other features
- * 
+ *
  * Key Features:
  * Display user ID, email, and roles
  * Fetch user data from backend (/user/me)
@@ -23,7 +23,7 @@
  * \n * Related Files:
  * 		src/components/Dashboard.css - Styling\n * → src/App.tsx (line ~102) - Route definition
  * \n * Backend API Calls:\n * GET http://localhost:3000/user/me\n * PATCH http://localhost:3000/user/me-the-first-time\n * \n * See: COMPONENT_GUIDE.md → Dashboard Component\n * ================================================================\n */
- import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { signOut } from "supertokens-auth-react/recipe/session";
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import "./css/Dashboard.css";
@@ -93,7 +93,7 @@ export default function Dashboard() {
 					method: "PATCH",
 					credentials: "include",
 					body: form,
-				}
+				},
 			);
 			const data = await response.json();
 			console.log("Update first time response:", data);

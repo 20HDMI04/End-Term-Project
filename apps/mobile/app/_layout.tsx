@@ -1,20 +1,12 @@
-console.log("[_layout] Module loading started");
-
 import {
 	DarkTheme,
 	DefaultTheme,
 	ThemeProvider,
 } from "@react-navigation/native";
-console.log("[_layout] @react-navigation/native loaded");
-
 import { Colors } from "@/constants/theme";
 import { Stack, useRouter, useSegments } from "expo-router";
-console.log("[_layout] expo-router loaded");
-
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-console.log("[_layout] react-native-reanimated loaded");
-
 import { StrictMode, useEffect, useState } from "react";
 import {
 	Poppins_300Light,
@@ -25,19 +17,20 @@ import { useFonts } from "expo-font";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { initSuperTokens } from "../config/supertokens.config";
 import * as SplashScreenRN from "expo-splash-screen";
-console.log("[_layout] Basic imports done");
-
 import AnimatedSplashScreen from "@/components/splash-screen";
-console.log("[_layout] splash-screen loaded (lottie-react-native)");
-
 import { AppHeader } from "@/components/AppHeader";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-console.log("[_layout] AuthContext loaded (supertokens-react-native)");
-
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-console.log("[_layout] GoogleSignin loaded");
-
 import { ApiProvider, useApi } from "@/contexts/ApiContext";
+import { ToastProvider } from "@/contexts/ToastContext";
+import { View } from "react-native";
+import { StyleSheet } from "react-native";
+import { Gesture, GestureHandlerRootView } from "react-native-gesture-handler";
+import UniversalSearch, {
+	UniversalSearchRef,
+} from "@/components/UniversalSearchForISBN";
+import { useRef } from "react";
+import UniversalSearchForISBN from "@/components/UniversalSearchForISBN";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -65,6 +58,7 @@ function RootLayoutNav() {
 	const segments = useSegments();
 	const router = useRouter();
 	const [isNavigationReady, setIsNavigationReady] = useState(false);
+	const searchRef = useRef<UniversalSearchRef>(null);
 
 	useEffect(() => {
 		setIsNavigationReady(true);
@@ -98,26 +92,47 @@ function RootLayoutNav() {
 	}, [authState.isAuthenticated]);
 
 	return (
-		<Stack
-			screenOptions={{
-				headerShown: true,
-				animation: "none",
-				header: (props) => <AppHeader {...props} />,
-			}}
-		>
-			<Stack.Screen name="index" options={{ headerShown: true }} />
-			<Stack.Screen
-				name="(authentication)/auth"
-				options={{ headerShown: false }}
-			/>
-			<Stack.Screen name="(tabs)" options={{ headerShown: true }} />
-		</Stack>
+		<>
+			<Stack
+				screenOptions={{
+					headerShown: false,
+					animation: "fade",
+				}}
+			>
+				<Stack.Screen name="index" options={{ headerShown: false }} />
+				<Stack.Screen
+					name="(authentication)/auth"
+					options={{ headerShown: false }}
+				/>
+				<Stack.Screen
+					name="(tabs)"
+					options={{
+						headerShown: true,
+						header: (props) => (
+							<AppHeader
+								onSearchPress={(query) =>
+									searchRef.current?.openWithQuery(query)
+								}
+								{...props}
+							/>
+						),
+					}}
+				/>
+			</Stack>
+			<View>
+				<UniversalSearchForISBN
+					ref={searchRef}
+					isDarkMode={useColorScheme() === "dark"}
+				/>
+			</View>
+		</>
 	);
 }
 
 export default function RootLayout() {
 	const colorScheme = useColorScheme();
 	const [appIsReady, setAppIsReady] = useState(false);
+	const searchRef = useRef<UniversalSearchRef>(null);
 
 	const [fontsLoaded, fontError] = useFonts({
 		modern_no_20_regular: require("../assets/fonts/modern_no_20_regular.otf"),
@@ -147,19 +162,28 @@ export default function RootLayout() {
 	};
 
 	return (
-		<AuthProvider>
-			<ApiProvider>
-				<ThemeProvider
-					value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-				>
-					{!appIsReady ? (
-						<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
-					) : (
-						<RootLayoutNav />
-					)}
-					<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-				</ThemeProvider>
-			</ApiProvider>
-		</AuthProvider>
+		<GestureHandlerRootView>
+			<AuthProvider>
+				<ApiProvider>
+					<ThemeProvider
+						value={
+							colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme
+						}
+					>
+						<ToastProvider>
+							<RootLayoutNav />
+
+							{!appIsReady && (
+								<View style={StyleSheet.absoluteFill}>
+									<AnimatedSplashScreen onFinish={() => setAppIsReady(true)} />
+								</View>
+							)}
+
+							<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+						</ToastProvider>
+					</ThemeProvider>
+				</ApiProvider>
+			</AuthProvider>
+		</GestureHandlerRootView>
 	);
 }

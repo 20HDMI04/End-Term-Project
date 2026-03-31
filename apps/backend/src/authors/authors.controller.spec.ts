@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthorsController } from './authors.controller';
 import { AuthorsService } from './authors.service';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('AuthorsController', () => {
   let controller: AuthorsController;

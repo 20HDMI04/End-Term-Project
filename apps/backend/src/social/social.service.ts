@@ -23,7 +23,7 @@ export class SocialService {
    * @description Retrieves a list of comments associated with a given book ID. The comments are ordered by creation date in descending order and include user information such as nickname, email, and smaller profile picture.
      This method is used to display the comments section for a book, allowing users to see what others have said about the book.
    * @param bookId - The ID of the book for which to retrieve comments.
-     * @throws {@link InternalServerErrorException} - If there is an error while retrieving comments from the database.
+     * @throws InternalServerErrorException - If there is an error while retrieving comments from the database.
    * @returns A list of comments associated with the given book ID. Each comment includes the text of the comment, the creation date, and user information (nickname, email, smaller profile picture).
    */
   async findComments(bookId: string) {
@@ -61,8 +61,8 @@ export class SocialService {
    * @param createCommentDto - An object containing the text of the comment to be created.
    * @param userId - The ID of the user creating the comment. This is typically extracted from the session or authentication token.
    * @param bookId - The ID of the book for which the comment is being created.
-   * @throws {@link InternalServerErrorException} - If there is an error while creating the comment in the database.
-   * @throws {@link NotFoundException} - If the specified book does not exist in the database.
+   * @throws InternalServerErrorException - If there is an error while creating the comment in the database.
+   * @throws NotFoundException - If the specified book does not exist in the database.
    * @returns A promise resolving to the created comment.
    * @remarks This method also updates the book statistics by incrementing the review count for the associated book. If the specified book does not exist, a NotFoundException is thrown. If there is an error while creating the comment, an InternalServerErrorException is thrown.
    */
@@ -82,6 +82,15 @@ export class SocialService {
           text: createCommentDto.text,
           userId: userId,
           bookId: bookId,
+        },
+        include: {
+          user: {
+            select: {
+              biggerProfilePic: true,
+              smallerProfilePic: true,
+              nickname: true,
+            },
+          },
         },
       });
       await this.prisma.bookStatistics.update({
@@ -109,9 +118,9 @@ export class SocialService {
    * @description Updates the text of an existing comment identified by its ID. The new text for the comment is provided in the request body. This method allows users to edit their comments after they have been created, enabling them to correct mistakes or update their opinions.
    * @param commentId - The ID of the comment to be updated.
    * @param updateCommentDto - An object containing the new text for the comment. The text must be between 1 and 500 characters long.
-   * @throws {@link NotFoundException} - If the specified comment does not exist in the database.
-   * @throws {@link InternalServerErrorException} - If there is an error while updating the comment in the database.
-   * @throws {@link ForbiddenException} - If the user is not the owner of the comment.
+   * @throws NotFoundException - If the specified comment does not exist in the database.
+   * @throws InternalServerErrorException - If there is an error while updating the comment in the database.
+   * @throws ForbiddenException - If the user is not the owner of the comment.
    * @returns A promise resolving to the updated comment.
    */
   async updateComment(
@@ -149,9 +158,9 @@ export class SocialService {
    * @summary Delete a specific comment
    * @description Deletes an existing comment identified by its ID. This method allows users to remove their comments if they no longer wish to have them displayed, or if they want to delete inappropriate content.
    * @param commentId - The ID of the comment to be deleted.
-   * @throws {@link NotFoundException} - If the specified comment does not exist in the database.
-   * @throws {@link InternalServerErrorException} - If there is an error while deleting the comment from the database.
-   * @throws {@link ForbiddenException} - If the user is not the owner of the comment.
+   * @throws NotFoundException - If the specified comment does not exist in the database.
+   * @throws InternalServerErrorException - If there is an error while deleting the comment from the database.
+   * @throws ForbiddenException - If the user is not the owner of the comment.
    * @returns - A promise resolving to the deleted comment.
    * @remarks This method also updates the book statistics by decrementing the review count for the associated book. If the specified comment does not exist, a NotFoundException is thrown. If the user is not the owner of the comment, a ForbiddenException is thrown. If there is an error while deleting the comment, an InternalServerErrorException is thrown.
    */
@@ -196,9 +205,9 @@ export class SocialService {
    * @param commentId - The ID of the comment for which to create a like.
    * @param userId - The ID of the user creating the like.
    * @returns A promise resolving to the created like.
-   * @throws {@link NotFoundException} - If the specified comment does not exist in the database.
-   * @throws {@link BadRequestException} - If the like already exists.
-   * @throws {@link InternalServerErrorException} - If there is an error while creating the like in the database.
+   * @throws NotFoundException - If the specified comment does not exist in the database.
+   * @throws BadRequestException - If the like already exists.
+   * @throws InternalServerErrorException - If there is an error while creating the like in the database.
    */
   async createLike(commentId: string, userId: string) {
     try {
@@ -233,8 +242,8 @@ export class SocialService {
    * @param commentId - The ID of the comment for which to delete the like.
    * @param userId - The ID of the user deleting the like.
    * @returns A promise resolving to the deleted like.
-   * @throws {@link NotFoundException} - If the specified like does not exist in the database.
-   * @throws {@link InternalServerErrorException} - If there is an error while deleting the like from the database.
+   * @throws NotFoundException - If the specified like does not exist in the database.
+   * @throws InternalServerErrorException - If there is an error while deleting the like from the database.
    */
   async deleteLike(commentId: string, userId: string) {
     try {
@@ -270,8 +279,8 @@ export class SocialService {
    * @param bookId - The ID of the book that the user has read.
    * @param userId - The ID of the user who has read the book.
    * @returns A promise resolving to the created record indicating that the user has read the book.
-   * @throws {@link NotFoundException} - If the specified book does not exist in the database.
-   * @throws {@link InternalServerErrorException} - If there is an error while creating the record in the database.
+   * @throws NotFoundException - If the specified book does not exist in the database.
+   * @throws InternalServerErrorException - If there is an error while creating the record in the database.
    */
   async haveReadTheBook(bookId: string, userId: string) {
     try {
@@ -328,7 +337,7 @@ export class SocialService {
    * @param bookId - The ID of the book that the user likes.
    * @param userId - The ID of the user who likes the book.
    * @returns A promise resolving to the created record indicating that the user likes the book.
-   * @throws {@link InternalServerErrorException} - If there is an error while creating the record in the database.
+   * @throws InternalServerErrorException - If there is an error while creating the record in the database.
    */
   async likingBook(bookId: string, userId: string) {
     try {
@@ -369,7 +378,7 @@ export class SocialService {
    * @param bookId - The ID of the book that the user wants to unlike.
    * @param userId - The ID of the user who wants to unlike the book.
    * @returns A promise resolving to the deleted record indicating that the user no longer likes the book.
-   * @throws {@link InternalServerErrorException} - If there is an error while deleting the record from the database.
+   * @throws InternalServerErrorException - If there is an error while deleting the record from the database.
    */
   async unlikingBook(bookId: string, userId: string) {
     try {
@@ -407,7 +416,7 @@ export class SocialService {
    * @param authorId - The ID of the author that the user likes.
    * @param userId - The ID of the user who likes the author.
    * @returns A promise resolving to the created record indicating that the user likes the author.
-   * @throws {@link InternalServerErrorException} - If there is an error while creating the record in the database.
+   * @throws InternalServerErrorException - If there is an error while creating the record in the database.
    */
   async likeAuthor(authorId: string, userId: string) {
     try {
@@ -438,7 +447,7 @@ export class SocialService {
    * @param authorId - The ID of the author that the user wants to unlike.
    * @param userId - The ID of the user who wants to unlike the author.
    * @returns A promise resolving to the deleted record indicating that the user no longer likes the author.
-   * @throws {@link InternalServerErrorException} - If there is an error while deleting the record from the database.
+   * @throws InternalServerErrorException - If there is an error while deleting the record from the database.
    */
   async unlikeAuthor(authorId: string, userId: string) {
     try {
@@ -467,7 +476,7 @@ export class SocialService {
    * @param userId - The ID of the user who is rating the book.
    * @param createRatingDto - The DTO containing the rating score.
    * @returns A promise resolving to the created rating record.
-   * @throws {@link InternalServerErrorException} - If there is an error while creating the rating record in the database.
+   * @throws InternalServerErrorException - If there is an error while creating the rating record in the database.
    */
   async rateBook(
     bookId: string,
@@ -533,8 +542,8 @@ export class SocialService {
    * @param userId - The ID of the user who is updating the rating.
    * @param updateRatingDto - The DTO containing the new rating score.
    * @returns A promise resolving to the updated rating record.
-   * @throws {@link InternalServerErrorException} - If there is an error while updating the rating record in the database.
-   * @throws {@link NotFoundException} - If the specified book or rating does not exist in the database.
+   * @throws InternalServerErrorException - If there is an error while updating the rating record in the database.
+   * @throws NotFoundException - If the specified book or rating does not exist in the database.
    */
   async updateRateBook(
     bookId: string,

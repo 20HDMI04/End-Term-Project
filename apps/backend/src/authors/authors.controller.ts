@@ -12,6 +12,8 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthorsService } from './authors.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
@@ -36,6 +38,7 @@ import {
   ApiNotFoundResponse,
   ApiBadRequestResponse,
 } from '@nestjs/swagger';
+import { Session } from 'src/auth/session.decorator';
 
 @ApiTags('Authors')
 @Controller('authors')
@@ -134,8 +137,9 @@ export class AuthorsController {
     type: PaginationDto,
   })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
-  findPendingApprovals(@Query() query: PaginationDto) {
-    return this.authorsService.findAll(query, true);
+  findPendingApprovals(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findAll(query, true, userId);
   }
 
   @Get()
@@ -163,8 +167,10 @@ export class AuthorsController {
     isArray: true,
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findAll(@Query() query: PaginationDto) {
-    return this.authorsService.findAll(query, false);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  findAll(@Query() query: PaginationDto, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findAll(query, false, userId);
   }
 
   @Get('stats')
@@ -255,8 +261,9 @@ export class AuthorsController {
     description: 'Successful retrieval of an author by ID.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findOne(@Param('id') id: string) {
-    return this.authorsService.findOne(id);
+  findOne(@Param('id') id: string, @Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    return this.authorsService.findOne(id, userId);
   }
 
   @Patch(':id')

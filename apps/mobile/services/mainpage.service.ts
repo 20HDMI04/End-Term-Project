@@ -55,4 +55,16 @@ export const MainPageService = {
 			console.error("Error fetching main page data:", error);
 		}
 	},
+
+	//GET /books/search?query=xxx&take=10
+	async searchForEverything(query: string, take: number) {
+		try {
+			const response = await apiClient.get("/books/search", {
+				params: { query, take },
+			});
+			return response.data;
+		} catch (error) {
+			console.error("Error searching for everything:", error);
+		}
+	},
 };
