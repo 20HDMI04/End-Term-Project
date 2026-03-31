@@ -38,6 +38,14 @@
  * See: WEB_DOCUMENTATION.md → Discover Component section
  * ================================================================
  */
+import "./css/Discover.css"
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from "../context/darkmodeContext";
+
+
+
+export function Discover() {
+    const { theme, toggleTheme } = useTheme();
 import "./css/discover.css"
 import "bootstrap/dist/css/bootstrap.css";
 import { useEffect, useState } from "react";
@@ -75,6 +83,56 @@ export function Discover() {
     return (
         <div className="home-container">
             {/* Navbar */}
+            <nav className="navbar navbar-expand-lg">
+                <div className="container-fluid">
+                    <img
+                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                        alt="logo"
+                        className="logo"
+                    />
+
+                    <div className="navbar-content">
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <a className="nav-link" href="/">Home</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/search">Search</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/discover">Discover</a>
+                            </li>
+                        </ul>
+
+                        <div className="navbar-right">
+                            <button
+                                className="Darkmode-changer"
+                                onClick={toggleTheme}
+                                aria-label="Toggle color scheme"
+                            >
+                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+                                    <IconSun size={20} stroke={2} />
+                                </span>
+                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+                                    <IconMoon size={20} stroke={2} />
+                                </span>
+                            </button>
+
+                            <a href="/profile">
+                                <img
+                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    alt="profile"
+                                    className="profile-pic"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <header className="header">
+
+            </header>
 			<nav className="navbar navbar-expand-lg">
 				<div className="container-fluid">
 					<div className="collapse navbar-collapse" id="navbarNavDropdown">

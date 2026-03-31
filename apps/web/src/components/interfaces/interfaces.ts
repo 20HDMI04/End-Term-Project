@@ -56,6 +56,7 @@ export interface Author {
 export interface Book {
  approveStatus: boolean;
  authorId: string;
+ author: {name: string;}
  biggerCoverPic: string;
  biggerCoverPicKey: any;
  comments: any[];
