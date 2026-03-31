@@ -353,8 +353,8 @@ export class BooksController {
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   async getSearchPageContent() {
     const searchPageContent = {
-      author: await this.authorsService.getSearchAuthorContent(),
-      book: await this.booksService.getSearchPageContent(),
+      authors: await this.authorsService.getSearchAuthorContent(),
+      books: await this.booksService.getSearchPageContent(),
     };
     return searchPageContent;
   }
@@ -378,8 +378,8 @@ export class BooksController {
   async getDiscoverPageContent(@Session() session: any) {
     const userId = session.userDataInAccessToken.email;
     const discoverPageContent = {
-      author: await this.authorsService.getDiscoverAuthorsContent(userId),
-      book: await this.booksService.getDiscoverPageContent(userId),
+      authors: await this.authorsService.getDiscoverAuthorsContent(userId),
+      books: await this.booksService.getDiscoverPageContent(userId),
     };
     return discoverPageContent;
   }

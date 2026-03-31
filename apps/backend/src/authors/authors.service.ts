@@ -917,8 +917,7 @@ export class AuthorsService {
     const searchPageContent = [
       {
         title: 'Discover New Authors',
-        subtitle:
-          'Explore a random selection of approved authors from our collection.',
+        subtitle: 'Explore a random selection of authors',
         data: randomAuthors,
       },
     ];

@@ -1671,7 +1671,7 @@ export class BooksService {
     const getSearchPageContent = [
       {
         title: 'Find Your Next Favorite',
-        subtitle: 'Discover books and genres that match your interests.',
+        subtitle: 'Discover books that match your interests.',
         data: randomBooks,
       },
     ];

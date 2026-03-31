@@ -28,6 +28,10 @@ interface ApiProps {
 	getMe: () => Promise<Me | { error: boolean; msg: string }>;
 	getMainPageData: () => Promise<MainPageData>;
 	getMainPageAnyWay: () => Promise<MainPageData>;
+	getDiscoverPageData: () => Promise<MainPageData>;
+	getDiscoverPageDataAnyWay: () => Promise<MainPageData>;
+	getSearchPageData: () => Promise<MainPageData>;
+	getSearchPageDataAnyWay: () => Promise<MainPageData>;
 	searchAuthors: (query: string, page?: number, limit?: number) => Promise<any>;
 	likeAuthor: (authorId: string) => Promise<void>;
 	unlikeAuthor: (authorId: string) => Promise<void>;
@@ -133,6 +137,26 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getSearchPageData = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.fetchSearchPageData();
+			return data;
+		} catch (error) {
+			console.error("Error fetching search page data:", error);
+			throw error;
+		}
+	};
+
+	const getDiscoverPageData = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.fetchDiscoverPageData();
+			return data;
+		} catch (error) {
+			console.error("Error fetching discover page data:", error);
+			throw error;
+		}
+	};
+
 	const getRandomBook = async () => {
 		try {
 			const data = await BooksService.getRandomBooks();
@@ -163,6 +187,26 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 			return data;
 		} catch (error) {
 			console.error("Error fetching main page data:", error);
+			throw error;
+		}
+	};
+
+	const getSearchPageDataAnyWay = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.getSearchPageDataAnyWay();
+			return data;
+		} catch (error) {
+			console.error("Error fetching search page data:", error);
+			throw error;
+		}
+	};
+
+	const getDiscoverPageDataAnyWay = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.getDiscoverPageDataAnyWay();
+			return data;
+		} catch (error) {
+			console.error("Error fetching discover page data:", error);
 			throw error;
 		}
 	};
@@ -344,6 +388,10 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				likeComment,
 				unlikeComment,
 				searchEverything,
+				getDiscoverPageData,
+				getDiscoverPageDataAnyWay,
+				getSearchPageData,
+				getSearchPageDataAnyWay,
 			}}
 		>
 			{children}
