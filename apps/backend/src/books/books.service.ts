@@ -16,6 +16,8 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { ExternalBookResponse } from './interfaces/externalBook';
 import { PaginationDto } from './dto/pagination-book.dto';
+import { AuthorsService } from 'src/authors/authors.service';
+import { title } from 'process';
 
 export type GenreType =
   | 'history'
@@ -1622,6 +1624,412 @@ export class BooksService {
       throw new InternalServerErrorException(
         'Error during finding a random book.',
       );
+    }
+  }
+
+  /**
+   * @summary Retrieves a specified number of random books from the database that have been approved for display. The method counts the total number of approved books, generates a random index, and fetches a set of books based on that index and the specified number of entries to retrieve. It includes related data such as statistics, comments, genres, and ISBNs for each randomly selected book.
+   * @description This method provides users with a selection of random book recommendations. It first counts the total number of books in the database that have been approved for display, then generates a random index within that count. Using this index, it retrieves a set of books from the database, ensuring that the books are approved and include related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. The method handles any potential errors that may occur during the database query process, ensuring that appropriate exceptions are thrown if issues arise while fetching the random books.
+   * @param take The number of random books to retrieve. The method will return up to this number of entries based on the randomly generated index.
+   * @returns A promise resolving to an array of randomly selected books. Each book includes its statistics, comments, genres, and ISBNs.
+   * @throws InternalServerErrorException if an error occurs while fetching the random books from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while retrieving the random books.
+   */
+  async getRandomBooks(take: number = 15) {
+    try {
+      const count = await this.prisma.book.count({
+        where: { approveStatus: true },
+      });
+      const skip = Math.floor(Math.random() * count);
+      const books = await this.prisma.book.findMany({
+        skip: skip,
+        take: take,
+        where: { approveStatus: true },
+        include: {
+          isbns: true,
+          genres: { include: { genre: true } },
+          author: true,
+          statistics: true,
+        },
+      });
+      return books;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during finding random books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves curated content for the search page, including a section with a title, subtitle, and a list of random books that can help users discover new titles and genres that match their interests. The method fetches a set of random books to be included in the search page content and structures the response to provide an engaging and informative experience for users exploring the search functionality.
+   * @description This method provides curated content for the search page by fetching a set of random books and structuring them into a format suitable for display. It is designed to enhance the user experience by offering a dynamic selection of books that align with their interests.
+   * @returns A promise resolving to an array of objects containing the search page content. Each object includes a title, subtitle, and a list of randomly selected approved books.
+   * @throws InternalServerErrorException if there is an error during the retrieval of random books for the search page content.
+   */
+  async getSearchPageContent() {
+    const randomBooks = await this.getRandomBooks();
+
+    const getSearchPageContent = [
+      {
+        title: 'Find Your Next Favorite',
+        subtitle: 'Discover books and genres that match your interests.',
+        data: randomBooks,
+      },
+    ];
+    return getSearchPageContent;
+  }
+
+  /**
+   * @summary Retrieves curated content for the discover page, including sections based on the user's favorite authors, top-rated books, latest added books, loved books, and a random genre. The method compiles various sections of content tailored to the user's preferences and provides a dynamic and engaging experience for users exploring the discover page.
+   * @description This method fetches various types of book recommendations for the discover page based on the user's preferences and interactions.
+   * @remarks The method includes sections such as "For the Fans of" which highlights books from the user's favorite authors, "Following the Echoes of" which features books similar to those the user has loved, and "More [Genre], Just For You" which offers a selection of books from a randomly selected genre. Each section is structured with a title, subtitle, and a list of books that fit the criteria for that category. The method ensures that the content is personalized and relevant to the user's interests while also providing a diverse range of recommendations to encourage exploration.
+   * @param userId The ID of the user for whom to retrieve the discover page content. The method uses this ID to fetch personalized recommendations based on the user's favorite authors, loved books, and other interactions with the platform.
+   * @returns A promise resolving to an array of objects containing the discover page content. Each object includes a title, subtitle, and a list of books that fit the criteria for that category.
+   */
+  async getDiscoverPageContent(userId: string) {
+    const favoriteAuthorBooks = await this.getUserFavAuthorBooks(userId);
+    const topBookSimilars = await this.getTopRatedBookSimilarBooks();
+    const latestSimilars = await this.getLatestBooksSimilarBooks();
+    const lovedBooksSimilars = await this.getLovedOrRandomSimilarBooks(
+      15,
+      userId,
+    );
+    const lovedBooksSimilars2 = await this.getLovedOrRandomSimilarBooks(
+      15,
+      userId,
+    );
+    const genreBooksSimilars2 =
+      lovedBooksSimilars2.data[0].genres[0].genre.name;
+    const genreType = this.getRandomGenre() as GenreType;
+    const forProd =
+      genreType.charAt(0).toUpperCase() +
+      genreType
+        .slice(1)
+        .replace(/-\w/, (match) => ' ' + match[1].toUpperCase());
+    const randomGenreBooks = await this.getBooksByASpecificGenre(genreType, 15);
+    const discoverPageContent = [
+      {
+        title: 'For the Fans of',
+        subtitle: favoriteAuthorBooks.authorName,
+        data: favoriteAuthorBooks.books,
+        image: favoriteAuthorBooks.authorImage,
+      },
+      {
+        title: `${genreBooksSimilars2} Essentials`,
+        subtitle: 'The defining chapters and timeless voices of the genre.',
+        data: lovedBooksSimilars2.data,
+        image: null,
+      },
+      {
+        title: 'Following the Echoes of',
+        subtitle: lovedBooksSimilars.title,
+        data: lovedBooksSimilars.data,
+        image: lovedBooksSimilars.coverImage,
+      },
+      {
+        title: `More ${forProd}, Just For You`,
+        subtitle: `Explore a curated collection of ${forProd} masterpieces, tailored to your journey.`,
+        data: randomGenreBooks,
+        image: null,
+      },
+      {
+        title: "You'll love",
+        subtitle: latestSimilars.title,
+        data: latestSimilars.data,
+        image: latestSimilars.coverImage,
+      },
+      {
+        title: 'In the Spirit of',
+        subtitle: topBookSimilars.title,
+        data: topBookSimilars.data,
+        image: topBookSimilars.coverImage,
+      },
+    ];
+
+    return discoverPageContent;
+  }
+
+  /**
+   * @summary Retrieves a random author from the user's list of favorite authors. If the user has no favorite authors, it retrieves a random approved author from the database. The method ensures that the returned author is relevant to the user's preferences while also providing a fallback option to ensure that an author is always returned.
+   * @description This method first checks the user's list of favorite authors and retrieves a random author from that list. If the user has no favorite authors, it counts the total number of approved authors in the database, generates a random index, and retrieves a single approved author based on that index. The method includes error handling to manage any issues that may arise during the database queries, ensuring that appropriate exceptions are thrown if there are problems while fetching the random author.
+   * @param userId The ID of the user for whom to retrieve a random favorite author. The method uses this ID to check the user's list of favorite authors and determine whether to return a random author from that list or to fetch a random approved author from the database if the user has no favorites.
+   * @returns A random favorite author or a random approved author if the user has no favorites. Each author includes their ID and any other relevant information as needed.
+   * @throws InternalServerErrorException if an error occurs while retrieving the random author from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching the random author.
+   */
+  async getRandomFavoriteAuthor(userId: string) {
+    try {
+      const favoriteAuthors = await this.prisma.author.findMany({
+        where: { favoritedBy: { some: { userId } } },
+        select: {
+          id: true,
+          name: true,
+          smallerProfilePic: true,
+        },
+      });
+      if (favoriteAuthors.length === 0) {
+        const totalAuthors = await this.prisma.author.count({
+          where: { approveStatus: true },
+        });
+        if (totalAuthors === 0) {
+          throw new InternalServerErrorException(
+            'No approved authors available.',
+          );
+        }
+        const randomIndex = Math.floor(Math.random() * totalAuthors);
+        const author = await this.prisma.author.findMany({
+          where: { approveStatus: true },
+          skip: randomIndex,
+          take: 1,
+          select: {
+            id: true,
+            name: true,
+            smallerProfilePic: true,
+          },
+        });
+        return author[0];
+      }
+      const randomIndex = Math.floor(Math.random() * favoriteAuthors.length);
+      return favoriteAuthors[randomIndex];
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during retrieving random favorite author.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves a random genre name from the user's list of favorite genres. If the user has no favorite genres, it retrieves a random genre name from the database. The method ensures that the returned genre name is relevant to the user's preferences while also providing a fallback option to ensure that a genre name is always returned.
+   * @description This method first checks the user's list of favorite genres by querying the `favoriteBook` table and retrieving the associated genres for the books that the user has favorited. If the user has no favorite genres, it retrieves a random genre from the database. The method includes error handling to manage any issues that may arise during the database queries, ensuring that appropriate exceptions are thrown if there are problems while fetching the random genre name.
+   * @param userId The ID of the user for whom to retrieve favorite genre.
+   * @returns The name of a random favorite genre or a random genre from the database. Each genre includes its name and any other relevant information as needed.
+   * @throws InternalServerErrorException if an error occurs while retrieving the random genre name from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching the random genre name.
+   */
+  async getRandomFavoriteGenreName(userId: string) {
+    try {
+      const favoriteGenres = await this.prisma.favoriteBook.findMany({
+        where: { userId },
+        select: {
+          book: {
+            select: {
+              genres: {
+                select: {
+                  genre: {
+                    select: {
+                      name: true,
+                      id: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      if (favoriteGenres.length === 0) {
+        const randomGenre = await this.prisma.genres.findFirst();
+        return randomGenre?.name;
+      } else {
+        const genres = favoriteGenres.flatMap((fav) =>
+          fav.book.genres.map((bg) => bg.genre),
+        );
+        const uniqueGenres = Array.from(new Set(genres));
+        const randomIndex = Math.floor(Math.random() * uniqueGenres.length);
+        return uniqueGenres[randomIndex].name;
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during retrieving random favorite genre.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books from the user's favorite author. The method first retrieves a random favorite author for the user and then fetches books written by that author that have been approved for display. Each book includes related data such as statistics, comments, genres, and ISBNs. If the user has no favorite authors, it retrieves books from a random approved author instead.
+   * @description This method provides users with book recommendations based on their favorite authors. It first retrieves a random author from the user's list of favorite authors. If the user has no favorite authors, it retrieves a random approved author from the database. Then, it fetches books written by that author that have been approved for display, including related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs for each book. The method includes error handling to manage any issues that may arise during the database queries, ensuring that appropriate exceptions are thrown if there are problems while fetching the books from the user's favorite author.
+   * @param userId The ID of the user for whom to retrieve favorite author books.
+   * @returns A list of books written by the user's favorite author. Each book includes its statistics, comments, genres, and ISBNs. If the user has no favorite authors, the method returns books from a random approved author instead.
+   * @throws InternalServerErrorException if an error occurs while retrieving the books from the user's favorite author. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching the books from the user's favorite author.
+   */
+  async getUserFavAuthorBooks(userId: string) {
+    try {
+      const favouriteAuthorsId = this.getRandomFavoriteAuthor(userId);
+      const books = await this.prisma.book.findMany({
+        where: {
+          authorId: (await favouriteAuthorsId).id,
+          approveStatus: true,
+        },
+        include: {
+          statistics: true,
+          genres: { include: { genre: { select: { name: true } } } },
+          comments: true,
+          isbns: true,
+        },
+      });
+      return {
+        books: books,
+        authorName: (await favouriteAuthorsId).name,
+        authorImage: (await favouriteAuthorsId).smallerProfilePic,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during retrieving user favorite author books.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that are similar to a given book based on shared genres. The method first retrieves the base book and its associated genres, then fetches other approved books that share at least one genre with the base book, excluding the base book itself. Each similar book includes related data such as statistics, comments, and genres.
+   * @param bookId The ID of the book for which to find similar books.
+   * @param take The maximum number of similar books to retrieve.
+   * @returns A list of books that are similar to the given book based on shared genres. Each book includes its statistics, comments, and genres. If the base book is not found, the method throws a NotFoundException.
+   * @throws NotFoundException if the book with the given ID is not found in the database. The method checks for the existence of the base book before attempting to find similar books, ensuring that it provides appropriate feedback if the specified book does not exist.
+   * @throws InternalServerErrorException if an error occurs while retrieving similar books from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching similar books based on shared genres.
+   */
+  async getSimilarBooksByAnotherBook(bookId: string, take: number = 15) {
+    const baseBook = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: {
+        title: true,
+        smallerCoverPicKey: true,
+        genres: {
+          select: {
+            genre: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!baseBook) {
+      throw new NotFoundException('The book with the given ID was not found.');
+    }
+
+    const genreNames = baseBook.genres.map((g) => g.genre.name);
+
+    if (genreNames.length === 0) {
+      return [];
+    }
+    try {
+      return this.prisma.book.findMany({
+        where: {
+          AND: [
+            { id: { not: bookId } },
+            {
+              genres: {
+                some: {
+                  genre: {
+                    name: { in: genreNames },
+                  },
+                },
+              },
+            },
+            { approveStatus: true },
+          ],
+        },
+        include: {
+          author: {
+            select: { name: true },
+          },
+          genres: {
+            include: {
+              genre: true,
+            },
+          },
+          statistics: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: take,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during retrieving similar books by genre name.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that are similar to the top-rated book in the database based on shared genres. The method first identifies the top-rated book by ordering approved books by their average rating in descending order, then fetches other approved books that share at least one genre with the top-rated book, excluding the top-rated book itself. Each similar book includes related data such as statistics, comments, and genres.
+   * @description This method provides users with book recommendations based on the top-rated book in the database. It first identifies the top-rated book by ordering approved books by their average rating in descending order and selecting the first entry. Then, it retrieves books that share at least one genre with the top-rated book, ensuring that the top-rated book itself is excluded from the results. Each similar book includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method handles any potential errors that may arise during the database queries, ensuring that appropriate exceptions are thrown if there are problems while fetching similar books based on shared genres with the top-rated book.
+   * @param take The maximum number of similar books to retrieve. The method will return up to this number of entries based on the shared genres with the top-rated book.
+   * @returns A promise resolving to an object containing the title, cover image, and similar books data.
+   */
+  async getTopRatedBookSimilarBooks(take: number = 15) {
+    const theBestBook = await this.prisma.book.findFirst({
+      where: { approveStatus: true },
+      orderBy: {
+        statistics: {
+          averageRating: 'desc',
+        },
+      },
+      take: 1,
+    });
+    return {
+      title: theBestBook?.title,
+      coverImage: theBestBook?.smallerCoverPicKey,
+      data: theBestBook
+        ? await this.getSimilarBooksByAnotherBook(theBestBook.id, take)
+        : [],
+    };
+  }
+
+  /**
+   * @summary Retrieves books that are similar to the latest approved book in the database based on shared genres. The method first identifies the latest approved book by ordering books by their creation date in descending order, then fetches other approved books that share at least one genre with the latest book, excluding the latest book itself. Each similar book includes related data such as statistics, comments, and genres.
+   * @description This method provides users with book recommendations based on the latest approved book in the database. It first identifies the latest approved book by ordering books by their creation date in descending order and selecting the first entry. Then, it retrieves books that share at least one genre with the latest book, ensuring that the latest book itself is excluded from the results. Each similar book includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method handles any potential errors that may arise during the database queries, ensuring that appropriate exceptions are thrown if there are problems while fetching similar books based on shared genres with the latest approved book.
+   * @param take The maximum number of similar books to retrieve. The method will return up to this number of entries based on the shared genres with the latest approved book.
+   * @returns A promise resolving to an object containing the title, cover image, and similar books data.
+   */
+  async getLatestBooksSimilarBooks(take: number = 15) {
+    const baseBook = await this.prisma.book.findMany({
+      where: { approveStatus: true },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 1,
+    });
+    return {
+      title: baseBook[0].title,
+      coverImage: baseBook[0].smallerCoverPic,
+      data: await this.getSimilarBooksByAnotherBook(baseBook[0].id, take),
+    };
+  }
+
+  /**
+   * @summary Retrieves books that are similar to a random book from the user's list of loved books. If the user has no loved books, it retrieves a random book from the database and finds similar books based on shared genres. Each similar book includes related data such as statistics, comments, and genres.
+   * @description This method provides users with book recommendations based on their loved books. It first retrieves a random book from the user's list of loved books. If the user has no loved books, it retrieves a random approved book from the database. Then, it fetches books that share at least one genre with the selected book, ensuring that the selected book itself is excluded from the results. Each similar book includes related information such as statistics (e.g., average rating, rating count), comments from users, and associated genres with their names. The method handles any potential errors that may arise during the database queries, ensuring that appropriate exceptions are thrown if there are problems while fetching similar books based on shared genres with the randomly selected loved book or random book if the user has no loved books.
+   * @param take The maximum number of similar books to retrieve. The method will return up to this number of entries based on the shared genres with the randomly selected loved book or random book if the user has no loved books.
+   * @param userId The ID of the user for whom to retrieve similar books.
+   * @returns A promise resolving to an object containing the title, cover image, and similar books data. If the user has no loved books, the method returns similar books based on a random book from the database instead.
+   * @throws InternalServerErrorException if an error occurs while retrieving similar books from the database. The method includes error handling to ensure that any issues encountered during the query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching similar books based on shared genres with the randomly selected loved book or random book if the user has no loved books.
+   */
+  async getLovedOrRandomSimilarBooks(take: number = 15, userId: string) {
+    const randomLovedBooksByUser = await this.prisma.book.findMany({
+      where: {
+        favoritedBy: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+    });
+    if (randomLovedBooksByUser.length === 0) {
+      const randomBooks = await this.getRandomBooks(1);
+      return {
+        title: randomBooks[0].title,
+        coverImage: randomBooks[0].smallerCoverPic,
+        data: await this.getSimilarBooksByAnotherBook(randomBooks[0].id, take),
+      };
+    } else {
+      const randomIndex = Math.floor(
+        Math.random() * randomLovedBooksByUser.length,
+      );
+      const randomLovedBook = randomLovedBooksByUser[randomIndex];
+      return {
+        title: randomLovedBook.title,
+        coverImage: randomLovedBook.smallerCoverPic,
+        data: await this.getSimilarBooksByAnotherBook(randomLovedBook.id, take),
+      };
     }
   }
 }
