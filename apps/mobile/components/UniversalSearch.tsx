@@ -42,6 +42,7 @@ import AuthorResultItem from "@/components/homeComponents/AuthorResultComponent"
 import BookResultItem from "@/components/homeComponents/BookResultItem";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { Storage } from "@/utils/storage";
+import { ScrollView } from "react-native-gesture-handler";
 
 const SEARCH_HISTORY_KEY = "@search_history";
 
@@ -439,71 +440,77 @@ const UniversalSearch = ({
 
 						<View style={styles.content}>
 							{renderFilterPills()}
-							{filteredHistory.length > 0 && !loading && !results && (
-								<View style={styles.historySection}>
-									<Text
-										style={[
-											styles.sectionTitle,
-											{ color: theme.textSecondary },
-										]}
-									>
-										Recent Searches
-									</Text>
-									{filteredHistory.map((item, index) => (
-										<TouchableOpacity
-											key={index}
-											style={styles.historyItem}
-											onPress={() => selectHistoryItem(item)}
+							<ScrollView
+								style={{ flex: 1 }}
+								contentContainerStyle={{ paddingBottom: 40 }}
+								showsVerticalScrollIndicator={false}
+							>
+								{filteredHistory.length > 0 && !loading && !results && (
+									<View style={styles.historySection}>
+										<Text
+											style={[
+												styles.sectionTitle,
+												{ color: theme.textSecondary },
+											]}
 										>
-											<Ionicons
-												name="time-outline"
-												size={20}
-												color={theme.textSecondary}
-											/>
-											<Text
-												style={[
-													styles.historyText,
-													{ color: theme.textPrimary },
-												]}
+											Recent Searches
+										</Text>
+										{filteredHistory.map((item, index) => (
+											<TouchableOpacity
+												key={index}
+												style={styles.historyItem}
+												onPress={() => selectHistoryItem(item)}
 											>
-												{item}
-											</Text>
-											<Ionicons
-												name="arrow-up-outline"
-												size={18}
-												color={theme.textSecondary}
-												style={{ transform: [{ rotate: "-45deg" }] }}
+												<Ionicons
+													name="time-outline"
+													size={20}
+													color={theme.textSecondary}
+												/>
+												<Text
+													style={[
+														styles.historyText,
+														{ color: theme.textPrimary },
+													]}
+												>
+													{item}
+												</Text>
+												<Ionicons
+													name="arrow-up-outline"
+													size={18}
+													color={theme.textSecondary}
+													style={{ transform: [{ rotate: "-45deg" }] }}
+												/>
+											</TouchableOpacity>
+										))}
+									</View>
+								)}
+								{previouslyOpened.length > 0 && !loading && !results && (
+									<View style={styles.historySection}>
+										<Text
+											style={[
+												styles.sectionTitle,
+												{ color: theme.textSecondary },
+											]}
+										>
+											Bookmarked Memories
+										</Text>
+										{previouslyOpened.map((book, index) => (
+											<BookResultItem
+												/*@ts-ignore*/
+												item={{
+													...book.foundBook,
+													isFavorited: book.foundBook.isLikedByMe,
+													commentCount: book.foundBook.statistics.reviewCount,
+													favoriteCount:
+														book.foundBook.statistics.wantToReadCount,
+												}}
+												isDarkMode={isDarkMode}
+												onPress={handleBookPress}
 											/>
-										</TouchableOpacity>
-									))}
-								</View>
-							)}
-							{previouslyOpened.length > 0 && !loading && !results && (
-								<View style={styles.historySection}>
-									<Text
-										style={[
-											styles.sectionTitle,
-											{ color: theme.textSecondary },
-										]}
-									>
-										Previously Opened
-									</Text>
-									{previouslyOpened.map((book, index) => (
-										<BookResultItem
-											/*@ts-ignore*/
-											item={{
-												...book.foundBook,
-												isFavorited: book.foundBook.isLikedByMe,
-												commentCount: book.foundBook.statistics.reviewCount,
-												favoriteCount:
-													book.foundBook.statistics.wantToReadCount,
-											}}
-											isDarkMode={isDarkMode}
-											onPress={handleBookPress}
-										/>
-									))}
-								</View>
-							)}
+										))}
+									</View>
+								)}
+							</ScrollView>
 
 							{loading && (
 								<View style={styles.centerContainer}>

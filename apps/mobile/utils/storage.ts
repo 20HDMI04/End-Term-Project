@@ -15,7 +15,6 @@ export const Storage = {
 	clearAllItem: async () => {
 		try {
 			await AsyncStorage.clear();
-			console.log("AsyncStorage successfully cleared.");
 		} catch (e) {
 			console.error("Error occurred while clearing AsyncStorage:", e);
 		}
@@ -40,8 +39,6 @@ export const Storage = {
 			}
 
 			await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-
-			console.log("Previous items:", history);
 		} catch (error) {
 			console.error("Error saving to history:", error);
 		}
@@ -51,7 +48,6 @@ export const Storage = {
 			const STORAGE_KEY = "@book_history";
 			const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
 
-			console.log("Loaded history:", JSON.parse(jsonValue || "[]"));
 			return jsonValue != null ? JSON.parse(jsonValue) : [];
 		} catch (error) {
 			console.error("Error loading history:", error);
@@ -60,16 +56,12 @@ export const Storage = {
 	},
 	updateFavoriteStatus: async (bookId: string, isFavorited: boolean) => {
 		try {
-			console.log(
-				`Updating favorite status for bookId: ${bookId} to ${isFavorited}`,
-			);
 			const STORAGE_KEY = "@book_history";
 			const existingHistory = await AsyncStorage.getItem(STORAGE_KEY);
 			let history: FindOneBookResponse[] = existingHistory
 				? JSON.parse(existingHistory)
 				: [];
 
-			console.log("Current history before update:", history);
 			history = history.map((item) => {
 				if (item.foundBook.id === bookId) {
 					return {
@@ -83,7 +75,6 @@ export const Storage = {
 				return item;
 			});
 
-			console.log("Updated history after favorite status change:", history);
 			await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 		} catch (error) {
 			console.error("Error updating favorite status in history:", error);
