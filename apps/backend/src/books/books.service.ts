@@ -43,13 +43,37 @@ export enum GenreTypeEnum {
 @Injectable()
 export class BooksService {
   private readonly logger = new Logger(BooksService.name);
-
   constructor(
     private readonly s3Service: S3Service,
     private readonly prisma: PrismaService,
     private readonly genresService: GenresService,
     private readonly httpService: HttpService,
   ) {}
+
+  /**
+   * @summary Retrieves the content of a user's collections by fetching books that are favorited by the user. The method takes the user's ID as a parameter and queries the database to find all books that have been marked as favorites by that user. It returns a list of books that are part of the user's collections.
+   * @description This method is designed to fetch the content of a user's collections by leveraging the relationship between books and users in the database. It uses the Prisma ORM to query the book records that are associated with the given user ID through the favoritedBy relation. The method handles any potential errors that may arise during the database query and ensures that a meaningful error message is returned if there is an issue fetching the collections content.
+   * @param userId The ID of the user whose collections content is to be retrieved.
+   * @returns A list of books that are part of the user's collections.
+   * @throws InternalServerErrorException if there is an error fetching the user's collections content from the database.
+   */
+  async getMyCollectionsBooksContent(userId: string) {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          favoritedBy: { some: { userId } },
+        },
+        include: {
+          statistics: true,
+          genres: { include: { genre: true } },
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        "Error fetching user's collections content.",
+      );
+    }
+  }
 
   /**
    * @summary Creates a new book entry in the database. It first checks for duplicates based on ISBNs, Google Book ID, and Open Library ID. If a cover image file is provided, it uploads it to S3; otherwise, it uses default images. The method also handles genre associations and rolls back S3 uploads if any database operation fails.

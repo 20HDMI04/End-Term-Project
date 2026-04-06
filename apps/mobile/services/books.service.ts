@@ -108,4 +108,10 @@ export const BooksService = {
 		);
 		return response.data;
 	},
+
+	// GET /books/mycollections
+	getMyCollections: async () => {
+		const response = await apiClient.get("/books/mycollections");
+		return response.data;
+	},
 };

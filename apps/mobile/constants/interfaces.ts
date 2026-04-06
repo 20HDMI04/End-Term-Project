@@ -118,6 +118,11 @@ export interface MainPageData {
 	books: BookSection[];
 }
 
+export interface MyCollectionsData {
+	authors: AuthorSection;
+	books: BookSection;
+}
+
 export interface AuthorSection {
 	data: Author[];
 	subtitle: string;

@@ -35,6 +35,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { AuthorsService } from 'src/authors/authors.service';
 import type { GenreType } from './books.service';
 import { Session } from 'src/auth/session.decorator';
+import { title } from 'process';
 
 @ApiTags('Books')
 @Controller('books')
@@ -410,5 +411,38 @@ export class BooksController {
       books: await this.booksService.getDiscoverPageContent(userId),
     };
     return discoverPageContent;
+  }
+
+  @Get('mycollections')
+  @ApiOperation({
+    summary: 'Get user collections content',
+    description:
+      'Retrieves the content needed for the collections page, including recommended authors and books.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Collections page content retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the collections page content. Please try again later.',
+  })
+  @ApiCookieAuth()
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  async getMyCollectionsContent(@Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    const myCollectionsContent = {
+      authors: {
+        title: 'Your Favorite Authors',
+        subtitle: 'Authors you have interacted with the most.',
+        data: await this.authorsService.getMyCollectionsAuthorsContent(userId),
+      },
+      books: {
+        title: 'Your Favorite Books',
+        subtitle: 'Books you have interacted with the most.',
+        data: await this.booksService.getMyCollectionsBooksContent(userId),
+      },
+    };
+    return myCollectionsContent;
   }
 }

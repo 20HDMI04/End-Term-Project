@@ -30,6 +30,24 @@ export class AuthorsService {
   ) {}
 
   /**
+   * @summary Retrieves the list of authors that the user has in their collection (i.e., authors that the user has favorited). It queries the database for authors that are favorited by the specified user ID.
+   * @description This method is used to get the list of authors that a user has in their collection, which is determined by the authors they have favorited. It performs a database query to find all authors where there is a relation in the favoritedBy table that matches the provided user ID. The result is a list of authors that the user has added to their collection.
+   * @param userId The ID of the user for whom to retrieve the collection of favorited authors.
+   * @returns A list of authors that the user has added to their collection.
+   * @throws InternalServerErrorException if there is an error during the database query to retrieve the authors.
+   */
+  async getMyCollectionsAuthorsContent(userId: string) {
+    try {
+      return await this.prisma.author.findMany({
+        where: { favoritedBy: { some: { userId } } },
+      });
+    } catch (error) {
+      this.logger.error(`Error fetching author content: ${error.message}`);
+      throw new InternalServerErrorException('Error fetching author content');
+    }
+  }
+
+  /**
    * @summary Searches for authors in external APIs (currently Open Library) based on the provided name. This is used to help auto-fill author details and prevent duplicates when creating new authors.
    * @description Searches for authors in external APIs (currently Open Library) based on the provided name. This is used to help auto-fill author details and prevent duplicates when creating new authors.
    * @param name the author name (we search with it in external APIs such as Google Book API or Open Library)

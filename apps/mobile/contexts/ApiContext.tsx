@@ -8,6 +8,7 @@ import {
 	BookSection,
 	FindOneAuthorResponse,
 	MainPageData,
+	MyCollectionsData,
 	SearchEverythingResponse,
 } from "@/constants/interfaces";
 import { AuthorsService } from "@/services/authors.service";
@@ -56,6 +57,7 @@ interface ApiProps {
 		take?: number,
 	) => Promise<SearchEverythingResponse>;
 	getBooksByGenre: (genre: string, take: number) => Promise<BookSection[]>;
+	getMyCollectionsData: () => Promise<MyCollectionsData>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -375,6 +377,18 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getMyCollectionsData = async () => {
+		try {
+			const data = await BooksService.getMyCollections();
+			return data;
+		} catch (error) {
+			console.error(
+				"Error fetching collections data in BookmarksScreen:",
+				error,
+			);
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -405,6 +419,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				getSearchPageData,
 				getSearchPageDataAnyWay,
 				getBooksByGenre,
+				getMyCollectionsData,
 			}}
 		>
 			{children}
