@@ -12,7 +12,13 @@ const { width } = Dimensions.get("window");
 const ITEM_WIDTH_BOOK = (width - 40 - 32) / 2;
 const ITEM_WIDTH_AUTHOR = (width - 40 - 32) / 3;
 
-export const HomeSkeleton = ({ darkmode }: { darkmode: boolean }) => {
+export const HomeSkeleton = ({
+	darkmode,
+	justBooks,
+}: {
+	darkmode: boolean;
+	justBooks?: boolean;
+}) => {
 	const opacity = useRef(new Animated.Value(0.3)).current;
 	const bgColor = darkmode ? Colors.thirdColorDark : Colors.thirdColorLight;
 	useEffect(() => {
@@ -57,9 +63,18 @@ export const HomeSkeleton = ({ darkmode }: { darkmode: boolean }) => {
 
 	return (
 		<View style={{ flex: 1, paddingTop: 20 }}>
-			<Section type="author" />
-			<Section type="book" />
-			<Section type="book" />
+			{justBooks ? (
+				<>
+					<Section type="book" />
+					<Section type="book" />
+				</>
+			) : (
+				<>
+					<Section type="author" />
+					<Section type="book" />
+					<Section type="book" />
+				</>
+			)}
 		</View>
 	);
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
 	StyleSheet,
 	View,
@@ -13,6 +13,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
+import { useApi } from "@/contexts/ApiContext";
+import BookCarousel from "../homeComponents/BookCarousel";
+import { Book, BookSection } from "@/constants/interfaces";
+import { HomeSkeleton } from "../homeComponents/HomeSkeleton";
 
 const { width } = Dimensions.get("window");
 const COLUMN_WIDTH = (width - 60) / 2;
@@ -117,7 +121,17 @@ interface GenreSelectorProps {
 
 const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 	const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+	const [selectedGenreForSearch, setSelectedGenreForSearch] = useState<
+		string | null
+	>(null);
+	const [selectedGenreForFiltering, setSelectedGenreForFiltering] = useState<
+		string | null
+	>(null);
 	const [modalVisible, setModalVisible] = useState(false);
+	const api = useApi();
+	const [sectionsGenre, setSectionsGenre] = useState<BookSection[] | null>(
+		null,
+	);
 
 	const theme = {
 		background: isDarkMode ? Colors.mainColorDark : "#F9F9F7",
@@ -129,10 +143,27 @@ const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 		title: isDarkMode ? "#FFFFFF" : Colors.mainColorLight,
 	};
 
-	const handleOpenGenre = (genre: string) => {
+	const handleOpenGenre = async (genre: string) => {
+		const searchGenre = genre.toLowerCase().replace(/\s/g, "-");
 		setSelectedGenre(genre);
+		setSelectedGenreForSearch(searchGenre);
 		setModalVisible(true);
 	};
+
+	useEffect(() => {
+		const fetchGenreSections = async () => {
+			try {
+				const response = await api.getBooksByGenre(
+					selectedGenreForSearch || "history",
+					15,
+				);
+				setSectionsGenre(response);
+			} catch (error) {
+				console.error("Error fetching genre books:", error);
+			}
+		};
+		fetchGenreSections();
+	}, [selectedGenreForSearch]);
 
 	const getBackgroundColorForGenre = (genre: string) => {
 		switch (genre) {
@@ -156,6 +187,23 @@ const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 				return theme.card;
 		}
 	};
+
+	const allGenres = useMemo(() => {
+		const genres = new Set<string>();
+		sectionsGenre?.[2].data.forEach((book) =>
+			book.genres?.forEach((g) => genres.add(g.genre.name)),
+		);
+		return Array.from(genres).slice(0, 30);
+	}, [sectionsGenre]);
+
+	const filteredBooks: Book[] = useMemo(() => {
+		if (!selectedGenreForFiltering) return sectionsGenre?.[2]?.data || [];
+		return (
+			sectionsGenre?.[2]?.data.filter((book) =>
+				book.genres?.some((g) => g.genre.name === selectedGenreForFiltering),
+			) || []
+		);
+	}, [selectedGenreForFiltering, sectionsGenre]);
 
 	const renderItem = ({ item }: { item: string }) => (
 		<TouchableOpacity
@@ -214,7 +262,12 @@ const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 			>
 				<SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
 					<View style={[styles.header, { borderBottomColor: theme.border }]}>
-						<TouchableOpacity onPress={() => setModalVisible(false)}>
+						<TouchableOpacity
+							onPress={() => {
+								setModalVisible(false);
+								setSectionsGenre(null);
+							}}
+						>
 							<Ionicons name="close" size={26} color={theme.textPrimary} />
 						</TouchableOpacity>
 						<Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
@@ -243,6 +296,82 @@ const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 						>
 							Exploring books in the {selectedGenre} category...
 						</Text>
+
+						{sectionsGenre && sectionsGenre.length > 0 && (
+							<>
+								<BookCarousel
+									isDarkMode={isDarkMode}
+									section={sectionsGenre[0]}
+									key="section0"
+								/>
+								<BookCarousel
+									isDarkMode={isDarkMode}
+									section={sectionsGenre[1]}
+									key="section1"
+								/>
+								<BookCarousel
+									isDarkMode={isDarkMode}
+									section={{
+										title: selectedGenreForFiltering
+											? `${selectedGenreForFiltering} Books`
+											: "All Books",
+										subtitle: `Total: ${filteredBooks?.length || 0} titles`,
+										data: filteredBooks,
+									}}
+								/>
+								<View style={styles.section}>
+									<Text
+										style={[styles.sectionTitle, { color: theme.textPrimary }]}
+									>
+										Genre Tags
+									</Text>
+									<ScrollView
+										horizontal
+										showsHorizontalScrollIndicator={false}
+										style={styles.genreScroll}
+									>
+										{allGenres.map((genre) => (
+											<TouchableOpacity
+												key={genre}
+												onPress={() =>
+													setSelectedGenreForFiltering(
+														selectedGenreForFiltering === genre ? null : genre,
+													)
+												}
+												style={[
+													styles.genreChip,
+													{
+														backgroundColor:
+															selectedGenreForFiltering === genre
+																? theme.accent
+																: theme.card,
+														borderColor: theme.border,
+													},
+												]}
+											>
+												<Text
+													style={[
+														styles.genreText,
+														{
+															color:
+																selectedGenreForFiltering === genre
+																	? "#FFF"
+																	: theme.textPrimary,
+														},
+													]}
+												>
+													{genre}
+												</Text>
+											</TouchableOpacity>
+										))}
+									</ScrollView>
+								</View>
+							</>
+						)}
+						{sectionsGenre?.length === 0 ||
+							(sectionsGenre == null && (
+								<HomeSkeleton darkmode={isDarkMode} justBooks={true} />
+							))}
 					</ScrollView>
 				</SafeAreaView>
 			</Modal>
@@ -261,6 +390,24 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 	},
+	section: { paddingHorizontal: 20 },
+	sectionTitle: {
+		fontSize: 22,
+		fontFamily: "modern_no_20_regular",
+		marginBottom: 12,
+	},
+	genreScroll: { flexDirection: "row" },
+	genreChip: {
+		paddingHorizontal: 16,
+		paddingVertical: 8,
+		borderRadius: 20,
+		marginRight: 10,
+		borderWidth: 1,
+		height: 36,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	genreText: { fontSize: 14, fontFamily: "modern_no_20_regular" },
 	topSection: {
 		flex: 2,
 		justifyContent: "center",
@@ -339,9 +486,11 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	description: {
-		fontSize: 16,
+		fontSize: 20,
 		fontFamily: "modern_no_20_regular",
-		marginTop: 20,
+		marginTop: 10,
+		textAlign: "center",
+		marginBottom: 20,
 	},
 });
 

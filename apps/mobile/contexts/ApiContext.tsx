@@ -5,6 +5,7 @@ import { UserService } from "@/services/user.service";
 import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
 import {
+	BookSection,
 	FindOneAuthorResponse,
 	MainPageData,
 	SearchEverythingResponse,
@@ -54,6 +55,7 @@ interface ApiProps {
 		query: string,
 		take?: number,
 	) => Promise<SearchEverythingResponse>;
+	getBooksByGenre: (genre: string, take: number) => Promise<BookSection[]>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -363,6 +365,16 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getBooksByGenre = async (genre: string, take: number = 15) => {
+		try {
+			const data = await BooksService.getBooksByGenre(genre, take);
+			return data;
+		} catch (error) {
+			console.error("Error fetching books by genre:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -392,6 +404,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				getDiscoverPageDataAnyWay,
 				getSearchPageData,
 				getSearchPageDataAnyWay,
+				getBooksByGenre,
 			}}
 		>
 			{children}

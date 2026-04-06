@@ -95,4 +95,15 @@ export const BooksService = {
 		});
 		return response.data;
 	},
+
+	//GET books/specific-genre-page/{genre}
+	getBooksByGenre: async (genre: string, take: number = 15) => {
+		const response = await apiClient.get(
+			`/books/specific-genre-page/${genre}`,
+			{
+				params: { take },
+			},
+		);
+		return response.data;
+	},
 };

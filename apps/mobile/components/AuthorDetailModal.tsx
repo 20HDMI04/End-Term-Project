@@ -81,7 +81,7 @@ const AuthorDetailModal = ({
 		authorData?.books?.forEach((book) =>
 			book.genres?.forEach((g) => genres.add(g.genre.name)),
 		);
-		return Array.from(genres);
+		return Array.from(genres).slice(0, 30);
 	}, [authorData]);
 
 	const filteredBooks = useMemo(() => {
