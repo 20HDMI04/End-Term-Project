@@ -50,8 +50,14 @@ export default function HomeScreen() {
 	}, []);
 
 	useEffect(() => {
-		if (authState.isAuthenticated && authState.roles?.includes("new_user")) {
-			setModalVisibility(true);
+		if (authState.isAuthenticated && authState.roles !== undefined) {
+			//@ts-ignore
+			let isNewUser = Array.from(authState.roles.roles || []).includes(
+				"new_user",
+			);
+			if (isNewUser) {
+				setModalVisibility(true);
+			}
 		}
 		fetchData();
 	}, []);
