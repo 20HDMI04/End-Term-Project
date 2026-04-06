@@ -17,6 +17,7 @@ import { Author, Book } from "@/constants/interfaces";
 import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
 import { useApi } from "@/contexts/ApiContext";
 import BookCarousel from "./homeComponents/BookCarousel";
+import Markdown from "react-native-markdown-display";
 
 const { width } = Dimensions.get("window");
 
@@ -44,12 +45,124 @@ const AuthorDetailModal = ({
 	const theme = {
 		background: isDarkMode ? Colors.mainColorDark : "#F9F9F7",
 		card: isDarkMode ? Colors.mainColorDarker : "#FFFFFF",
-		textPrimary: isDarkMode ? "#E0E0E0" : "#4A4A40",
-		textSecondary: isDarkMode ? "#A0A0A0" : "#707060",
-		border: isDarkMode ? "#404040" : "#E8E8E3",
+		textPrimary: isDarkMode ? "#E0E0E0" : Colors.mainColorLight,
+		textSecondary: isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight,
+		border: isDarkMode ? Colors.thirdColorDark : "#E8E8E3",
 		accent: isDarkMode ? Colors.thirdColorDark : Colors.mainColorLight,
 		fallbackBg: isDarkMode ? Colors.thirdColorDark : Colors.thirdColorLight,
 	};
+
+	const markdownStyles = {
+		body: {
+			fontSize: 16,
+			lineHeight: 24,
+			fontFamily: "modern_no_20_regular",
+			textAlign: "left" as const,
+			color: theme.textSecondary,
+		},
+
+		strong: {
+			fontFamily: "modern_no_20_regular",
+			fontStyle: "normal",
+			color: theme.textPrimary,
+		},
+		em: {
+			fontFamily: "modern_no_20_regular",
+			fontStyle: "normal",
+			color: theme.textPrimary,
+		},
+		strong_em: {
+			fontFamily: "modern_no_20_regular",
+			fontStyle: "normal",
+			color: theme.textPrimary,
+		},
+
+		heading1: {
+			fontSize: 28,
+			marginTop: 20,
+			marginBottom: 10,
+			fontStyle: "normal",
+			fontFamily: "modern_no_20_regular",
+			color: theme.textPrimary,
+			letterSpacing: 1.5,
+		},
+		heading2: {
+			fontSize: 22,
+			marginTop: 15,
+			marginBottom: 8,
+			fontStyle: "normal",
+			fontFamily: "modern_no_20_regular",
+			color: theme.textPrimary,
+		},
+		heading3: {
+			fontSize: 19,
+			marginTop: 10,
+			marginBottom: 5,
+			fontStyle: "normal",
+			fontFamily: "modern_no_20_regular",
+			color: theme.textPrimary,
+		},
+		hr: {
+			height: 0.8,
+			marginVertical: 10,
+			backgroundColor: theme.border,
+		},
+		footnote_ref: {
+			fontSize: 12,
+			textAlignVertical: "top" as const,
+		},
+		footnote_definition: {
+			fontSize: 14,
+			padding: 8,
+			borderRadius: 4,
+			marginTop: 10,
+		},
+		footnote_definition_text: {
+			fontSize: 13,
+			lineHeight: 20,
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+
+		bullet_list: {
+			marginTop: 10,
+			marginBottom: 10,
+			paddingLeft: 20,
+			borderLeftWidth: 1,
+			borderLeftColor: theme.border,
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+		bullet_list_icon: {
+			fontSize: 16,
+			lineHeight: 22,
+			color: theme.textSecondary,
+		},
+		list_item: {
+			fontSize: 16,
+			lineHeight: 22,
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+
+		blockquote: {
+			borderLeftWidth: 4,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
+			marginVertical: 10,
+			borderLeftColor: theme.accent,
+			backgroundColor: isDarkMode
+				? "rgba(255, 255, 255, 0.05)"
+				: "rgba(0, 0, 0, 0.05)",
+		},
+		blockquote_text: {
+			fontSize: 16,
+			lineHeight: 24,
+			fontStyle: "normal",
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+	} as const;
 
 	useEffect(() => {
 		async function fetchAuthor() {
@@ -199,11 +312,9 @@ const AuthorDetailModal = ({
 								>
 									Biography
 								</Text>
-								<Text
-									style={[styles.description, { color: theme.textSecondary }]}
-								>
+								<Markdown style={markdownStyles}>
 									{authorData.bio || "No biography available for this author."}
-								</Text>
+								</Markdown>
 							</View>
 
 							{/* TOP BOOK SECTION */}

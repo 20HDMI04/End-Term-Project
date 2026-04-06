@@ -33,6 +33,7 @@ import { GenreInstance } from "@/constants/interfaces";
 import { Comment } from "@/constants/interfaces";
 import { Storage } from "@/utils/storage";
 import { useGetRelativeTime } from "@/hooks/use-get-realtive-time";
+import Markdown from "react-native-markdown-display";
 
 const { width } = Dimensions.get("window");
 
@@ -262,6 +263,114 @@ const BookDetailModal = ({
 		danger: "#E74C3C",
 	};
 
+	const markdownStyles = {
+		body: {
+			fontSize: 16,
+			lineHeight: 24,
+			fontFamily: "modern_no_20_regular",
+			textAlign: "left" as const,
+			color: theme.textSecondary,
+		},
+
+		strong: {
+			fontFamily: "modern_no_20_regular",
+			fontStyle: "normal",
+			color: theme.textPrimary,
+		},
+		em: {
+			fontFamily: "modern_no_20_regular",
+			fontStyle: "normal",
+			color: theme.textPrimary,
+		},
+		strong_em: {
+			fontFamily: "modern_no_20_regular",
+			fontStyle: "normal",
+			color: theme.textPrimary,
+		},
+
+		heading1: {
+			fontSize: 28,
+			marginTop: 20,
+			marginBottom: 10,
+			fontStyle: "normal",
+			fontFamily: "modern_no_20_regular",
+			color: theme.textPrimary,
+			letterSpacing: 1.5,
+		},
+		heading2: {
+			fontSize: 22,
+			marginTop: 15,
+			marginBottom: 8,
+			fontStyle: "normal",
+			fontFamily: "modern_no_20_regular",
+			color: theme.textPrimary,
+		},
+		heading3: {
+			fontSize: 19,
+			marginTop: 10,
+			marginBottom: 5,
+			fontStyle: "normal",
+			fontFamily: "modern_no_20_regular",
+			color: theme.textPrimary,
+		},
+		hr: {
+			height: 0.8,
+			marginVertical: 10,
+			backgroundColor: theme.border,
+		},
+		footnote_ref: {
+			fontSize: 12,
+			textAlignVertical: "top" as const,
+		},
+		footnote_definition: {
+			fontSize: 14,
+			padding: 8,
+			borderRadius: 4,
+			marginTop: 10,
+		},
+		footnote_definition_text: {
+			fontSize: 13,
+			lineHeight: 20,
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+
+		bullet_list: {
+			marginTop: 10,
+			marginBottom: 10,
+			paddingLeft: 20,
+			borderLeftWidth: 1,
+			borderLeftColor: theme.border,
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+		bullet_list_icon: {
+			fontSize: 16,
+			lineHeight: 22,
+			color: theme.textSecondary,
+		},
+		list_item: {
+			fontSize: 16,
+			lineHeight: 22,
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+
+		blockquote: {
+			borderLeftWidth: 4,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
+			marginVertical: 10,
+		},
+		blockquote_text: {
+			fontSize: 16,
+			lineHeight: 24,
+			fontStyle: "normal",
+			color: theme.textSecondary,
+			fontFamily: "modern_no_20_regular",
+		},
+	} as const;
+
 	if (!visible) return null;
 	if (loading || !bookData) {
 		return (
@@ -406,15 +515,14 @@ const BookDetailModal = ({
 						</View>
 
 						{/* Content sections */}
-						<View style={styles.section}>
+						<View style={[styles.section, { marginBottom: 50 }]}>
 							<Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
 								What's it about?
 							</Text>
-							<Text
-								style={[styles.description, { color: theme.textSecondary }]}
-							>
-								{book.description}
-							</Text>
+
+							<Markdown style={markdownStyles}>
+								{book.description || "No description available."}
+							</Markdown>
 						</View>
 
 						{/* Author */}
