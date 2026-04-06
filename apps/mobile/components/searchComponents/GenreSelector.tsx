@@ -122,7 +122,7 @@ const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 	const theme = {
 		background: isDarkMode ? Colors.mainColorDark : "#F9F9F7",
 		card: isDarkMode ? Colors.mainColorDarker : "#FFFFFF",
-		textPrimary: isDarkMode ? "#E0E0E0" : "#4A4A40",
+		textPrimary: isDarkMode ? "#E0E0E0" : Colors.darkerTextLight,
 		border: isDarkMode ? "#404040" : "#E8E8E3",
 		accent: isDarkMode ? Colors.thirdColorDark : Colors.mainColorLight,
 		filler: isDarkMode ? "#2C2C2C" : "#E2E2DE",

@@ -335,6 +335,34 @@ export class BooksController {
     return this.booksService.getBooksByASpecificGenre(genre, take);
   }
 
+  @Get('specific-genre-page/:genre')
+  @ApiOperation({
+    summary: 'Get book sections by a specific genre',
+    description: 'Retrieves book sections that belong to a specific genre.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Book sections retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the book sections. Please try again later.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid genre type provided.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  getBooksSectionsByASpecificGenre(
+    @Param('genre') genre: GenreType,
+    @Query('take') take: number = 15,
+  ) {
+    if (!Object.values(GenreTypeEnum).includes(genre as GenreTypeEnum)) {
+      throw new BadRequestException('Invalid genre type.');
+    }
+    return this.booksService.getBooksSectionsByASpecificGenre(genre, take);
+  }
+
   @Get('searchpage')
   @ApiOperation({
     summary: 'Get search page content',
