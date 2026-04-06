@@ -1,3 +1,4 @@
+import { Storage } from "@/utils/storage";
 import apiClient from "./apiClient";
 
 export const BooksService = {
@@ -16,6 +17,7 @@ export const BooksService = {
 	//GET /books/{bookId}
 	getBookDetails: async (bookId: string) => {
 		const response = await apiClient.get(`/books/${bookId}`);
+		Storage.saveToHistory(response.data);
 		return response.data;
 	},
 
