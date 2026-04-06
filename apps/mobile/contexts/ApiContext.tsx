@@ -6,6 +6,7 @@ import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
 import {
 	BookSection,
+	CommentHistoryResponse,
 	FindOneAuthorResponse,
 	MainPageData,
 	MyCollectionsData,
@@ -58,6 +59,7 @@ interface ApiProps {
 	) => Promise<SearchEverythingResponse>;
 	getBooksByGenre: (genre: string, take: number) => Promise<BookSection[]>;
 	getMyCollectionsData: () => Promise<MyCollectionsData>;
+	getUserCommentHistory: () => Promise<CommentHistoryResponse[]>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -124,6 +126,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				isFirstTime,
 			);
 
+			await getMe();
 			return result;
 		} catch (error) {
 			console.error("Error syncing profile with server:", error);
@@ -389,6 +392,16 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getUserCommentHistory = async () => {
+		try {
+			const data = await UserService.getCommentHistory();
+			return data;
+		} catch (error) {
+			console.error("Error fetching user comment history:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -420,6 +433,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				getSearchPageDataAnyWay,
 				getBooksByGenre,
 				getMyCollectionsData,
+				getUserCommentHistory,
 			}}
 		>
 			{children}

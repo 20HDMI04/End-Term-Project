@@ -16,9 +16,11 @@ import {
 	Directions,
 	Gesture,
 	GestureDetector,
+	TouchableOpacity,
 } from "react-native-gesture-handler";
 import { router } from "expo-router";
 import { G } from "react-native-svg";
+import { useApi } from "@/contexts/ApiContext";
 
 export interface ProfileData {
 	biggerProfilePic: string;
@@ -30,6 +32,7 @@ export interface ProfileData {
 }
 
 export default function TabThreeScreen() {
+	const api = useApi();
 	const goToPrevious = () => router.replace("/collections");
 
 	const swipeRight = Gesture.Fling()
@@ -39,13 +42,13 @@ export default function TabThreeScreen() {
 		});
 	const [profileData, setProfileData] = useState<ProfileData | null>(null);
 	useEffect(() => {
-		async function fetchProfileData() {
-			const data = await Storage.getItem("user");
-			setProfileData(data);
-		}
 		fetchProfileData();
 	}, []);
-
+	async function fetchProfileData() {
+		await api.getMe();
+		const data = await Storage.getItem("user");
+		setProfileData(data);
+	}
 	return (
 		<GestureDetector gesture={swipeRight}>
 			<ProfileScreen
@@ -55,6 +58,7 @@ export default function TabThreeScreen() {
 				nickname={profileData?.nickname}
 				smallerProfilePic={profileData?.smallerProfilePic}
 				updatedAt={profileData?.updatedAt}
+				syncProfile={fetchProfileData}
 			/>
 		</GestureDetector>
 	);

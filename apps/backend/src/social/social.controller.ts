@@ -359,4 +359,22 @@ export class SocialController {
       updateRatingDto,
     );
   }
+
+  @Get('comments/history')
+  @ApiOperation({
+    summary: 'Get comment history for the authenticated user',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The comment history has been successfully retrieved.',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An error occurred while retrieving the comment history.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  getCommentHistory(@Session() session: any) {
+    const user_email = session.userDataInAccessToken.email;
+    return this.socialService.getCommentHistory(user_email);
+  }
 }

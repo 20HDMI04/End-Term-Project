@@ -388,6 +388,8 @@ export default function BookmarksScreen() {
 						</>
 					) : (
 						<>
+							<View style={{ height: 20 }}></View>
+
 							<View style={styles.headerContainer}>
 								<Text style={[styles.title, { color: titleColor }]}>
 									Your Favourite Books

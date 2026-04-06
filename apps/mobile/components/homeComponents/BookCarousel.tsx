@@ -35,6 +35,7 @@ function BookCarousel({ section, isDarkMode }: BookCarouselProps) {
 	const [profileData, setProfileData] = useState<ProfileData | null>(null);
 	useEffect(() => {
 		async function fetchProfileData() {
+			await Storage.getItem("user");
 			const data = await Storage.getItem("user");
 			setProfileData(data);
 		}

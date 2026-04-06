@@ -257,7 +257,7 @@ const GenreSelector = ({ isDarkMode }: GenreSelectorProps) => {
 			<Modal
 				visible={modalVisible}
 				animationType="slide"
-				transparent={false}
+				transparent={true}
 				onRequestClose={() => setModalVisible(false)}
 			>
 				<SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>

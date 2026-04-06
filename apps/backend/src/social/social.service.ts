@@ -608,4 +608,39 @@ export class SocialService {
       throw new InternalServerErrorException('Failed to update rating record.');
     }
   }
+
+  /**
+   * @summary Get comment history for a user
+   * @description Retrieves a list of comments made by a specific user. The comments are ordered by creation date in descending order and include information about the associated book and the number of likes for each comment. This method is used to display a user's comment history, allowing them to see all the comments they have made across different books.
+   * @remarks If there is an error while retrieving the comment history from the database, an InternalServerErrorException is thrown.
+   * @param userId - The ID of the user for whom to retrieve the comment history.
+   * @returns A list of comments made by the specified user. Each comment includes the text of the comment, the creation date, information about the associated book, and the number of likes for the comment.
+   * @throws InternalServerErrorException - If there is an error while retrieving the comment history from the database.
+   */
+  async getCommentHistory(userId: string) {
+    try {
+      let comments = await this.prisma.comment.findMany({
+        where: {
+          userId: userId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          book: true,
+          _count: {
+            select: {
+              votes: true,
+            },
+          },
+        },
+      });
+      return comments;
+    } catch (error) {
+      console.error('Error fetching comment history:', error);
+      throw new InternalServerErrorException(
+        'Failed to fetch comment history.',
+      );
+    }
+  }
 }

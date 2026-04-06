@@ -46,18 +46,6 @@ export default function HomeScreen() {
 	const onRefresh = useCallback(async () => {
 		setRefreshing(true);
 		await refreshUserSession();
-		const fetchData = async () => {
-			try {
-				const mainPageData = await api.getMainPageAnyWay();
-				const randomBookData = await api.getRandomBook();
-				setRandomBook(randomBookData);
-				setMainList(mainPageData);
-			} catch (error) {
-				console.error("Error fetching main page data in HomeScreen:", error);
-			} finally {
-				setRefreshing(false);
-			}
-		};
 		fetchData();
 	}, []);
 
@@ -65,26 +53,27 @@ export default function HomeScreen() {
 		if (authState.isAuthenticated && authState.roles?.includes("new_user")) {
 			setModalVisibility(true);
 		}
-		const fetchData = async () => {
-			try {
-				const meData = await Storage.getItem("user");
-				if (meData && meData.biggerProfilePic) {
-					setProfilePic(meData.biggerProfilePic);
-				}
-				if (meData && meData.email) {
-					setEmail(meData.email);
-				}
-				const mainPageData = await api.getMainPageData();
-				const randomBookData = await api.getRandomBook();
-				setRandomBook(randomBookData);
-				setMainList(mainPageData);
-			} catch (error) {
-				console.error("Error fetching main page data in HomeScreen:", error);
-			}
-		};
-
 		fetchData();
 	}, []);
+
+	const fetchData = async () => {
+		try {
+			await api.getMe();
+			const meData = await Storage.getItem("user");
+			if (meData && meData.biggerProfilePic) {
+				setProfilePic(meData.biggerProfilePic);
+			}
+			if (meData && meData.email) {
+				setEmail(meData.email);
+			}
+			const mainPageData = await api.getMainPageData();
+			const randomBookData = await api.getRandomBook();
+			setRandomBook(randomBookData);
+			setMainList(mainPageData);
+		} catch (error) {
+			console.error("Error fetching main page data in HomeScreen:", error);
+		}
+	};
 
 	const handleSavePress = async () => {
 		try {
@@ -92,7 +81,7 @@ export default function HomeScreen() {
 		} catch (e) {
 			console.error("Error syncing profile with server:", e);
 		}
-		await api.getMe();
+		fetchData();
 		await refreshUserSession();
 	};
 
