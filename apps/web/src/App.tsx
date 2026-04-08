@@ -209,8 +209,14 @@ export default function App() {
 
 						{/* ===== ROUTE REDIRECTS ===== */}
 						{/* Old route names redirect to new ones */}
-						<Route path="/dashboard" element={<Navigate to="/" replace />} />
-					</Routes>
+						<Route 
+							path="/dashboard"
+							element={
+							<Navigate to="/" replace />
+							} />
+						</Routes>
+						
+						
 				</ThemeProvider>
 			</BrowserRouter>
 		</SuperTokensWrapper>

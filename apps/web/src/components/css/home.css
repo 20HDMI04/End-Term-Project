@@ -24,7 +24,6 @@
     --button-dark-bg: #222e3ade;
     --book-genre-bg: #3a6187dc;
     --button-add-bg: #3a6187dc;
-
 }
 
 /* Base Styles */
@@ -209,12 +208,22 @@ nav {
     color: var(--text-color);
 }
 
+.contact-h1 {
+    color: var(--text-color);
+}
+
 .see-all {
     color: var(--text-color);
     margin: 0;
     cursor: pointer;
     font-weight: bold;
     text-decoration: none;
+}
+
+.contributors-list-a-tab-closer-to-the-middle {
+    text-decoration: none;
+    text-align: center;
+    color: var(--text-color);
 }
 
 /* Books Row */
@@ -330,6 +339,7 @@ nav {
     align-items: center;
     justify-content: space-between;
     padding: 20px 40px;
+    padding-top: 40px;
     background-color: var(--ndfooter-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";

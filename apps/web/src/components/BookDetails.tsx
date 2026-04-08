@@ -6,6 +6,7 @@ import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import { Link } from "react-router-dom";
 
 export function BookDetails() {
     const { id } = useParams();
@@ -26,17 +27,8 @@ export function BookDetails() {
         fetchData();
     }, [id]);
 
-    function getAuthorName(authorId: string | undefined): string {
-        if (!authorList) return "Unknown author";
-        for (const section of authorList) {
-            const author = section.data.find((a) => a.id === authorId);
-            if (author) return author.name;
-        }
-        return "Unknown author";
-    }
-
     function getAuthor(authorId: string | undefined) {
-        if (!authorList) return null;
+        if (!authorList || !authorId) return null;
 
         for (const section of authorList) {
             const author = section.data.find((a) => a.id === authorId);
@@ -47,57 +39,57 @@ export function BookDetails() {
 
     if (!book) return <div className="container mt-5">Loading...</div>;
 
-    const author = getAuthor(book.author.name);
+    const author = getAuthor(book.authorId);
 
     return (
         <div className="home-container">
             {/* Navbar */}
-			<nav className="navbar navbar-expand-lg">
-				<div className="container-fluid">
-					<img
-						src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
-						alt="logo"
-						className="logo"
-					/>
+            <nav className="navbar navbar-expand-lg">
+                <div className="container-fluid">
+                    <img
+                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                        alt="logo"
+                        className="logo"
+                    />
 
-					<div className="navbar-content">
-						<ul className="navbar-nav">
-							<li className="nav-item">
-								<a className="nav-link" href="/">Home</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="/search">Search</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="/discover">Discover</a>
-							</li>
-						</ul>
+                    <div className="navbar-content">
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <a className="nav-link" href="/">Home</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/search">Search</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/discover">Discover</a>
+                            </li>
+                        </ul>
 
-						<div className="navbar-right">
-							<button
-								className="Darkmode-changer"
-								onClick={toggleTheme}
-								aria-label="Toggle color scheme"
-							>
-								<span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
-									<IconSun size={20} stroke={2} />
-								</span>
-								<span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
-									<IconMoon size={20} stroke={2} />
-								</span>
-							</button>
+                        <div className="navbar-right">
+                            <button
+                                className="Darkmode-changer"
+                                onClick={toggleTheme}
+                                aria-label="Toggle color scheme"
+                            >
+                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+                                    <IconSun size={20} stroke={2} />
+                                </span>
+                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+                                    <IconMoon size={20} stroke={2} />
+                                </span>
+                            </button>
 
-							<a href="/user/me">
-								<img
-									src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
-									alt="profile"
-									className="profile-pic"
-								/>
-							</a>
-						</div>
-					</div>
-				</div>
-			</nav>
+                            <a href="/user/me">
+                                <img
+                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    alt="profile"
+                                    className="profile-pic"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
 
             <div className="container mt-4">
                 <div className="book-page-text row">
@@ -137,7 +129,7 @@ export function BookDetails() {
                                 {book.statistics?.averageRating?.toFixed(2) ?? "N/A"} ⭐
                             </strong>
                             <span className="book-page-text">
-                                {book.statistics?.ratingCount ?? 0} ratings | {book.statistics?.reviewCount ?? 0} reviews
+                                {book.statistics?.ratingCount ?? 0} ratings {/*| {book.statistics?.reviewCount ?? 0} reviews */}
                             </span>
                         </div>
 
@@ -154,18 +146,20 @@ export function BookDetails() {
                             {book.genres && book.genres.length > 0 ? (
                                 book.genres.map((g: any) =>
                                     g.genre ? (
-                                        <span
+                                        <Link
                                             key={g.genre.id}
+                                            to={`/genres/${g.genre.id}`} // ide navigál a kattintás
                                             className="book-genres"
                                             style={{
                                                 color: "white",
                                                 borderRadius: "20px",
                                                 padding: "6px 14px",
-                                                fontSize: "0.9rem"
+                                                fontSize: "0.9rem",
+                                                textDecoration: "none"
                                             }}
                                         >
                                             {g.genre.name}
-                                        </span>
+                                        </Link>
                                     ) : null
                                 )
                             ) : (

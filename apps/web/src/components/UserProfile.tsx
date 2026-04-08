@@ -95,10 +95,10 @@ export function UserProfile() {
 
                         {/* User stats */}
                         <div className="mt-3 text-start" style={{ padding: "0 10px" }}>
-                            <p>📚 Favorite Books: {user.favoriteBooks?.length ?? 0}</p>
-                            <p>✍️ Comments: {user.comments?.length ?? 0}</p>
-                            <p>⭐ Ratings: {user.ratings?.length ?? 0}</p>
-                            <p>📖 Have Read: {user.haveReadIt?.length ?? 0}</p>
+                            <p>Favorite Books: {user.favoriteBooks?.length ?? 0}</p>
+                            <p>Comments: {user.comments?.length ?? 0}</p>
+                            <p>Ratings: {user.ratings?.length ?? 0}</p>
+                            <p>Have Read: {user.haveReadIt?.length ?? 0}</p>
                         </div>
                     </div>
 

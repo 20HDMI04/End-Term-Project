@@ -258,7 +258,16 @@ export function Home() {
 
 			{/* Footer */}
 			<footer className="footer">
-				<p>"Jani ajánlásával lorem ipsum stb"</p>
+				<div>
+					<p>						
+						<div className="contributors-list-a-tab-closer-to-the-middle">
+							<h2 className="contact-h1">Contact us</h2>
+							<a href="https://github.com/20HDMI04">Balogh János Péter</a><br />
+							<a href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a><br />
+							<a href="https://github.com/LepkefingLeo">Hegedűs Péter</a><br />
+						</div>
+					</p>
+				</div>
 			</footer>
 
 			<div className="footer2">

@@ -31,18 +31,6 @@ export function BooksPage() {
         fetchBooks();
     }, [api]);
 
-    function getAuthorName(authorId: string | undefined): string {
-        if (!authorList) return "Unknown author";
-
-        for (const section of authorList) {
-            const author = section.data.find((a) => a.id === authorId);
-            if (author) {
-                return author.name;
-            }
-        }
-        return "Unknown author";
-    }
-
     return (
         <div className="home-container">
             {/* Navbar */}
