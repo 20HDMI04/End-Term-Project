@@ -5,6 +5,10 @@
     margin: auto auto;
 }
 
+body {
+    font-family: "Modern No. 20";
+}
+
 .search-bar-bg {
     margin: auto auto;
     background-size: cover;
