@@ -230,7 +230,7 @@ export function Home() {
 							)
 							.slice(0, 6)
 							.map((author, index) => (
-								<div key={`${author.id}-${index}`} className="text-center">
+								<Link key={`${author.id}-${index}`} to={`/author/${author.id}`} className="text-center">
 									<img
 										className="author-ppic"
 										src={author.smallerProfilePic || "/logo.svg"}
@@ -247,7 +247,7 @@ export function Home() {
 									<p className="author-name">
 										{author.name ?? "Unknown Author"}
 									</p>
-								</div>
+								</Link>
 							))}
 					</div>
 				</div>
@@ -262,9 +262,9 @@ export function Home() {
 					<p>						
 						<div className="contributors-list-a-tab-closer-to-the-middle">
 							<h2 className="contact-h1">Contact us</h2>
-							<a href="https://github.com/20HDMI04">Balogh János Péter</a><br />
-							<a href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a><br />
-							<a href="https://github.com/LepkefingLeo">Hegedűs Péter</a><br />
+							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a><br />
+							<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a><br />
+							<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a><br />
 						</div>
 					</p>
 				</div>

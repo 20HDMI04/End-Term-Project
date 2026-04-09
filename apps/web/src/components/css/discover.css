@@ -41,6 +41,10 @@ p {
     color: var(--text-color);
 }
 
+.space {
+    padding-top: 350px;
+}
+
 .authors-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

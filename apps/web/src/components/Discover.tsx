@@ -227,6 +227,13 @@ export function Discover() {
                 </div>
             </>
         </div>
+
+        <div className='space'></div>
+
+        <div className="footer2">
+				<p>Copyright© Readsy 2025. All rights reserved.</p>
+				<p className="Privacy">Privacy & Policy</p>
+			</div>
         </div>
     );
 }

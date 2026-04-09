@@ -6,6 +6,7 @@ import { useApi } from "../context/apiContext";
 import type { AuthorSection, BookSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import "./css/author.css"
 
 export function AuthorDetails() {
     const { id } = useParams();
@@ -118,6 +119,10 @@ export function AuthorDetails() {
                                 }}
                             />
                         </div>
+
+                        <button className="custom-btn">
+                            Add to Favorites
+                        </button>
                     </div>
 
                     {/* 📄 RIGHT SIDE */}

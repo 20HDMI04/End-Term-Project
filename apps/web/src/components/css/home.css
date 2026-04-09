@@ -209,7 +209,7 @@ nav {
 }
 
 .contact-h1 {
-    color: var(--text-color);
+    color: white;
 }
 
 .see-all {
@@ -223,7 +223,8 @@ nav {
 .contributors-list-a-tab-closer-to-the-middle {
     text-decoration: none;
     text-align: center;
-    color: var(--text-color);
+    color: white;
+    justify-content: center;
 }
 
 /* Books Row */
@@ -344,7 +345,12 @@ nav {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
-    max-height: 10px;
+    max-height: 10px;    
+}
+
+.link {
+    color: white;
+    text-decoration: none;
 }
 
 @media (max-width: 768px) {

@@ -185,6 +185,11 @@ export function BookDetails() {
                         <h5>About the author</h5>
                         {author ? (
                             <div className="d-flex gap-3 align-items-start mt-3">
+                                <Link
+                                    to={`/author/${book.authorId}`}
+                                    style={{ textDecoration: "none", color: "inherit" }}
+                                    className="author-link-wrapper"
+                                >
                                 <img
                                     src={author.smallerProfilePic || "/def_profile_icon.svg"}
                                     alt={author.name}
@@ -195,6 +200,7 @@ export function BookDetails() {
                                         objectFit: "cover"
                                     }}
                                 />
+                                </Link>
 
                                 <div>
                                     <h5 className="book-page-text">
