@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import { Link } from "react-router-dom";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
+import "./css/search.css";
 
 
 export function Search() {
@@ -104,7 +105,10 @@ export function Search() {
             </nav>
 
       {/* Search bar */}
-      <div className="mb-4">
+      <div className='search-bar-bg' style={{
+        backgroundImage: `url(${theme === "light" ? "/search-bg.png" : "/search-bg-dark.png"})`
+      }}>
+        <div className="search-bar">
         <input
           type="text"
           placeholder="Search by book title or author..."
@@ -113,12 +117,13 @@ export function Search() {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
+      </div>
 
       {/* Találatok */}
       {query.trim() !== "" && (
         <div className="row g-3">
           {filteredBooks.map((book) => (
-            <div key={book.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+            <div key={book.id} className="book-col">
               <Link to={`/book/${book.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                 <div className="books-display-main">
 										<div

@@ -31,7 +31,8 @@ export function BookDetails() {
         if (!authorList || !authorId) return null;
 
         for (const section of authorList) {
-            const author = section.data.find((a) => a.id === authorId);
+            //const author = section.data.find((a) => a.id === authorId);
+            const author = section.data.find((a) => String(a.id) === String(authorId));
             if (author) return author;
         }
         return null;
@@ -39,7 +40,9 @@ export function BookDetails() {
 
     if (!book) return <div className="container mt-5">Loading...</div>;
 
-    const author = getAuthor(book.authorId);
+    //const author = getAuthor(book.authorId);
+    //const author = getAuthor(book.authorId) ?? book.author.name;
+    const author = getAuthor(book.authorId) ?? null;
 
     return (
         <div className="home-container">
