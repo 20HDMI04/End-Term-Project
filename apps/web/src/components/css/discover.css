@@ -69,16 +69,6 @@
     padding: 0 10px;
 }
 
-.book-card p {
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-.book-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px var(--card-shadow);
-}
-
 .home-container-discover {
     max-width: fit-content;
 }
