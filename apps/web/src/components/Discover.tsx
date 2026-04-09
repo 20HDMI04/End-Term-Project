@@ -64,7 +64,8 @@ export function Discover() {
     };
 
     return (
-        <div className="home-container-discover">
+        <div className='home-container'>
+            <div className="home-container-discover">
             {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
@@ -125,7 +126,7 @@ export function Discover() {
                                                 alt={author.name}
                                                 style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
                                             />
-                                            <p className="mt-1">{author.name}</p>
+                                            <p>{author.name}</p>
                                         </div>
                                     </Link>
                                 ))}
@@ -225,6 +226,7 @@ export function Discover() {
                     ))}
                 </div>
             </>
+        </div>
         </div>
     );
 }
