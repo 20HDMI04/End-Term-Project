@@ -25,9 +25,9 @@ export function UserProfile() {
     if (!user) return <div className="container mt-5 text-dark">Loading...</div>;
 
     return (
-        <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh", color: "#212529" }}>
+        <div className="home-container">
+            <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh", color: "#212529" }}>
             {/* Navbar */}
-			{/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -63,7 +63,7 @@ export function UserProfile() {
                                 </span>
                             </button>
 
-                            <a href="/profile">
+                            <a href="/user/me">
                                 <img
                                     src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
                                     alt="profile"
@@ -199,6 +199,7 @@ export function UserProfile() {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }
