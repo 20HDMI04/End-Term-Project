@@ -66,88 +66,142 @@ export function Discover() {
     return (
         <div className='home-container'>
             <div className="home-container-discover">
-            {/* Navbar */}
-            <nav className="navbar navbar-expand-lg">
-                <div className="container-fluid">
-                    <img
-                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
-                        alt="logo"
-                        className="logo"
-                    />
-                    <div className="navbar-content">
-                        <ul className="navbar-nav">
-                            <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
-                            <li className="nav-item"><a className="nav-link" href="/search">Search</a></li>
-                            <li className="nav-item"><a className="nav-link" href="/discover">Discover</a></li>
-                        </ul>
 
-                        <div className="navbar-right">
-                            <button className="Darkmode-changer" onClick={toggleTheme} aria-label="Toggle color scheme">
-                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}><IconSun size={20} stroke={2} /></span>
-                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}><IconMoon size={20} stroke={2} /></span>
-                            </button>
-                            <a href="/user/me">
-                                <img
-                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
-                                    alt="profile"
-                                    className="profile-pic"
-                                />
-                            </a>
+                {/* Navbar */}
+                <nav className="navbar navbar-expand-lg">
+                    <div className="container-fluid">
+                        <img
+                            src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                            alt="logo"
+                            className="logo"
+                        />
+                        <div className="navbar-content">
+                            <ul className="navbar-nav">
+                                <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
+                                <li className="nav-item"><a className="nav-link" href="/search">Search</a></li>
+                                <li className="nav-item"><a className="nav-link" href="/discover">Discover</a></li>
+                            </ul>
+
+                            <div className="navbar-right">
+                                <button className="Darkmode-changer" onClick={toggleTheme} aria-label="Toggle color scheme">
+                                    <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}><IconSun size={20} stroke={2} /></span>
+                                    <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}><IconMoon size={20} stroke={2} /></span>
+                                </button>
+                                <a href="/user/me">
+                                    <img
+                                        src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                        alt="profile"
+                                        className="profile-pic"
+                                    />
+                                </a>
+                            </div>
                         </div>
                     </div>
+                </nav>
+
+                {/* Search bar */}
+                <div className='search-bar-on-the-left'>
+                    <div className="search-bar-on-discoverpage">
+                        <input
+                            type="text"
+                            placeholder="Search by book title or author..."
+                            className="form-control"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                        />
+                    </div>
                 </div>
-            </nav>
 
-            {/* Search bar */}
-            <div className='search-bar-on-the-left'>
-                <div className="search-bar-on-discoverpage">
-                <input
-                    type="text"
-                    placeholder="Search by book title or author..."
-                    className="form-control"
-                    value={query}
-                    onChange={e => setQuery(e.target.value)}
-                />
-            </div>
-            </div>
+                {/* Találatok a keresésre */}
+                {query.trim() !== "" && (
+                    <div className="search-results mb-3">
+                        {filteredAuthors.length > 0 && (
+                            <div className="mb-3">
+                                <h3 className='listing-h1-authors'>Authors found:</h3><br />
+                                <div className="d-flex flex-wrap gap-3">
+                                    {filteredAuthors.map(author => (
+                                        <Link key={author.id} to={`/author/${author.id}`} className="author-card">
+                                            <div style={{ textAlign: "center" }}>
+                                                <img
+                                                    src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                                    alt={author.name}
+                                                    style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+                                                />
+                                                <p>{author.name}</p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-            {/* Találatok a keresésre */}
-            {query.trim() !== "" && (
-                <div className="search-results mb-4">
-                    {filteredAuthors.length > 0 && (
-                        <div className="mb-3">
-                            <h3 className='listing-h1-authors'>Authors:</h3>
-                            <div className="d-flex flex-wrap gap-3">
-                                {filteredAuthors.map(author => (
-                                    <Link key={author.id} to={`/author/${author.id}`} className="author-card">
-                                        <div style={{ textAlign: "center" }}>
+                        {filteredBooks.length > 0 && (
+                            <div>
+                                <h3 className='listing-h1-books'>Books found:</h3><br />
+                                <div className="row g-2">
+                                    {filteredBooks.map(book => (
+                                        <div key={book.id} className="col-3 col-md-2 text-center">
+                                            <Link to={`/book/${book.id}`}>
+                                                <img
+                                                    src={book.smallerCoverPic || "/logo.svg"}
+                                                    alt={book.title}
+                                                    className="img-fluid rounded"
+                                                    onError={handleBookImageError}
+                                                />
+                                                <p className="mt-1">{book.title}</p>
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {filteredAuthors.length === 0 && filteredBooks.length === 0 && (
+                            <p className="text-muted">No results found.</p>
+                        )}
+                    </div>
+                )}
+
+                <>
+                    {/* Authors */}
+                    {authorList && (
+                        <div className="mb-4">
+                            <h1 className='h1-discover'>Authors:</h1>
+                            <div className="row g-3 mx-auto" style={{ maxWidth: "1200px" }}>
+                                {Array.from(
+                                    new Map(
+                                        authorList.flatMap(s => s.data).map(a => [a.id, a])
+                                    ).values()
+                                ).map(author => (
+                                    <div
+                                        key={author.id}
+                                        className="col-2 col-sm-4 col-md-3 col-lg-3 text-center"
+                                    >
+                                        <Link
+                                            to={`/author/${author.id}`}
+                                            style={{ textDecoration: "none", color: "inherit" }}
+                                        >
                                             <img
                                                 src={author.smallerProfilePic || "/def_profile_icon.svg"}
                                                 alt={author.name}
-                                                style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+                                                data-theme={theme}
+                                                style={{
+                                                    width: "120px",
+                                                    height: "120px",
+                                                    borderRadius: "50%",
+                                                    objectFit: "cover",
+                                                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                                                    transition: "0.3s",
+                                                    cursor: "pointer",
+                                                    marginBottom: "5px",
+                                                }}
+                                                onError={(e) => {
+                                                    const currentTheme = e.currentTarget.getAttribute('data-theme');
+                                                    e.currentTarget.src =
+                                                        currentTheme === "light" ? "/user.png" : "/user2.png";
+                                                }}
                                             />
                                             <p>{author.name}</p>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {filteredBooks.length > 0 && (
-                        <div>
-                            <h3 className='listing-h1-books'>Books:</h3>
-                            <div className="row g-2">
-                                {filteredBooks.map(book => (
-                                    <div key={book.id} className="col-3 col-md-2 text-center">
-                                        <Link to={`/book/${book.id}`}>
-                                            <img
-                                                src={book.smallerCoverPic || "/logo.svg"}
-                                                alt={book.title}
-                                                className="img-fluid rounded"
-                                                onError={handleBookImageError}
-                                            />
-                                            <p className="mt-1">{book.title}</p>
                                         </Link>
                                     </div>
                                 ))}
@@ -155,85 +209,52 @@ export function Discover() {
                         </div>
                     )}
 
-                    {filteredAuthors.length === 0 && filteredBooks.length === 0 && (
-                        <p className="text-muted">No results found.</p>
-                    )}
-                </div>
-            )}
-            
-            <>
-                {/* Authors */}
-                {authorList && (
+                    {/* Books */}
                     <div className="mb-4">
-                        <h1 className='listing-h1-authors'>Authors:</h1>
-                        <div className="row g-3">
-                            {Array.from(
-                                new Map(
-                                    authorList.flatMap(s => s.data).map(a => [a.id, a])
-                                ).values()
-                            ).map(author => (
-                                <div
-                                    key={author.id}
-                                    className="col-6 col-sm-4 col-md-3 col-lg-2 text-center"
-                                >
+                        <h1 className='h1-discover'>Books:</h1>
+
+                        <div className="row g-3 mx-auto" style={{ maxWidth: "1000px" }}>
+                            {booksList.map(book => (
+                                <div key={book.id} className="col-3 col-md-2 col-lg-3 text-center">
                                     <Link
-                                        to={`/author/${author.id}`}
-                                        style={{ textDecoration: "none", color: "inherit" }}
+                                        to={`/book/${book.id}`}
+                                        style={{
+                                            textDecoration: "none",
+                                            color: "#556b2f",
+                                            width: "160px",
+                                            textAlign: "center",
+                                            fontFamily: "'Georgia', serif",
+                                            display: "block"
+                                        }}
                                     >
                                         <img
-                                            src={author.smallerProfilePic || "/def_profile_icon.svg"}
-                                            alt={author.name}
-                                            data-theme={theme}
+                                            src={book.smallerCoverPic || "/logo.svg"}
+                                            alt={book.title}
+                                            onError={handleBookImageError}
                                             style={{
-                                                width: "120px",
-                                                height: "120px",
-                                                borderRadius: "50%",
+                                                width: "160px",
+                                                height: "240px",
                                                 objectFit: "cover",
-                                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                                                transition: "0.3s",
-                                                cursor: "pointer",
-                                                marginBottom: "5px",
-                                            }}
-                                            onError={(e) => {
-                                                const currentTheme = e.currentTarget.getAttribute('data-theme');
-                                                e.currentTarget.src =
-                                                    currentTheme === "light" ? "/user.png" : "/user2.png";
+                                                borderRadius: "8px",
+                                                display: "block"
                                             }}
                                         />
-                                        <p>{author.name}</p>
+
+                                        <p className="mt-1">{book.title}</p>
                                     </Link>
                                 </div>
                             ))}
                         </div>
                     </div>
-                )}
+                </>
+            </div>
 
-                {/* Books */}
-                <div className="row g-3">
-                    <h1 className='listing-h1-books'>Books:</h1>
-                    {booksList.map(book => (
-                        <div key={book.id} className="col-3 col-md-2 text-center">
-                            <Link to={`/book/${book.id}`}>
-                                <img
-                                    src={book.smallerCoverPic || "/logo.svg"}
-                                    alt={book.title}
-                                    className="img-fluid rounded"
-                                    onError={handleBookImageError}
-                                />
-                                <p className="mt-1">{book.title}</p>
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-            </>
-        </div>
+            <div className='space'></div>
 
-        <div className='space'></div>
-
-        <div className="footer2">
-				<p>Copyright© Readsy 2025. All rights reserved.</p>
-				<p className="Privacy">Privacy & Policy</p>
-			</div>
+            <div className="footer2">
+                <p>Copyright© Readsy 2025. All rights reserved.</p>
+                <p className="Privacy">Privacy & Policy</p>
+            </div>
         </div>
     );
 }

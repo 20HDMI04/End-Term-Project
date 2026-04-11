@@ -17,8 +17,8 @@
 }
 
 .search-bar-on-discoverpage {
-    margin: 20px 10px 30px 10px;
-    width: 12.5%;
+    margin: 20px 20px 20px 15px;
+    width: 15%;
 }
 
 .search-bar-on-the-left {
@@ -28,7 +28,6 @@
 }
 
 .search-bar input {
-    /*width: 100%;*/
     max-width: 500px;
     padding: 12px 16px;
     border-radius: 25px;
@@ -77,13 +76,18 @@ p {
     padding: 0 10px;
 }
 
-.home-container-discover {
-    max-width: fit-content;
+.h1-discover {
+    font-family: "Modern No. 20";
+    color: var(--text-color);
+    margin-bottom: 0;
+    padding-left: 280px;
+    padding-bottom: 30px;
 }
 
 .search-results {
     padding: 15px;
     margin-bottom: 20px;
+    padding-left: 50px;
 }
 
 @media (max-width: 1200px) {
