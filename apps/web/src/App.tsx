@@ -61,6 +61,7 @@ import { BookDetails } from "./components/BookDetails";
 import { AuthorDetails } from "./components/AuthorDetails";
 import { UserProfile } from "./components/UserProfile";
 import { AuthorsPage } from "./components/AuthorsPage";
+import { Genre } from "./components/Genres";
 
 SuperTokens.init({
 	appInfo: {
@@ -207,16 +208,36 @@ export default function App() {
 							}
 						/>
 
+						{/* GENRES - To see all books having the selected genre */}
+						{/* File: src/components/Genre.tsx */}
+						<Route
+							path="/genres/:id"
+							element={
+								<SessionAuth>
+									<Genre />
+								</SessionAuth>
+							}
+						/>
+						{/*FOR ALL GENRES */}
+						<Route
+							path="/genres"
+							element={
+								<SessionAuth>
+									<Genre />
+								</SessionAuth>
+							}
+						/>
+
 						{/* ===== ROUTE REDIRECTS ===== */}
 						{/* Old route names redirect to new ones */}
-						<Route 
+						<Route
 							path="/dashboard"
 							element={
-							<Navigate to="/" replace />
+								<Navigate to="/" replace />
 							} />
-						</Routes>
-						
-						
+					</Routes>
+
+
 				</ThemeProvider>
 			</BrowserRouter>
 		</SuperTokensWrapper>

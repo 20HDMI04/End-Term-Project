@@ -150,8 +150,8 @@ export function BookDetails() {
                                 book.genres.map((g: any) =>
                                     g.genre ? (
                                         <Link
-                                            key={g.genre.id}
-                                            to={`/genres/${g.genre.id}`} // ide navigál a kattintás
+                                            key={g.genreId}
+                                            to={`/genres/${g.genreId}`} // ide navigál a kattintás
                                             className="book-genres"
                                             style={{
                                                 color: "white",
@@ -225,6 +225,13 @@ export function BookDetails() {
                     </div>
                 </div>
             </div>
+
+            <div className="gap"></div>
+
+            <div className="footer2">
+				<p>Copyright© Readsy 2025. All rights reserved.</p>
+				<p className="Privacy">Privacy & Policy</p>
+			</div>
         </div>
     );
 }
