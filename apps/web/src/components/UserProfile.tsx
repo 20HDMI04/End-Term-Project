@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
@@ -11,6 +11,8 @@ export function UserProfile() {
     const [user, setUser] = useState<any>(null);
     const { theme, toggleTheme } = useTheme();
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         async function fetchUser() {
@@ -36,6 +38,33 @@ export function UserProfile() {
             console.error("Error fetching current user:", err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleProfilePictureClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingPicture(true);
+        try {
+            await api.updateUserProfile(file, {});
+            console.log("Profile picture updated successfully");
+            // Refresh user data to get the new image
+            const fetchedUser = await api.getCurrentUser();
+            setUser(fetchedUser);
+        } catch (err) {
+            console.error("Error uploading profile picture:", err);
+            alert("Failed to upload profile picture. Please try again.");
+        } finally {
+            setIsUploadingPicture(false);
+            // Reset the file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
         }
     };
 
@@ -95,16 +124,46 @@ export function UserProfile() {
                 <div className="row">
                     {/* LEFT SIDE - PROFILE INFO */}
                     <div className="col-md-3 text-center" style={{ position: "sticky", top: "80px", height: "fit-content" }}>
-                        <img
-                            src={user.biggerProfilePic || "/def_profile_icon.svg"}
-                            alt={user.username}
-                            style={{
-                                width: "200px",
-                                height: "200px",
-                                borderRadius: "50%",
-                                objectFit: "cover",
-                                boxShadow: "0 6px 20px rgba(0,0,0,0.2)"
-                            }}
+                        <div style={{ position: "relative", width: "200px", height: "200px", margin: "0 auto" }}>
+                            <img
+                                src={user.biggerProfilePic || "/def_profile_icon.svg"}
+                                alt={user.username}
+                                onClick={handleProfilePictureClick}
+                                style={{
+                                    width: "200px",
+                                    height: "200px",
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                    boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
+                                    cursor: isUploadingPicture ? "not-allowed" : "pointer",
+                                    opacity: isUploadingPicture ? 0.6 : 1,
+                                    transition: "opacity 0.3s, cursor 0.3s"
+                                }}
+                                title="Click to change profile picture"
+                            />
+                            {isUploadingPicture && (
+                                <div style={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                    zIndex: 10
+                                }}>
+                                    <div className="spinner-border text-primary" role="status">
+                                        <span className="visually-hidden">Uploading...</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            style={{ display: "none" }}
+                            disabled={isUploadingPicture}
+                            aria-label="Upload profile picture"
+                            title="Upload profile picture"
                         />
                         <h2 className="mt-3">{user.nickname ?? user.username}</h2>
                         <p>{user.email}</p>

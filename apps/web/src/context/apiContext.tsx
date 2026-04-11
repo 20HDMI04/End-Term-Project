@@ -10,6 +10,7 @@ interface ApiContextType {
     likeAuthor: (authorId: string) => Promise<any>;
     unlikeAuthor: (authorId: string) => Promise<any>;
     refetchUser: () => Promise<any>;
+    updateUserProfile: (file: File | null, data: any) => Promise<any>;
 }
 
 const ApiContext = createContext<ApiContextType>(null as any);
@@ -123,8 +124,42 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
         return getCurrentUser();
     }
 
+    // Update user profile with file and/or data
+    async function updateUserProfile(file: File | null, data: any): Promise<any> {
+        try {
+            const formData = new FormData();
+            
+            if (file) {
+                formData.append("file", file);
+            }
+            
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    formData.append(key, data[key]);
+                });
+            }
+
+            const res = await fetch("http://localhost:3002/user/me", {
+                method: "PATCH",
+                credentials: "include",
+                body: formData
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            const result = await res.json();
+            return result;
+        } catch (err) {
+            console.error("Error updating user profile:", err);
+            throw err;
+        }
+    }
+
     return (
-        <ApiContext.Provider value={{ getData, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser }}>
+        <ApiContext.Provider value={{ getData, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser, updateUserProfile }}>
             {children}
         </ApiContext.Provider>
     );
