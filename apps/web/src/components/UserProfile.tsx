@@ -65,7 +65,7 @@ export function UserProfile() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
                                     alt="profile"
                                     className="profile-pic"
                                 />

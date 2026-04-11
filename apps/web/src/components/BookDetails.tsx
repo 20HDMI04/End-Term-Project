@@ -31,7 +31,6 @@ export function BookDetails() {
         if (!authorList || !authorId) return null;
 
         for (const section of authorList) {
-            //const author = section.data.find((a) => a.id === authorId);
             const author = section.data.find((a) => String(a.id) === String(authorId));
             if (author) return author;
         }
@@ -40,8 +39,6 @@ export function BookDetails() {
 
     if (!book) return <div className="container mt-5">Loading...</div>;
 
-    //const author = getAuthor(book.authorId);
-    //const author = getAuthor(book.authorId) ?? book.author.name;
     const author = getAuthor(book.authorId) ?? null;
 
     return (
@@ -84,7 +81,7 @@ export function BookDetails() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
                                     alt="profile"
                                     className="profile-pic"
                                 />
