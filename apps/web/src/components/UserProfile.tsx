@@ -4,29 +4,45 @@ import { useEffect, useState } from "react";
 import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import "./css/home.css"
 
 export function UserProfile() {
     const api = useApi();
     const [user, setUser] = useState<any>(null);
     const { theme, toggleTheme } = useTheme();
-    
+    const [isLoading, setIsLoading] = useState(false);
+
     useEffect(() => {
         async function fetchUser() {
+            setIsLoading(true);
             try {
                 const fetchedUser = await api.getCurrentUser();
                 setUser(fetchedUser);
             } catch (err) {
                 console.error("Error fetching current user:", err);
+            } finally {
+                setIsLoading(false);
             }
         }
         fetchUser();
-    }, []);
+    }, [api]);
+
+    const refreshUser = async () => {
+        setIsLoading(true);
+        try {
+            const fetchedUser = await api.getCurrentUser();
+            setUser(fetchedUser);
+        } catch (err) {
+            console.error("Error fetching current user:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     if (!user) return <div className="container mt-5 text-dark">Loading...</div>;
 
     return (
         <div className="home-container">
-            <div style={{ backgroundColor: "#f8f9fa", minHeight: "100vh", color: "#212529" }}>
             {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
@@ -77,14 +93,14 @@ export function UserProfile() {
 
             <div className="container mt-4">
                 <div className="row">
-                    {/* LEFT SIDE */}
-                    <div className="col-md-3 text-center">
+                    {/* LEFT SIDE - PROFILE INFO */}
+                    <div className="col-md-3 text-center" style={{ position: "sticky", top: "80px", height: "fit-content" }}>
                         <img
                             src={user.biggerProfilePic || "/def_profile_icon.svg"}
                             alt={user.username}
                             style={{
-                                width: "260px",
-                                height: "260px",
+                                width: "200px",
+                                height: "200px",
                                 borderRadius: "50%",
                                 objectFit: "cover",
                                 boxShadow: "0 6px 20px rgba(0,0,0,0.2)"
@@ -94,104 +110,145 @@ export function UserProfile() {
                         <p>{user.email}</p>
 
                         {/* User stats */}
-                        <div className="mt-3 text-start" style={{ padding: "0 10px" }}>
-                            <p>Favorite Books: {user.favoriteBooks?.length ?? 0}</p>
-                            <p>Comments: {user.comments?.length ?? 0}</p>
-                            <p>Ratings: {user.ratings?.length ?? 0}</p>
-                            <p>Have Read: {user.haveReadIt?.length ?? 0}</p>
+                        <div className="mt-4" style={{ textAlign: "left", paddingLeft: "20px" }}>
+                            <p><strong>Favorite Books:</strong> {user.favoriteBooks?.length ?? 0}</p>
+                            <p><strong>Favorite Authors:</strong> {user.favoriteAuthors?.length ?? 0}</p>
+                            <p><strong>Comments:</strong> {user.comments?.length ?? 0}</p>
+                            <p><strong>Ratings:</strong> {user.ratings?.length ?? 0}</p>
+                            <p><strong>Have Read:</strong> {user.haveReadIt?.length ?? 0}</p>
                         </div>
+
+                        <button 
+                            onClick={refreshUser}
+                            disabled={isLoading}
+                            className="btn btn-success w-100 mt-3"
+                        >
+                            {isLoading ? 'Refreshing...' : 'Refresh'}
+                        </button>
                     </div>
 
-                    {/* RIGHT SIDE */}
+                    {/* RIGHT SIDE - CONTENT */}
                     <div className="col-md-9">
                         {/* Favorite Books */}
-                        <h4 className="mb-3">Favorite Books</h4>
-                        <div className="row mb-4">
+                        <h1 className="listing-h1-books">Favorite Books</h1>
+                        <div className="books-container mt-4">
                             {user.favoriteBooks?.length ? (
-                                user.favoriteBooks.map((f: any) => (
-                                    <div key={f.book.id} className="col-md-3 mb-4">
-                                        <a href={`/book/${f.book.id}`} style={{ textDecoration: "none" }}>
-                                            <div
-                                                style={{
-                                                    backgroundColor: "#ffffff",
-                                                    borderRadius: "12px",
-                                                    overflow: "hidden",
-                                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                                    cursor: "pointer"
-                                                }}
-                                            >
-                                                <img
-                                                    src={f.book.smallerCoverPic}
-                                                    alt={f.book.title}
-                                                    style={{ width: "100%", height: "260px", objectFit: "cover" }}
-                                                />
-                                                <div style={{ padding: "10px" }}>
-                                                    <p style={{ margin: 0 }}>{f.book.title}</p>
+                                <div className="d-flex flex-wrap gap-3 justify-start">
+                                    {user.favoriteBooks.map((f: any) => (
+                                        <a key={f.book.id} href={`/book/${f.book.id}`} style={{ textDecoration: "none" }}>
+                                            <div className="books-display-main">
+                                                <div
+                                                    className="card book-card"
+                                                    style={{
+                                                        width: "150px",
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                    }}
+                                                >
+                                                    <div className="rating-main">
+                                                        <p className="rating-display">
+                                                            {f.book.statistics?.averageRating?.toFixed(1) ?? "No rating"}
+                                                        </p>
+                                                    </div>
+                                                    <img
+                                                        src={f.book.biggerCoverPic || "/logo.svg"}
+                                                        className="card-img-top"
+                                                        alt={f.book.title}
+                                                        style={{
+                                                            height: "250px",
+                                                            objectFit: "cover",
+                                                            flexShrink: 0,
+                                                            borderRadius: "5px"
+                                                        }}
+                                                    />
+                                                    <div className="card-body p-2" style={{ flexGrow: 1 }}>
+                                                        <h6 className="card-title">{f.book.title}</h6>
+                                                        <p className="card-text">
+                                                            {f.book.author?.name ?? "Unknown"}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </a>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : (
                                 <p className="text-muted">No favorite books yet.</p>
                             )}
                         </div>
 
                         {/* Favorite Authors */}
-                        <h4 className="mb-3">Favorite Authors</h4>
-                        <div className="row mb-4">
+                        <h1 className="listing-h1-authors mt-5">Favorite Authors</h1>
+                        <div className="authors-container mt-5">
                             {user.favoriteAuthors?.length ? (
-                                user.favoriteAuthors.map((f: any) => (
-                                    <div key={f.author.id} className="col-md-3 mb-4 text-center">
-                                        <a href={`/author/${f.author.id}`} style={{ textDecoration: "none" }}>
+                                <div className="d-flex justify-content-center gap-5 flex-wrap">
+                                    {user.favoriteAuthors.map((f: any) => (
+                                        <a key={f.author.id} href={`/author/${f.author.id}`} className="text-center" style={{ textDecoration: "none" }}>
                                             <img
-                                                src={f.author.smallerProfilePic || "/def_profile_icon.svg"}
+                                                className="author-ppic"
+                                                src={f.author.smallerProfilePic || "/logo.svg"}
                                                 alt={f.author.name}
                                                 style={{
-                                                    width: "160px",
-                                                    height: "160px",
-                                                    borderRadius: "50%",
+                                                    width: "140px",
+                                                    height: "140px",
                                                     objectFit: "cover",
-                                                    marginBottom: "5px"
+                                                    borderRadius: "50%",
                                                 }}
                                             />
-                                            <p style={{ margin: 0 }}>{f.author.name}</p>
+                                            <p className="author-name">
+                                                {f.author.name ?? "Unknown Author"}
+                                            </p>
                                         </a>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : (
                                 <p className="text-muted">No favorite authors yet.</p>
                             )}
                         </div>
 
                         {/* Books I've Read */}
-                        <h4 className="mb-3">Books I've Read</h4>
-                        <div className="row mb-4">
+                        <h1 className="listing-h1-books mt-5">Books I've Read</h1>
+                        <div className="books-container mt-4">
                             {user.haveReadIt?.length ? (
-                                user.haveReadIt.map((h: any) => (
-                                    <div key={h.book.id} className="col-md-3 mb-4">
-                                        <a href={`/book/${h.book.id}`} style={{ textDecoration: "none" }}>
-                                            <div
-                                                style={{
-                                                    backgroundColor: "#ffffff",
-                                                    borderRadius: "12px",
-                                                    overflow: "hidden",
-                                                    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-                                                    cursor: "pointer"
-                                                }}
-                                            >
-                                                <img
-                                                    src={h.book.smallerCoverPic}
-                                                    alt={h.book.title}
-                                                    style={{ width: "100%", height: "260px", objectFit: "cover" }}
-                                                />
-                                                <div style={{ padding: "10px" }}>
-                                                    <p style={{ margin: 0 }}>{h.book.title}</p>
+                                <div className="d-flex flex-wrap gap-3 justify-start">
+                                    {user.haveReadIt.map((h: any) => (
+                                        <a key={h.book.id} href={`/book/${h.book.id}`} style={{ textDecoration: "none" }}>
+                                            <div className="books-display-main">
+                                                <div
+                                                    className="card book-card"
+                                                    style={{
+                                                        width: "150px",
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                    }}
+                                                >
+                                                    <div className="rating-main">
+                                                        <p className="rating-display">
+                                                            {h.book.statistics?.averageRating?.toFixed(1) ?? "No rating"}
+                                                        </p>
+                                                    </div>
+                                                    <img
+                                                        src={h.book.biggerCoverPic || "/logo.svg"}
+                                                        className="card-img-top"
+                                                        alt={h.book.title}
+                                                        style={{
+                                                            height: "250px",
+                                                            objectFit: "cover",
+                                                            flexShrink: 0,
+                                                            borderRadius: "5px"
+                                                        }}
+                                                    />
+                                                    <div className="card-body p-2" style={{ flexGrow: 1 }}>
+                                                        <h6 className="card-title">{h.book.title}</h6>
+                                                        <p className="card-text">
+                                                            {h.book.author?.name ?? "Unknown"}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </a>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : (
                                 <p className="text-muted">No books read yet.</p>
                             )}
@@ -199,7 +256,13 @@ export function UserProfile() {
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div className="gap"></div>
+
+            <div className="footer2">
+                <p>Copyright© Readsy 2025. All rights reserved.</p>
+                <p className="Privacy">Privacy & Policy</p>
+            </div>
         </div>
     );
 }

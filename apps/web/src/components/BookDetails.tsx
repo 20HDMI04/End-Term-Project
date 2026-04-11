@@ -14,6 +14,8 @@ export function BookDetails() {
     const { theme, toggleTheme } = useTheme();
     const [book, setBook] = useState<Book | null>(null);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -25,7 +27,21 @@ export function BookDetails() {
             setBook(selectedBook || null);
         }
         fetchData();
-    }, [id]);
+    }, [id, api]);
+
+    // Check if book is favorited
+    useEffect(() => {
+        async function checkFavorite() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                const isFav = currentUser.favoriteBooks?.some((fav: any) => fav.book.id === id);
+                setIsFavorited(isFav || false);
+            } catch (err) {
+                console.error("Error checking favorite status:", err);
+            }
+        }
+        if (id) checkFavorite();
+    }, [id, api]);
 
     function getAuthor(authorId: string | undefined) {
         if (!authorList || !authorId) return null;
@@ -35,6 +51,32 @@ export function BookDetails() {
             if (author) return author;
         }
         return null;
+    }
+
+    async function handleFavoriteClick() {
+        if (!id || isLoading) return;
+        
+        setIsLoading(true);
+        try {
+            console.log("Current favorite state:", isFavorited);
+            console.log("Book ID:", id);
+            
+            if (isFavorited) {
+                console.log("Unliking book...");
+                await api.unlikeBook(id);
+                setIsFavorited(false);
+            } else {
+                console.log("Liking book...");
+                await api.likeBook(id);
+                setIsFavorited(true);
+            }
+            console.log("Success!");
+        } catch (err: any) {
+            console.error("Error toggling favorite:", err);
+            alert(`Failed to update favorite:\n${err.message || err}`);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     if (!book) return <div className="container mt-5">Loading...</div>;
@@ -109,8 +151,12 @@ export function BookDetails() {
                             alt={book.title}
                         />
 
-                        <button className="btn btn-success mt-3 w-100">
-                            Add to Favorites
+                        <button 
+                            className={`btn w-100 mt-3 ${isFavorited ? 'btn-danger' : 'btn-success'}`}
+                            onClick={handleFavoriteClick}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Loading...' : isFavorited ? '❤️ Remove from Favorites' : '♡ Add to Favorites'}
                         </button>
                     </div>
 

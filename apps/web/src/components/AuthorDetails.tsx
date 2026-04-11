@@ -14,6 +14,8 @@ export function AuthorDetails() {
     const { theme, toggleTheme } = useTheme();
     const [author, setAuthor] = useState<any>(null);
     const [books, setBooks] = useState<any[]>([]);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -40,7 +42,47 @@ export function AuthorDetails() {
         }
 
         fetchData();
-    }, [id]);
+    }, [id, api]);
+
+    // Check if author is favorited
+    useEffect(() => {
+        async function checkFavorite() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                const isFav = currentUser.favoriteAuthors?.some((fav: any) => fav.author.id === id);
+                setIsFavorited(isFav || false);
+            } catch (err) {
+                console.error("Error checking favorite status:", err);
+            }
+        }
+        if (id) checkFavorite();
+    }, [id, api]);
+
+    async function handleFavoriteClick() {
+        if (!id || isLoading) return;
+        
+        setIsLoading(true);
+        try {
+            console.log("Current favorite state:", isFavorited);
+            console.log("Author ID:", id);
+            
+            if (isFavorited) {
+                console.log("Unliking author...");
+                await api.unlikeAuthor(id);
+                setIsFavorited(false);
+            } else {
+                console.log("Liking author...");
+                await api.likeAuthor(id);
+                setIsFavorited(true);
+            }
+            console.log("Success!");
+        } catch (err: any) {
+            console.error("Error toggling favorite:", err);
+            alert(`Failed to update favorite:\n${err.message || err}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     if (!author) return <div className="container mt-5">Loading...</div>;
 
@@ -120,8 +162,12 @@ export function AuthorDetails() {
                             />
                         </div>
 
-                        <button className="custom-btn">
-                            Add to Favorites
+                        <button 
+                            className={`custom-btn ${isFavorited ? 'btn-danger' : 'btn-success'} btn w-100 mt-3`}
+                            onClick={handleFavoriteClick}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Loading...' : isFavorited ? '❤️ Remove from Favorites' : '♡ Add to Favorites'}
                         </button>
                     </div>
 
