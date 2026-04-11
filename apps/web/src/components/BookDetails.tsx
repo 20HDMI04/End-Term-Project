@@ -187,16 +187,16 @@ export function BookDetails() {
                                     style={{ textDecoration: "none", color: "inherit" }}
                                     className="author-link-wrapper"
                                 >
-                                <img
-                                    src={author.smallerProfilePic || "/def_profile_icon.svg"}
-                                    alt={author.name}
-                                    style={{
-                                        width: "70px",
-                                        height: "70px",
-                                        borderRadius: "50%",
-                                        objectFit: "cover"
-                                    }}
-                                />
+                                    <img
+                                        src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                        alt={author.name}
+                                        style={{
+                                            width: "70px",
+                                            height: "70px",
+                                            borderRadius: "50%",
+                                            objectFit: "cover"
+                                        }}
+                                    />
                                 </Link>
 
                                 <div>
@@ -226,9 +226,9 @@ export function BookDetails() {
             <div className="gap"></div>
 
             <div className="footer2">
-				<p>Copyright© Readsy 2025. All rights reserved.</p>
-				<p className="Privacy">Privacy & Policy</p>
-			</div>
+                <p>Copyright© Readsy 2025. All rights reserved.</p>
+                <p className="Privacy">Privacy & Policy</p>
+            </div>
         </div>
     );
 }
