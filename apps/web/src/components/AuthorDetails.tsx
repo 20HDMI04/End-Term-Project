@@ -16,6 +16,7 @@ export function AuthorDetails() {
     const [books, setBooks] = useState<any[]>([]);
     const [isFavorited, setIsFavorited] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -44,6 +45,18 @@ export function AuthorDetails() {
         fetchData();
     }, [id, api]);
 
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
+
     // Check if author is favorited
     useEffect(() => {
         async function checkFavorite() {
@@ -60,12 +73,12 @@ export function AuthorDetails() {
 
     async function handleFavoriteClick() {
         if (!id || isLoading) return;
-        
+
         setIsLoading(true);
         try {
             console.log("Current favorite state:", isFavorited);
             console.log("Author ID:", id);
-            
+
             if (isFavorited) {
                 console.log("Unliking author...");
                 await api.unlikeAuthor(id);
@@ -126,7 +139,13 @@ export function AuthorDetails() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -162,7 +181,7 @@ export function AuthorDetails() {
                             />
                         </div>
 
-                        <button 
+                        <button
                             className={`custom-btn ${isFavorited ? 'btn-danger' : 'btn-success'} btn w-100 mt-3`}
                             onClick={handleFavoriteClick}
                             disabled={isLoading}
@@ -180,7 +199,7 @@ export function AuthorDetails() {
                             {author.birthDate && ` • ${new Date(author.birthDate).getFullYear()}`}
                         </p>
 
-                        <p  className="author-page-text" style={{ maxWidth: "700px" }}>
+                        <p className="author-page-text" style={{ maxWidth: "700px" }}>
                             {author.bio ?? "No biography available."}
                         </p>
 

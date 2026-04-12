@@ -16,6 +16,7 @@ export function BookDetails() {
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
     const [isFavorited, setIsFavorited] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -28,6 +29,18 @@ export function BookDetails() {
         }
         fetchData();
     }, [id, api]);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
 
     // Check if book is favorited
     useEffect(() => {
@@ -55,12 +68,12 @@ export function BookDetails() {
 
     async function handleFavoriteClick() {
         if (!id || isLoading) return;
-        
+
         setIsLoading(true);
         try {
             console.log("Current favorite state:", isFavorited);
             console.log("Book ID:", id);
-            
+
             if (isFavorited) {
                 console.log("Unliking book...");
                 await api.unlikeBook(id);
@@ -123,7 +136,13 @@ export function BookDetails() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -151,7 +170,7 @@ export function BookDetails() {
                             alt={book.title}
                         />
 
-                        <button 
+                        <button
                             className={`btn w-100 mt-3 ${isFavorited ? 'btn-danger' : 'btn-success'}`}
                             onClick={handleFavoriteClick}
                             disabled={isLoading}

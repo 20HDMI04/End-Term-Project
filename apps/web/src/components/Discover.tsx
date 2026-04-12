@@ -10,7 +10,7 @@ import "./css/discover.css";
 export function Discover() {
     const api = useApi();
     const { theme, toggleTheme } = useTheme();
-
+    const [user, setUser] = useState<any>(null);
     const [booksList, setBooksList] = useState<Book[]>([]);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
     const [query, setQuery] = useState("");
@@ -30,6 +30,18 @@ export function Discover() {
         }
         fetchData();
     }, []);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
 
     // === Author név lekérése ===
     function getAuthorName(authorId: string | undefined): string {
@@ -87,9 +99,16 @@ export function Discover() {
                                     <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}><IconSun size={20} stroke={2} /></span>
                                     <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}><IconMoon size={20} stroke={2} /></span>
                                 </button>
+
                                 <a href="/user/me">
                                     <img
-                                        src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                        src={
+                                            user?.smallerProfilePic ||
+                                            user?.biggerProfilePic ||
+                                            (theme === "light"
+                                                ? "/def_profile_icon.svg"
+                                                : "/def_profile_icon2.svg")
+                                        }
                                         alt="profile"
                                         className="profile-pic"
                                     />

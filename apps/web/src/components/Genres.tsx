@@ -16,7 +16,7 @@ export function Genre() {
     const navigate = useNavigate();
     const api = useApi();
     const { theme, toggleTheme } = useTheme();
-
+    const [user, setUser] = useState<any>(null);
     const [books, setBooks] = useState<Book[]>([]);
     const [genres, setGenres] = useState<Genre[]>([]);
 
@@ -57,6 +57,18 @@ export function Genre() {
 
         fetchData();
     }, []);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
 
     // 🎯 FILTER LOGIC
     const filteredBooks =
@@ -109,7 +121,13 @@ export function Genre() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />

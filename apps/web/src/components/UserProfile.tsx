@@ -110,7 +110,11 @@ export function UserProfile() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -177,7 +181,7 @@ export function UserProfile() {
                             <p><strong>Have Read:</strong> {user.haveReadIt?.length ?? 0}</p>
                         </div>
 
-                        <button 
+                        <button
                             onClick={refreshUser}
                             disabled={isLoading}
                             className="btn btn-success w-100 mt-3"

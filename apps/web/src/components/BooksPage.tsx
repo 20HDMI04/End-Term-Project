@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */ 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
 import "./css/home.css";
 import { useEffect, useState } from "react";
@@ -13,11 +13,12 @@ export function BooksPage() {
     const [books, setBooks] = useState<Book[]>([]);
     const [authorList, setAuthorList] = useState<AuthorSection[]>();
     const { theme, toggleTheme } = useTheme();
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         async function fetchBooks() {
             const data = await api.getData();
-            
+
             const allBooks = data.books
                 .flatMap((section: BookSection) => section.data)
                 .filter(
@@ -31,55 +32,73 @@ export function BooksPage() {
         fetchBooks();
     }, [api]);
 
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
+
     return (
         <div className="home-container">
             {/* Navbar */}
-			<nav className="navbar navbar-expand-lg">
-				<div className="container-fluid">
-					<img
-						src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
-						alt="logo"
-						className="logo"
-					/>
+            <nav className="navbar navbar-expand-lg">
+                <div className="container-fluid">
+                    <img
+                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                        alt="logo"
+                        className="logo"
+                    />
 
-					<div className="navbar-content">
-						<ul className="navbar-nav">
-							<li className="nav-item">
-								<a className="nav-link" href="/">Home</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="/search">Search</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="/discover">Discover</a>
-							</li>
-						</ul>
+                    <div className="navbar-content">
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <a className="nav-link" href="/">Home</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/search">Search</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/discover">Discover</a>
+                            </li>
+                        </ul>
 
-						<div className="navbar-right">
-							<button
-								className="Darkmode-changer"
-								onClick={toggleTheme}
-								aria-label="Toggle color scheme"
-							>
-								<span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
-									<IconSun size={20} stroke={2} />
-								</span>
-								<span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
-									<IconMoon size={20} stroke={2} />
-								</span>
-							</button>
+                        <div className="navbar-right">
+                            <button
+                                className="Darkmode-changer"
+                                onClick={toggleTheme}
+                                aria-label="Toggle color scheme"
+                            >
+                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+                                    <IconSun size={20} stroke={2} />
+                                </span>
+                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+                                    <IconMoon size={20} stroke={2} />
+                                </span>
+                            </button>
 
-							<a href="/user/me">
-								<img
-									src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
-									alt="profile"
-									className="profile-pic"
-								/>
-							</a>
-						</div>
-					</div>
-				</div>
-			</nav>
+                            <a href="/user/me">
+                                <img
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
+                                    alt="profile"
+                                    className="profile-pic"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
 
             {/* CONTENT */}
             <div className="container mt-4">

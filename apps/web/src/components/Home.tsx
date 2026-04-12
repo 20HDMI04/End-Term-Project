@@ -14,21 +14,12 @@ export function Home() {
 	const [authorList, setAuthorList] = useState<AuthorSection[]>();
 	const { theme, toggleTheme } = useTheme();
 
-	useEffect(() => {
-		async function Boks() {
-			const consoleData = await api.getData();
-			setBookList(consoleData.books);
-			setAuthorList(consoleData.authors);
-		}
-		Boks();
-	});
-
 	const handleBookImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
 		e.currentTarget.src = "/book.png";
 	};
 
 	const handleAuthorImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-		if(theme === "light") {
+		if (theme === "light") {
 			e.currentTarget.src = "/user.png";
 		} else {
 			e.currentTarget.src = "/user2.png";
@@ -40,13 +31,14 @@ export function Home() {
 		async function Books() {
 			const consoleData = await api.getData();
 			setBookList(consoleData.books);
-			setAuthorList(consoleData.authors); 
+			setAuthorList(consoleData.authors);
 		}
 		Books();
-	});
+	}, []);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const [setUser] = useState<any>(null);
+	//const [setUser] = useState<any>(null);
+	const [user, setUser] = useState<any>(null);
 
 	useEffect(() => {
 		async function fetchUser() {
@@ -103,7 +95,11 @@ export function Home() {
 
 							<a href="/user/me">
 								<img
-									src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+									src={
+										user?.smallerProfilePic ||
+										user?.biggerProfilePic ||
+										(theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+									}
 									alt="profile"
 									className="profile-pic"
 								/>
@@ -259,7 +255,7 @@ export function Home() {
 			{/* Footer */}
 			<footer className="footer">
 				<div>
-					<p>						
+					<p>
 						<div className="contributors-list-a-tab-closer-to-the-middle">
 							<h2 className="contact-h1">Contact us</h2>
 							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a><br />
