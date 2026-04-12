@@ -11,6 +11,8 @@ interface ApiContextType {
     unlikeAuthor: (authorId: string) => Promise<any>;
     refetchUser: () => Promise<any>;
     updateUserProfile: (file: File | null, data: any) => Promise<any>;
+    rateBook: (bookId: string, score: number) => Promise<any>;
+    updateRating: (bookId: string, score: number) => Promise<any>;
 }
 
 const ApiContext = createContext<ApiContextType>(null as any);
@@ -128,11 +130,11 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
     async function updateUserProfile(file: File | null, data: any): Promise<any> {
         try {
             const formData = new FormData();
-            
+
             if (file) {
                 formData.append("file", file);
             }
-            
+
             if (data) {
                 Object.keys(data).forEach(key => {
                     formData.append(key, data[key]);
@@ -158,8 +160,48 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }
 
+    // Rate a book
+    async function rateBook(bookId: string, score: number): Promise<any> {
+        const res = await fetch(`http://localhost:3002/social/book/${bookId}/rate`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ score }),
+        });
+
+        const text = await res.text();
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
+        return text ? JSON.parse(text) : { success: true };
+    }
+
+    // Rerate a book
+    async function updateRating(bookId: string, score: number): Promise<any> {
+        const res = await fetch(`http://localhost:3002/social/book/${bookId}/rate`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ score }),
+        });
+
+        const text = await res.text();
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
+        return text ? JSON.parse(text) : { success: true };
+    }
+
     return (
-        <ApiContext.Provider value={{ getData, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser, updateUserProfile }}>
+        <ApiContext.Provider value={{ getData, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser, updateUserProfile, rateBook, updateRating }}>
             {children}
         </ApiContext.Provider>
     );

@@ -176,7 +176,9 @@ export function Home() {
 														backgroundSize: "cover"
 													}}
 												>
-													{book.statistics?.averageRating ?? "No rating"}
+													{book.statistics?.averageRating != null
+														? book.statistics.averageRating.toFixed(2)
+														: "N/A"}
 												</p>
 											</div>
 											<img

@@ -52,8 +52,6 @@ export function UserProfile() {
         setIsUploadingPicture(true);
         try {
             await api.updateUserProfile(file, {});
-            console.log("Profile picture updated successfully");
-            // Refresh user data to get the new image
             const fetchedUser = await api.getCurrentUser();
             setUser(fetchedUser);
         } catch (err) {
@@ -61,7 +59,6 @@ export function UserProfile() {
             alert("Failed to upload profile picture. Please try again.");
         } finally {
             setIsUploadingPicture(false);
-            // Reset the file input
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
@@ -70,9 +67,15 @@ export function UserProfile() {
 
     if (!user) return <div className="container mt-5 text-dark">Loading...</div>;
 
+    // ⭐ HELPER: saját rating kikeresése
+    const getMyRating = (bookId: string) => {
+        return user?.ratings?.find((r: any) => r.bookId === bookId)?.score;
+    };
+
     return (
         <div className="home-container">
-            {/* Navbar */}
+
+            {/* NAVBAR */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -83,23 +86,13 @@ export function UserProfile() {
 
                     <div className="navbar-content">
                         <ul className="navbar-nav">
-                            <li className="nav-item">
-                                <a className="nav-link" href="/">Home</a>
-                            </li>
-                            <li className="nav-item">
-                                <a className="nav-link" href="/search">Search</a>
-                            </li>
-                            <li className="nav-item">
-                                <a className="nav-link" href="/discover">Discover</a>
-                            </li>
+                            <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
+                            <li className="nav-item"><a className="nav-link" href="/search">Search</a></li>
+                            <li className="nav-item"><a className="nav-link" href="/discover">Discover</a></li>
                         </ul>
 
                         <div className="navbar-right">
-                            <button
-                                className="Darkmode-changer"
-                                onClick={toggleTheme}
-                                aria-label="Toggle color scheme"
-                            >
+                            <button className="Darkmode-changer" onClick={toggleTheme}>
                                 <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
                                     <IconSun size={20} stroke={2} />
                                 </span>
@@ -126,8 +119,9 @@ export function UserProfile() {
 
             <div className="container mt-4">
                 <div className="row">
-                    {/* LEFT SIDE - PROFILE INFO */}
-                    <div className="col-md-3 text-center" style={{ position: "sticky", top: "80px", height: "fit-content" }}>
+
+                    {/* LEFT */}
+                    <div className="col-md-3 text-center" style={{ position: "sticky", top: "80px" }}>
                         <div style={{ position: "relative", width: "200px", height: "200px", margin: "0 auto" }}>
                             <img
                                 src={user.biggerProfilePic || "/def_profile_icon.svg"}
@@ -138,41 +132,23 @@ export function UserProfile() {
                                     height: "200px",
                                     borderRadius: "50%",
                                     objectFit: "cover",
-                                    boxShadow: "0 6px 20px rgba(0,0,0,0.2)",
                                     cursor: isUploadingPicture ? "not-allowed" : "pointer",
                                     opacity: isUploadingPicture ? 0.6 : 1,
-                                    transition: "opacity 0.3s, cursor 0.3s"
                                 }}
-                                title="Click to change profile picture"
                             />
-                            {isUploadingPicture && (
-                                <div style={{
-                                    position: "absolute",
-                                    top: "50%",
-                                    left: "50%",
-                                    transform: "translate(-50%, -50%)",
-                                    zIndex: 10
-                                }}>
-                                    <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Uploading...</span>
-                                    </div>
-                                </div>
-                            )}
                         </div>
+
                         <input
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
                             onChange={handleFileChange}
                             style={{ display: "none" }}
-                            disabled={isUploadingPicture}
-                            aria-label="Upload profile picture"
-                            title="Upload profile picture"
                         />
+
                         <h2 className="mt-3">{user.nickname ?? user.username}</h2>
                         <p>{user.email}</p>
 
-                        {/* User stats */}
                         <div className="mt-4" style={{ textAlign: "left", paddingLeft: "20px" }}>
                             <p><strong>Favorite Books:</strong> {user.favoriteBooks?.length ?? 0}</p>
                             <p><strong>Favorite Authors:</strong> {user.favoriteAuthors?.length ?? 0}</p>
@@ -181,86 +157,81 @@ export function UserProfile() {
                             <p><strong>Have Read:</strong> {user.haveReadIt?.length ?? 0}</p>
                         </div>
 
-                        <button
-                            onClick={refreshUser}
-                            disabled={isLoading}
-                            className="btn btn-success w-100 mt-3"
-                        >
-                            {isLoading ? 'Refreshing...' : 'Refresh'}
+                        <button onClick={refreshUser} disabled={isLoading} className="btn btn-success w-100 mt-3">
+                            {isLoading ? "Refreshing..." : "Refresh"}
                         </button>
                     </div>
 
-                    {/* RIGHT SIDE - CONTENT */}
+                    {/* RIGHT */}
                     <div className="col-md-9">
-                        {/* Favorite Books */}
+
+                        {/* FAVORITE BOOKS */}
                         <h1 className="listing-h1-books">Favorite Books</h1>
+
                         <div className="books-container mt-4">
                             {user.favoriteBooks?.length ? (
-                                <div className="d-flex flex-wrap gap-3 justify-start">
-                                    {user.favoriteBooks.map((f: any) => (
-                                        <a key={f.book.id} href={`/book/${f.book.id}`} style={{ textDecoration: "none" }}>
-                                            <div className="books-display-main">
-                                                <div
-                                                    className="card book-card"
-                                                    style={{
-                                                        width: "150px",
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                    }}
-                                                >
-                                                    <div className="rating-main">
-                                                        <p className="rating-display">
-                                                            {f.book.statistics?.averageRating?.toFixed(1) ?? "No rating"}
-                                                        </p>
-                                                    </div>
-                                                    <img
-                                                        src={f.book.biggerCoverPic || "/logo.svg"}
-                                                        className="card-img-top"
-                                                        alt={f.book.title}
-                                                        style={{
-                                                            height: "250px",
-                                                            objectFit: "cover",
-                                                            flexShrink: 0,
-                                                            borderRadius: "5px"
-                                                        }}
-                                                    />
-                                                    <div className="card-body p-2" style={{ flexGrow: 1 }}>
-                                                        <h6 className="card-title">{f.book.title}</h6>
-                                                        <p className="card-text">
-                                                            {f.book.author?.name ?? "Unknown"}
-                                                        </p>
+                                <div className="d-flex flex-wrap gap-3">
+
+                                    {user.favoriteBooks.map((f: any) => {
+                                        const myRating = getMyRating(f.book.id);
+
+                                        return (
+                                            <a key={f.book.id} href={`/book/${f.book.id}`} style={{ textDecoration: "none" }}>
+                                                <div className="books-display-main">
+                                                    <div className="card book-card" style={{ width: "150px" }}>
+
+                                                        <div className="rating-main">
+                                                            <p
+                                                                className="rating-display"
+                                                                style={{
+                                                                    backgroundImage: `url(${theme === "light" ? "/rating.svg" : "/rating2.svg"})`,
+                                                                    backgroundRepeat: "no-repeat",
+                                                                    backgroundSize: "cover",
+                                                                }}
+                                                            >
+                                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{myRating != null ? `${myRating}` : "Not rated"}
+                                                            </p>
+                                                        </div>
+
+                                                        
+
+                                                        <img
+                                                            src={f.book.biggerCoverPic || "/logo.svg"}
+                                                            className="card-img-top"
+                                                            alt={f.book.title}
+                                                            style={{ height: "250px", objectFit: "cover" }}
+                                                        />
+
+                                                        <div className="card-body p-2">
+                                                            <h6>{f.book.title}</h6>
+                                                            <p>{f.book.author?.name ?? "Unknown"}</p>
+                                                        </div>
+
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </a>
-                                    ))}
+                                            </a>
+                                        );
+                                    })}
+
                                 </div>
                             ) : (
                                 <p className="text-muted">No favorite books yet.</p>
                             )}
                         </div>
 
-                        {/* Favorite Authors */}
+                        {/* AUTHORS + READ BOOKS unchanged */}
                         <h1 className="listing-h1-authors mt-5">Favorite Authors</h1>
+
                         <div className="authors-container mt-5">
                             {user.favoriteAuthors?.length ? (
-                                <div className="d-flex justify-content-center gap-5 flex-wrap">
+                                <div className="d-flex flex-wrap gap-5 justify-content-center">
                                     {user.favoriteAuthors.map((f: any) => (
-                                        <a key={f.author.id} href={`/author/${f.author.id}`} className="text-center" style={{ textDecoration: "none" }}>
+                                        <a key={f.author.id} href={`/author/${f.author.id}`} style={{ textDecoration: "none" }}>
                                             <img
-                                                className="author-ppic"
                                                 src={f.author.smallerProfilePic || "/logo.svg"}
-                                                alt={f.author.name}
-                                                style={{
-                                                    width: "140px",
-                                                    height: "140px",
-                                                    objectFit: "cover",
-                                                    borderRadius: "50%",
-                                                }}
+                                                style={{ width: 140, height: 140, borderRadius: "50%" }}
                                             />
-                                            <p className="author-name">
-                                                {f.author.name ?? "Unknown Author"}
-                                            </p>
+                                            <p>{f.author.name}</p>
                                         </a>
                                     ))}
                                 </div>
@@ -269,62 +240,53 @@ export function UserProfile() {
                             )}
                         </div>
 
-                        {/* Books I've Read */}
                         <h1 className="listing-h1-books mt-5">Books I've Read</h1>
+
                         <div className="books-container mt-4">
                             {user.haveReadIt?.length ? (
-                                <div className="d-flex flex-wrap gap-3 justify-start">
-                                    {user.haveReadIt.map((h: any) => (
-                                        <a key={h.book.id} href={`/book/${h.book.id}`} style={{ textDecoration: "none" }}>
-                                            <div className="books-display-main">
-                                                <div
-                                                    className="card book-card"
-                                                    style={{
-                                                        width: "150px",
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                    }}
-                                                >
-                                                    <div className="rating-main">
-                                                        <p className="rating-display">
-                                                            {h.book.statistics?.averageRating?.toFixed(1) ?? "No rating"}
-                                                        </p>
-                                                    </div>
-                                                    <img
-                                                        src={h.book.biggerCoverPic || "/logo.svg"}
-                                                        className="card-img-top"
-                                                        alt={h.book.title}
-                                                        style={{
-                                                            height: "250px",
-                                                            objectFit: "cover",
-                                                            flexShrink: 0,
-                                                            borderRadius: "5px"
-                                                        }}
-                                                    />
-                                                    <div className="card-body p-2" style={{ flexGrow: 1 }}>
-                                                        <h6 className="card-title">{h.book.title}</h6>
-                                                        <p className="card-text">
-                                                            {h.book.author?.name ?? "Unknown"}
-                                                        </p>
+                                <div className="d-flex flex-wrap gap-3">
+                                    {user.haveReadIt.map((h: any) => {
+                                        const myRating = getMyRating(h.book.id);
+
+                                        return (
+                                            <a key={h.book.id} href={`/book/${h.book.id}`} style={{ textDecoration: "none" }}>
+                                                <div className="books-display-main">
+                                                    <div className="card book-card" style={{ width: "150px" }}>
+
+                                                        <div className="rating-main">
+                                                            <p className="rating-display">
+                                                                {myRating != null ? `You rated: ${myRating}/5` : "Not rated"}
+                                                            </p>
+                                                        </div>
+
+                                                        <img
+                                                            src={h.book.biggerCoverPic || "/logo.svg"}
+                                                            className="card-img-top"
+                                                            style={{ height: "250px", objectFit: "cover" }}
+                                                        />
+
+                                                        <div className="card-body p-2">
+                                                            <h6>{h.book.title}</h6>
+                                                            <p>{h.book.author?.name}</p>
+                                                        </div>
+
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </a>
-                                    ))}
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <p className="text-muted">No books read yet.</p>
                             )}
                         </div>
+
                     </div>
                 </div>
             </div>
 
-            <div className="gap"></div>
-
             <div className="footer2">
-                <p>Copyright© Readsy 2025. All rights reserved.</p>
-                <p className="Privacy">Privacy & Policy</p>
+                <p>Copyright© Readsy 2025</p>
             </div>
         </div>
     );

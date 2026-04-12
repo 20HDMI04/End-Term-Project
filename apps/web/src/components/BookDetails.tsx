@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
-import { IconSun, IconMoon } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconStar, IconStarFilled } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import { Link } from "react-router-dom";
 
@@ -17,6 +17,12 @@ export function BookDetails() {
     const [isFavorited, setIsFavorited] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
+
+    const [rating, setRating] = useState<number>(0);
+    const [hoverRating, setHoverRating] = useState<number>(0);
+    const [isRatingLoading, setIsRatingLoading] = useState(false);
+
+    const displayRating = hoverRating || rating;
 
     useEffect(() => {
         async function fetchData() {
@@ -66,6 +72,20 @@ export function BookDetails() {
         return null;
     }
 
+    useEffect(() => {
+        async function loadUserRating() {
+            try {
+                const user = await api.getCurrentUser();
+                const existing = user?.ratings?.find((r: any) => r.bookId === id);
+                if (existing) setRating(existing.score);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (id) loadUserRating();
+    }, [id, api]);
+
     async function handleFavoriteClick() {
         if (!id || isLoading) return;
 
@@ -89,6 +109,37 @@ export function BookDetails() {
             alert(`Failed to update favorite:\n${err.message || err}`);
         } finally {
             setIsLoading(false);
+        }
+    }
+
+    async function submitRating(value: number) {
+        if (!id || isRatingLoading) return;
+
+        console.log("current rating:", rating);
+        console.log("clicked rating:", value);
+
+        setIsRatingLoading(true);
+
+        try {
+            const intRating = Math.round(value);
+
+            const isUpdate = rating > 0;
+
+            if (isUpdate) {
+                await api.updateRating(id, intRating);
+            } else {
+                await api.rateBook(id, intRating);
+            }
+
+            console.log(`⭐ Rated book ${id} with ${intRating}/5`);
+
+            setRating(intRating);
+            setHoverRating(0);
+
+        } catch (err) {
+            console.error("Rating error:", err);
+        } finally {
+            setIsRatingLoading(false);
         }
     }
 
@@ -177,6 +228,39 @@ export function BookDetails() {
                         >
                             {isLoading ? 'Loading...' : isFavorited ? '❤️ Remove from Favorites' : '♡ Add to Favorites'}
                         </button>
+
+                        {/* RATING UI */}
+                        <div className="mt-3 text-center">
+                            <div style={{ display: "flex", justifyContent: "center", gap: 4 }}>
+                                {Array.from({ length: 5 }).map((_, index) => {
+                                    const value = index + 1;
+                                    const filled = value <= (hoverRating || rating);
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{ cursor: "pointer" }}
+                                            onMouseEnter={() => setHoverRating(value)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            onClick={() => submitRating(value)}
+                                        >
+                                            {filled ? (
+                                                <IconStarFilled size={26} color="#f5c542" />
+                                            ) : (
+                                                <IconStar size={26} color="#ddd" />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {rating > 0 && (
+                                <p className="mt-1">
+                                    <strong>{rating.toFixed(0)}</strong> / 5
+                                </p>
+                            )}
+                        </div>
+
                     </div>
 
                     {/* RIGHT SIDE */}
@@ -191,10 +275,10 @@ export function BookDetails() {
                         {/* ⭐ RATING */}
                         <div className="book-page-text d-flex align-items-center gap-2 mb-2">
                             <strong>
-                                {book.statistics?.averageRating?.toFixed(2) ?? "N/A"} ⭐
+                                ⭐{book.statistics?.averageRating?.toFixed(2) ?? "N/A"}
                             </strong>
                             <span className="book-page-text">
-                                {book.statistics?.ratingCount ?? 0} ratings {/*| {book.statistics?.reviewCount ?? 0} reviews */}
+                                &nbsp;{book.statistics?.ratingCount ?? 0} ratings {/*| {book.statistics?.reviewCount ?? 0} reviews */}
                             </span>
                         </div>
 
