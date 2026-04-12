@@ -125,7 +125,11 @@ export function AuthorsPage() {
                                 style={{ textDecoration: "none", color: "inherit" }}
                             >
                                 <img
-                                    src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                    key={theme + (author.smallerProfilePic ?? "")}
+                                    src={
+                                        author.smallerProfilePic ||
+                                        (theme === "light" ? "/user.png" : "/user2.png")
+                                    }
                                     alt={author.name}
                                     data-theme={theme}
                                     style={{
