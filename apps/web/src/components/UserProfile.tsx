@@ -224,7 +224,7 @@ export function UserProfile() {
 
                         <div className="authors-container mt-5">
                             {user.favoriteAuthors?.length ? (
-                                <div className="d-flex flex-wrap gap-5 justify-content-center">
+                                <div className="d-flex flex-wrap gap-5" style={{paddingLeft: "55px"}}>
                                     {user.favoriteAuthors.map((f: any) => (
                                         <a key={f.author.id} href={`/author/${f.author.id}`} style={{ textDecoration: "none" }}>
                                             <img
