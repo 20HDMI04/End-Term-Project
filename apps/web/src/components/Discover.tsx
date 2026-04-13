@@ -1,104 +1,283 @@
-/**
- * ================================================================
- * READSY - DISCOVER COMPONENT
- * Book Discovery & Browsing Page
- * ================================================================
- * File: src/components/Discover.tsx
- * Routes: /discover, /books (alias)
- * Protected: Yes (SessionAuth wrapper in src/App.tsx)
- * 
- * Purpose:
- * - Browse and discover books
- * - Apply filters and sorting
- * - View book details
- * - Add books to lists
- * 
- * Status: EMPTY - Ready for implementation
- * 
- * Suggested Features to Implement:
- * Featured books carousel
- * Latest releases
- * Popular books
- * Genre filtering
- * Author filtering
- * Sort options (rating, date, popularity)
- * Book cards with cover images
- * Quick preview on hover
- * Add to list button
- * View book details
- * 
- * Related Files:
- *       src/App.tsx (line ~133) - Route definition
- *       COMPONENT_GUIDE.md → Discover Component - Implementation guide
- * 
- * API Endpoints Needed:
- * GET /books - List all books with filters
- * GET /books/:id - Get single book details
- * 
- * See: WEB_DOCUMENTATION.md → Discover Component section
- * ================================================================
- */
-import "./css/discover.css"
-export function Discover() {
-    return (
-        <div className="home-container">  
-            <nav className="navbar navbar-expand-lg">
-                <div className="container-fluid">
-                    <div className="collapse navbar-collapse" id="navbarNavDropdown">
-                        <img src="../public/logo.svg" alt="" className="logo" />
-                        <ul className="navbar-nav">
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/">Home</a></h2>
-                            </li>
-                            <li className="nav-item">
-                                <h2><a className="nav-link" href="/search">Search</a></h2>
-                            </li>
-                            <li className="nav-item">
-                                <h2><a className="nav-link">Discover</a></h2>
-                            </li>
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useTheme } from "../context/darkmodeContext";
+import "bootstrap/dist/css/bootstrap.css";
+import { useEffect, useState } from "react";
+import { useApi } from "../context/apiContext";
+import { Link } from "react-router-dom";
+import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
+import "./css/discover.css";
 
-                        </ul>
+export function Discover() {
+    const api = useApi();
+    const { theme, toggleTheme } = useTheme();
+    const [user, setUser] = useState<any>(null);
+    const [booksList, setBooksList] = useState<Book[]>([]);
+    const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
+    const [query, setQuery] = useState("");
+
+    useEffect(() => {
+        async function fetchData() {
+            const data = await api.getData();
+            setAuthorList(data.authors);
+
+            const allBooks = data.books
+                .flatMap((section: BookSection) => section.data)
+                .filter((value: Book, index: number, self: Book[]) =>
+                    index === self.findIndex(b => b.id === value.id)
+                );
+
+            setBooksList(allBooks);
+        }
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
+
+    // === Author név lekérése ===
+    function getAuthorName(authorId: string | undefined): string {
+        if (!authorList) return "Unknown author";
+        for (const section of authorList) {
+            const author = section.data.find(a => a.id === authorId);
+            if (author) return author.name;
+        }
+        return "Unknown author";
+    }
+
+    // === Keresés szűrés ===
+    const filteredAuthors = authorList
+        ? Array.from(
+            new Map(
+                authorList
+                    .flatMap(s => s.data)
+                    .filter(a => a.name.toLowerCase().includes(query.toLowerCase()))
+                    .map(a => [a.id, a])
+            ).values()
+        )
+        : [];
+
+    const filteredBooks = booksList.filter(book => {
+        const titleMatch = book.title.toLowerCase().includes(query.toLowerCase());
+        const authorMatch = getAuthorName(book.authorId).toLowerCase().includes(query.toLowerCase());
+        return titleMatch || authorMatch;
+    });
+
+    const handleBookImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        e.currentTarget.src = "/book.png";
+    };
+
+    return (
+        <div className='home-container'>
+            <div className="home-container-discover">
+
+                {/* Navbar */}
+                <nav className="navbar navbar-expand-lg">
+                    <div className="container-fluid">
+                        <img
+                            src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                            alt="logo"
+                            className="logo"
+                        />
+                        <div className="navbar-content">
+                            <ul className="navbar-nav">
+                                <li className="nav-item"><a className="nav-link" href="/">Home</a></li>
+                                <li className="nav-item"><a className="nav-link" href="/search">Search</a></li>
+                                <li className="nav-item"><a className="nav-link" href="/discover">Discover</a></li>
+                            </ul>
+
+                            <div className="navbar-right">
+                                <button className="Darkmode-changer" onClick={toggleTheme} aria-label="Toggle color scheme">
+                                    <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}><IconSun size={20} stroke={2} /></span>
+                                    <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}><IconMoon size={20} stroke={2} /></span>
+                                </button>
+
+                                <a href="/user/me">
+                                    <img
+                                        src={
+                                            user?.smallerProfilePic ||
+                                            user?.biggerProfilePic ||
+                                            (theme === "light"
+                                                ? "/def_profile_icon.svg"
+                                                : "/def_profile_icon2.svg")
+                                        }
+                                        alt="profile"
+                                        className="profile-pic"
+                                    />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                {/* Search bar */}
+                <div className='search-bar-on-the-left'>
+                    <div className="search-bar-on-discoverpage">
+                        <input
+                            type="text"
+                            placeholder="Search by book title or author..."
+                            className="form-control"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                        />
                     </div>
                 </div>
-            </nav>
 
-            <header className="header">
-                
-            </header>
+                {/* Találatok a keresésre */}
+                {query.trim() !== "" && (
+                    <div className="search-results mb-3">
+                        {filteredAuthors.length > 0 && (
+                            <div className="mb-3">
+                                <h3 className='listing-h1-authors'>Authors found:</h3><br />
+                                <div className="d-flex flex-wrap gap-3">
+                                    {filteredAuthors.map(author => (
+                                        <Link key={author.id} to={`/author/${author.id}`} className="author-card">
+                                            <div style={{ textAlign: "center" }}>
+                                                <img
+                                                    src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                                    alt={author.name}
+                                                    style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+                                                />
+                                                <p>{author.name}</p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
+                        {filteredBooks.length > 0 && (
+                            <div>
+                                <h3 className='listing-h1-books'>Books found:</h3><br />
+                                <div className="row g-2">
+                                    {filteredBooks.map(book => (
+                                        <div key={book.id} className="col-3 col-md-2 text-center">
+                                            <Link to={`/book/${book.id}`}>
+                                                <img
+                                                    src={book.smallerCoverPic || "/logo.svg"}
+                                                    alt={book.title}
+                                                    className="img-fluid rounded"
+                                                    onError={handleBookImageError}
+                                                />
+                                                <p className="mt-1">{book.title}</p>
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-            <div>
-                {/* Filters */}
+                        {filteredAuthors.length === 0 && filteredBooks.length === 0 && (
+                            <p className="text-muted">No results found.</p>
+                        )}
+                    </div>
+                )}
+
+                <>
+                    {/* Authors */}
+                    {authorList && (
+                        <div className="mb-4">
+                            <h1 className='h1-discover'>Authors:</h1>
+                            <div className="row g-3 mx-auto" style={{ maxWidth: "1200px" }}>
+                                {Array.from(
+                                    new Map(
+                                        authorList.flatMap(s => s.data).map(a => [a.id, a])
+                                    ).values()
+                                ).map(author => (
+                                    <div
+                                        key={author.id}
+                                        className="col-2 col-sm-4 col-md-3 col-lg-3 text-center"
+                                    >
+                                        <Link
+                                            to={`/author/${author.id}`}
+                                            style={{ textDecoration: "none", color: "inherit" }}
+                                        >
+                                            <img
+                                                key={theme + (author.smallerProfilePic ?? "")}
+                                                src={
+                                                    author.smallerProfilePic ||
+                                                    (theme === "light" ? "/user.png" : "/user2.png")
+                                                }
+                                                alt={author.name}
+                                                data-theme={theme}
+                                                style={{
+                                                    width: "120px",
+                                                    height: "120px",
+                                                    borderRadius: "50%",
+                                                    objectFit: "cover",
+                                                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                                                    transition: "0.3s",
+                                                    cursor: "pointer",
+                                                    marginBottom: "5px",
+                                                }}
+                                                onError={(e) => {
+                                                    const currentTheme = e.currentTarget.getAttribute('data-theme');
+                                                    e.currentTarget.src =
+                                                        currentTheme === "light" ? "/user.png" : "/user2.png";
+                                                }}
+                                            />
+                                            <p>{author.name}</p>
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Books */}
+                    <div className="mb-4">
+                        <h1 className='h1-discover'>Books:</h1>
+
+                        <div className="row g-3 mx-auto" style={{ maxWidth: "1000px" }}>
+                            {booksList.map(book => (
+                                <div key={book.id} className="col-3 col-md-2 col-lg-3 text-center">
+                                    <Link
+                                        to={`/book/${book.id}`}
+                                        style={{
+                                            textDecoration: "none",
+                                            color: "#556b2f",
+                                            width: "160px",
+                                            textAlign: "center",
+                                            fontFamily: "'Georgia', serif",
+                                            display: "block"
+                                        }}
+                                    >
+                                        <img
+                                            src={book.smallerCoverPic || "/logo.svg"}
+                                            alt={book.title}
+                                            onError={handleBookImageError}
+                                            style={{
+                                                width: "160px",
+                                                height: "240px",
+                                                objectFit: "cover",
+                                                borderRadius: "8px",
+                                                display: "block"
+                                            }}
+                                        />
+
+                                        <p className="mt-1">{book.title}</p>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </>
             </div>
-            
-            <div>
-                {/* For You */}
-            </div>
 
-            <div>
-                {/* Popular Books */}
-            </div>
+            <div className='space'></div>
 
-            <div>
-                {/* Explore Genres */}
-            </div>
-
-            <div>
-                {/* Popular Authors */}
-            </div>
-
-            <footer className="footer">
-                {/*Logo*/}
-                <p>
-                    "Jani ajánlásával lorem ipsum stb"
-                </p>
-                {/*contacts*/}
-            </footer>
             <div className="footer2">
-                <p>Copyright© Readsy 2025. Allrights reserved.</p>
+                <p>Copyright© Readsy 2025. All rights reserved.</p>
                 <p className="Privacy">Privacy & Policy</p>
             </div>
-
         </div>
     );
 }

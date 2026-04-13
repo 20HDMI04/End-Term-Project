@@ -14,15 +14,20 @@
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import App from "./App";
 import { ApiProvider } from "./context/apiContext";
-	
+import { ThemeProvider } from "./context/darkmodeContext";
+import { MantineProvider } from "@mantine/core";
+
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
 		<ApiProvider>
-			<App />
+			<ThemeProvider>
+				<MantineProvider>
+      				<App />
+    			</MantineProvider>
+			</ThemeProvider>
 		</ApiProvider>
 	</StrictMode>
 );
