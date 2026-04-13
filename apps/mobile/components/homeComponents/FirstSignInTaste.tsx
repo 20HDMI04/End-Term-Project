@@ -59,7 +59,7 @@ const MultiPageOverlay = ({
 		<Modal
 			visible={visible}
 			animationType="slide"
-			transparent={false}
+			transparent={true}
 			onRequestClose={() => {}}
 			statusBarTranslucent={false}
 		>

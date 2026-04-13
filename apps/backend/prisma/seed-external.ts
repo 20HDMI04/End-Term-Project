@@ -206,7 +206,7 @@ async function main() {
       if (err.code === 'P2002') {
         // Prisma Unique constraint error
         process.stdout.write(
-          `⚠️ Kihagyva (Duplikált ISBN vagy Könyv): ${doc.title}`,
+          `⚠️ Omitted due to (Duplicate ISBN or Book): ${doc.title}`,
         );
       } else {
         process.stdout.write(`\n❌ Error (${doc.title}): ${err.message}\n`);

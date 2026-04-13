@@ -12,7 +12,15 @@ const { width } = Dimensions.get("window");
 const ITEM_WIDTH_BOOK = (width - 40 - 32) / 2;
 const ITEM_WIDTH_AUTHOR = (width - 40 - 32) / 3;
 
-export const HomeSkeleton = ({ darkmode }: { darkmode: boolean }) => {
+export const HomeSkeleton = ({
+	darkmode,
+	justBooks,
+	justBookCovers,
+}: {
+	darkmode: boolean;
+	justBooks?: boolean;
+	justBookCovers?: boolean;
+}) => {
 	const opacity = useRef(new Animated.Value(0.3)).current;
 	const bgColor = darkmode ? Colors.thirdColorDark : Colors.thirdColorLight;
 	useEffect(() => {
@@ -36,10 +44,21 @@ export const HomeSkeleton = ({ darkmode }: { darkmode: boolean }) => {
 		<Animated.View style={[style, { opacity, backgroundColor: bgColor }]} />
 	);
 
-	const Section = ({ type }: { type: "book" | "author" }) => (
+	const Section = ({
+		type,
+		justBookCovers,
+	}: {
+		type: "book" | "author";
+		justBookCovers?: boolean;
+	}) => (
 		<View style={styles.section}>
-			<SkeletonItem style={styles.titleSkeleton} />
-			<SkeletonItem style={styles.subtitleSkeleton} />
+			{!justBookCovers && (
+				<>
+					<SkeletonItem style={styles.titleSkeleton} />
+					<SkeletonItem style={styles.subtitleSkeleton} />
+				</>
+			)}
+
 			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
@@ -57,9 +76,20 @@ export const HomeSkeleton = ({ darkmode }: { darkmode: boolean }) => {
 
 	return (
 		<View style={{ flex: 1, paddingTop: 20 }}>
-			<Section type="author" />
-			<Section type="book" />
-			<Section type="book" />
+			{justBookCovers ? (
+				<Section type="book" justBookCovers={true} />
+			) : justBooks ? (
+				<>
+					<Section type="book" />
+					<Section type="book" />
+				</>
+			) : (
+				<>
+					<Section type="author" />
+					<Section type="book" />
+					<Section type="book" />
+				</>
+			)}
 		</View>
 	);
 };

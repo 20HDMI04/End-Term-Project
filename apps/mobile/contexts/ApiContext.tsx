@@ -5,8 +5,11 @@ import { UserService } from "@/services/user.service";
 import { MainPageService } from "@/services/mainpage.service";
 import { Storage } from "@/utils/storage";
 import {
+	BookSection,
+	CommentHistoryResponse,
 	FindOneAuthorResponse,
 	MainPageData,
+	MyCollectionsData,
 	SearchEverythingResponse,
 } from "@/constants/interfaces";
 import { AuthorsService } from "@/services/authors.service";
@@ -28,6 +31,10 @@ interface ApiProps {
 	getMe: () => Promise<Me | { error: boolean; msg: string }>;
 	getMainPageData: () => Promise<MainPageData>;
 	getMainPageAnyWay: () => Promise<MainPageData>;
+	getDiscoverPageData: () => Promise<MainPageData>;
+	getDiscoverPageDataAnyWay: () => Promise<MainPageData>;
+	getSearchPageData: () => Promise<MainPageData>;
+	getSearchPageDataAnyWay: () => Promise<MainPageData>;
 	searchAuthors: (query: string, page?: number, limit?: number) => Promise<any>;
 	likeAuthor: (authorId: string) => Promise<void>;
 	unlikeAuthor: (authorId: string) => Promise<void>;
@@ -50,6 +57,9 @@ interface ApiProps {
 		query: string,
 		take?: number,
 	) => Promise<SearchEverythingResponse>;
+	getBooksByGenre: (genre: string, take: number) => Promise<BookSection[]>;
+	getMyCollectionsData: () => Promise<MyCollectionsData>;
+	getUserCommentHistory: () => Promise<CommentHistoryResponse[]>;
 }
 
 const Api_URL = "https://chloroplastic-crumbly-dominic.ngrok-free.dev";
@@ -116,6 +126,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				isFirstTime,
 			);
 
+			await getMe();
 			return result;
 		} catch (error) {
 			console.error("Error syncing profile with server:", error);
@@ -129,6 +140,26 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 			return data;
 		} catch (error) {
 			console.error("Error fetching main page data:", error);
+			throw error;
+		}
+	};
+
+	const getSearchPageData = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.fetchSearchPageData();
+			return data;
+		} catch (error) {
+			console.error("Error fetching search page data:", error);
+			throw error;
+		}
+	};
+
+	const getDiscoverPageData = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.fetchDiscoverPageData();
+			return data;
+		} catch (error) {
+			console.error("Error fetching discover page data:", error);
 			throw error;
 		}
 	};
@@ -163,6 +194,26 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 			return data;
 		} catch (error) {
 			console.error("Error fetching main page data:", error);
+			throw error;
+		}
+	};
+
+	const getSearchPageDataAnyWay = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.getSearchPageDataAnyWay();
+			return data;
+		} catch (error) {
+			console.error("Error fetching search page data:", error);
+			throw error;
+		}
+	};
+
+	const getDiscoverPageDataAnyWay = async (): Promise<MainPageData> => {
+		try {
+			const data = await MainPageService.getDiscoverPageDataAnyWay();
+			return data;
+		} catch (error) {
+			console.error("Error fetching discover page data:", error);
 			throw error;
 		}
 	};
@@ -319,6 +370,38 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
+	const getBooksByGenre = async (genre: string, take: number = 15) => {
+		try {
+			const data = await BooksService.getBooksByGenre(genre, take);
+			return data;
+		} catch (error) {
+			console.error("Error fetching books by genre:", error);
+			throw error;
+		}
+	};
+
+	const getMyCollectionsData = async () => {
+		try {
+			const data = await BooksService.getMyCollections();
+			return data;
+		} catch (error) {
+			console.error(
+				"Error fetching collections data in BookmarksScreen:",
+				error,
+			);
+		}
+	};
+
+	const getUserCommentHistory = async () => {
+		try {
+			const data = await UserService.getCommentHistory();
+			return data;
+		} catch (error) {
+			console.error("Error fetching user comment history:", error);
+			throw error;
+		}
+	};
+
 	return (
 		<ApiContext.Provider
 			value={{
@@ -344,6 +427,13 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 				likeComment,
 				unlikeComment,
 				searchEverything,
+				getDiscoverPageData,
+				getDiscoverPageDataAnyWay,
+				getSearchPageData,
+				getSearchPageDataAnyWay,
+				getBooksByGenre,
+				getMyCollectionsData,
+				getUserCommentHistory,
 			}}
 		>
 			{children}

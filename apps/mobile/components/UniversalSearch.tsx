@@ -33,10 +33,16 @@ import X from "@/assets/svgs/x.svg";
 import Caret from "@/assets/svgs/caret.svg";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useApi } from "@/contexts/ApiContext";
-import { SearchEverythingResponse } from "@/constants/interfaces";
+import {
+	Book,
+	FindOneBookResponse,
+	SearchEverythingResponse,
+} from "@/constants/interfaces";
 import AuthorResultItem from "@/components/homeComponents/AuthorResultComponent";
 import BookResultItem from "@/components/homeComponents/BookResultItem";
 import { ToastProvider } from "@/contexts/ToastContext";
+import { Storage } from "@/utils/storage";
+import { ScrollView } from "react-native-gesture-handler";
 
 const SEARCH_HISTORY_KEY = "@search_history";
 
@@ -61,6 +67,9 @@ const UniversalSearch = ({
 	const [modalVisible, setModalVisible] = useState(false);
 	const [query, setQuery] = useState(initialQuery);
 	const [history, setHistory] = useState<string[]>([]);
+	const [previouslyOpened, setPreviouslyOpened] = useState<
+		FindOneBookResponse[]
+	>([]);
 	const [activeFilter, setActiveFilter] = useState<string>("all");
 
 	const [results, setResults] = useState<SearchEverythingResponse | null>(null);
@@ -91,6 +100,9 @@ const UniversalSearch = ({
 		try {
 			const savedHistory = await AsyncStorage.getItem(SEARCH_HISTORY_KEY);
 			if (savedHistory) setHistory(JSON.parse(savedHistory));
+			const prevHistory = await Storage.getHistory();
+			console.log("Loaded history:", prevHistory);
+			setPreviouslyOpened(prevHistory);
 		} catch (e) {
 			console.error("Failed to load history", e);
 		}
@@ -239,6 +251,7 @@ const UniversalSearch = ({
 
 	const handleOpen = () => {
 		setModalVisible(true);
+		loadHistory();
 		setTimeout(() => inputRef.current?.focus(), 150);
 	};
 
@@ -427,45 +440,77 @@ const UniversalSearch = ({
 
 						<View style={styles.content}>
 							{renderFilterPills()}
-							{filteredHistory.length > 0 && !loading && !results && (
-								<View style={styles.historySection}>
-									<Text
-										style={[
-											styles.sectionTitle,
-											{ color: theme.textSecondary },
-										]}
-									>
-										Recent Searches
-									</Text>
-									{filteredHistory.map((item, index) => (
-										<TouchableOpacity
-											key={index}
-											style={styles.historyItem}
-											onPress={() => selectHistoryItem(item)}
+							<ScrollView
+								style={{ flex: 1 }}
+								contentContainerStyle={{ paddingBottom: 40 }}
+								showsVerticalScrollIndicator={false}
+							>
+								{filteredHistory.length > 0 && !loading && !results && (
+									<View style={styles.historySection}>
+										<Text
+											style={[
+												styles.sectionTitle,
+												{ color: theme.textSecondary },
+											]}
 										>
-											<Ionicons
-												name="time-outline"
-												size={20}
-												color={theme.textSecondary}
-											/>
-											<Text
-												style={[
-													styles.historyText,
-													{ color: theme.textPrimary },
-												]}
+											Recent Searches
+										</Text>
+										{filteredHistory.map((item, index) => (
+											<TouchableOpacity
+												key={index}
+												style={styles.historyItem}
+												onPress={() => selectHistoryItem(item)}
 											>
-												{item}
-											</Text>
-											<Ionicons
-												name="arrow-up-outline"
-												size={18}
-												color={theme.textSecondary}
-												style={{ transform: [{ rotate: "-45deg" }] }}
+												<Ionicons
+													name="time-outline"
+													size={20}
+													color={theme.textSecondary}
+												/>
+												<Text
+													style={[
+														styles.historyText,
+														{ color: theme.textPrimary },
+													]}
+												>
+													{item}
+												</Text>
+												<Ionicons
+													name="arrow-up-outline"
+													size={18}
+													color={theme.textSecondary}
+													style={{ transform: [{ rotate: "-45deg" }] }}
+												/>
+											</TouchableOpacity>
+										))}
+									</View>
+								)}
+								{previouslyOpened.length > 0 && !loading && !results && (
+									<View style={styles.historySection}>
+										<Text
+											style={[
+												styles.sectionTitle,
+												{ color: theme.textSecondary },
+											]}
+										>
+											Bookmarked Memories
+										</Text>
+										{previouslyOpened.map((book, index) => (
+											<BookResultItem
+												/*@ts-ignore*/
+												item={{
+													...book.foundBook,
+													isFavorited: book.foundBook.isLikedByMe,
+													commentCount: book.foundBook.statistics.reviewCount,
+													favoriteCount:
+														book.foundBook.statistics.wantToReadCount,
+												}}
+												isDarkMode={isDarkMode}
+												onPress={handleBookPress}
 											/>
-										</TouchableOpacity>
-									))}
-								</View>
-							)}
+										))}
+									</View>
+								)}
+							</ScrollView>
 
 							{loading && (
 								<View style={styles.centerContainer}>

@@ -1,3 +1,4 @@
+import { Storage } from "@/utils/storage";
 import apiClient from "./apiClient";
 
 export const BooksService = {
@@ -16,6 +17,7 @@ export const BooksService = {
 	//GET /books/{bookId}
 	getBookDetails: async (bookId: string) => {
 		const response = await apiClient.get(`/books/${bookId}`);
+		Storage.saveToHistory(response.data);
 		return response.data;
 	},
 
@@ -93,6 +95,23 @@ export const BooksService = {
 		const response = await apiClient.get("/books/random", {
 			params: { count },
 		});
+		return response.data;
+	},
+
+	//GET books/specific-genre-page/{genre}
+	getBooksByGenre: async (genre: string, take: number = 15) => {
+		const response = await apiClient.get(
+			`/books/specific-genre-page/${genre}`,
+			{
+				params: { take },
+			},
+		);
+		return response.data;
+	},
+
+	// GET /books/mycollections
+	getMyCollections: async () => {
+		const response = await apiClient.get("/books/mycollections");
 		return response.data;
 	},
 };

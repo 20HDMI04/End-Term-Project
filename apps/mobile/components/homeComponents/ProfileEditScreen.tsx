@@ -38,8 +38,9 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 		}
 	};
 
-	const handleNicknameChange = (text: string) => {
+	const handleNicknameChange = async (text: string) => {
 		setNickname(text);
+		await AsyncStorage.setItem("user_nickname", text);
 	};
 
 	const saveNicknameToStorage = async () => {

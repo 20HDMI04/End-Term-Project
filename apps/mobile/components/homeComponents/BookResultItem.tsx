@@ -6,6 +6,7 @@ import { BookData } from "@/constants/interfaces";
 import { useToast } from "@/contexts/ToastContext";
 import { useApi } from "@/contexts/ApiContext";
 import { useChangePicUrlToPipline } from "@/hooks/use-change-pic-url-to-pipline";
+import { Storage } from "@/utils/storage";
 
 interface BookResultItemProps {
 	item: BookData;
@@ -101,8 +102,10 @@ const BookResultItem = ({ item, isDarkMode, onPress }: BookResultItemProps) => {
 
 					if (newState) {
 						api.likeBook(item.id);
+						Storage.updateFavoriteStatus(item.id, true);
 					} else {
 						api.unlikeBook(item.id);
+						Storage.updateFavoriteStatus(item.id, false);
 					}
 
 					showToast(

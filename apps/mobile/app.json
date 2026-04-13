@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "readsy",
+    "name": "Readsy",
     "slug": "readsy",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
     "android": {
       "package": "com.hdmi.readsy",
       "adaptiveIcon": {
-        "backgroundColor": "#F7F4EB",
+        "backgroundColor": "#FDFBF7",
         "foregroundImage": "./assets/images/adaptive-icon.png"
       }
     },
@@ -38,7 +38,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos for profile pictures."
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos for profile pictures.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for profile pictures."
         }
       ],
       [

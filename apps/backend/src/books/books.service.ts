@@ -43,13 +43,37 @@ export enum GenreTypeEnum {
 @Injectable()
 export class BooksService {
   private readonly logger = new Logger(BooksService.name);
-
   constructor(
     private readonly s3Service: S3Service,
     private readonly prisma: PrismaService,
     private readonly genresService: GenresService,
     private readonly httpService: HttpService,
   ) {}
+
+  /**
+   * @summary Retrieves the content of a user's collections by fetching books that are favorited by the user. The method takes the user's ID as a parameter and queries the database to find all books that have been marked as favorites by that user. It returns a list of books that are part of the user's collections.
+   * @description This method is designed to fetch the content of a user's collections by leveraging the relationship between books and users in the database. It uses the Prisma ORM to query the book records that are associated with the given user ID through the favoritedBy relation. The method handles any potential errors that may arise during the database query and ensures that a meaningful error message is returned if there is an issue fetching the collections content.
+   * @param userId The ID of the user whose collections content is to be retrieved.
+   * @returns A list of books that are part of the user's collections.
+   * @throws InternalServerErrorException if there is an error fetching the user's collections content from the database.
+   */
+  async getMyCollectionsBooksContent(userId: string) {
+    try {
+      return await this.prisma.book.findMany({
+        where: {
+          favoritedBy: { some: { userId } },
+        },
+        include: {
+          statistics: true,
+          genres: { include: { genre: true } },
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        "Error fetching user's collections content.",
+      );
+    }
+  }
 
   /**
    * @summary Creates a new book entry in the database. It first checks for duplicates based on ISBNs, Google Book ID, and Open Library ID. If a cover image file is provided, it uploads it to S3; otherwise, it uses default images. The method also handles genre associations and rolls back S3 uploads if any database operation fails.
@@ -1446,6 +1470,157 @@ export class BooksService {
   }
 
   /**
+   * @summary Retrieves books that fit the criteria for a specific genre based on predefined keyword filters. The method constructs a query to fetch approved books that match the keywords associated with the specified genre, while also allowing for the exclusion of certain keywords if necessary. The results include related data such as statistics, comments, genres, and ISBNs for each book. The method is designed to support the genre spotlight section on the main page, providing handpicked essential books for lovers of the selected genre.
+   * @description This method defines a set of keyword filters for each genre and constructs a query to retrieve books that match the criteria for the specified genre. It includes conditions to ensure that only approved books are fetched and allows for the inclusion of books that contain certain keywords in their genres while excluding others if specified. The method returns a list of books that fit the genre criteria, along with related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. This method is specifically designed to support the genre spotlight section on the main page, providing handpicked essential books for lovers of the selected genre.
+   * @remarks The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching the books for the specified genre.
+   * @param genre The genre for which to retrieve books.
+   * @param take The number of books to retrieve.
+   * @return A list of books that fit the genre criteria, along with related information. Each book includes its statistics, comments, genres, and ISBNs.
+   * @throws InternalServerErrorException if an error occurs while fetching the books for the specified genre. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
+   */
+  async getBooksSectionsByASpecificGenre(genre: GenreType, take: number = 15) {
+    const genreFilters: Record<GenreType, any> = {
+      history: { keywords: ['history'] },
+      fiction: { keywords: ['fiction'] },
+      romance: { keywords: ['romance', 'love'] },
+      'young-adult': { keywords: ['adult'] },
+      fantasy: { keywords: ['magic', 'fantasy'] },
+      thriller: { keywords: ['thriller', 'horror'] },
+      'social-science': { keywords: ['economics', 'politic', 'business'] },
+      'just-science': { keywords: ['science'] },
+    };
+
+    const config = genreFilters[genre];
+
+    const where: any = {
+      approveStatus: true,
+      AND: [],
+    };
+
+    const keywordQuery = {
+      OR: config.keywords.map((kw) => ({
+        genres: {
+          some: { genre: { name: { contains: kw, mode: 'insensitive' } } },
+        },
+      })),
+    };
+    where.AND.push(keywordQuery);
+
+    if (config.exclude) {
+      where.AND.push({
+        NOT: config.exclude.map((ex) => ({
+          genres: {
+            some: { genre: { name: { contains: ex, mode: 'insensitive' } } },
+          },
+        })),
+      });
+    }
+
+    const forProd =
+      genre.charAt(0).toUpperCase() +
+      genre.slice(1).replace(/-\w/, (match) => ' ' + match[1].toUpperCase());
+
+    try {
+      const sections = [
+        {
+          title: 'Top Rated',
+          subtitle: `The most beloved ${forProd} books according to our community.`,
+          data: await this.getBooksByASpecificGenreSection(
+            'top-rated',
+            take,
+            where,
+          ),
+        },
+        {
+          title: 'Hidden Gems',
+          subtitle: `Underrated ${forProd} books that deserve more love.`,
+          data: await this.getBooksByASpecificGenreSection(
+            'hidden-gems',
+            take,
+            where,
+          ),
+        },
+        {
+          title: `${forProd} Essentials`,
+          subtitle: `Must-read ${forProd} books for any enthusiast.`,
+          data: await this.getBooksByASpecificGenreSection(
+            'essentials',
+            30,
+            where,
+          ),
+        },
+      ];
+      return sections;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting books by a specific genre.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves books that fit the criteria for specific sections within a genre, such as Top Rated, Hidden Gems, and Essentials. The method constructs a query to fetch approved books that match the keywords associated with the specified genre and organizes them into different sections based on their ratings and popularity. Each section includes related data such as statistics, comments, genres, and ISBNs for each book.
+   * @description This method defines a set of keyword filters for each genre and constructs a query to retrieve books that match the criteria for the specified genre. It organizes the retrieved books into different sections based on their ratings and popularity, such as Top Rated (books with the highest average ratings), Hidden Gems (underrated books that may not have high ratings but are considered valuable), and Essentials (must-read books for enthusiasts of the genre). Each book in these sections includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs. The method ensures that only approved books are retrieved and that the results are organized to highlight different aspects of the genre for users to explore.
+   * @remarks The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client if there are issues while fetching the books for the specified genre sections.
+   * @param section The section for which to retrieve books (e.g., 'top-rated', 'hidden-gems', 'essentials').
+   * @param take The number of books to retrieve.
+   * @param where The query conditions for filtering books.
+   * @returns A list of books that fit the criteria for the specified section. Each book includes its statistics.
+   * @throws InternalServerErrorException if an error occurs while fetching the books for the specified genre section. The method includes error handling to ensure that any issues encountered during the database query process are properly logged and managed, allowing the application to gracefully handle errors and provide informative feedback to the client.
+   */
+  async getBooksByASpecificGenreSection(
+    section: 'top-rated' | 'hidden-gems' | 'essentials',
+    take: number = 15,
+    where: any,
+  ) {
+    try {
+      if (section === 'top-rated') {
+        return await this.prisma.book.findMany({
+          where,
+          take: take,
+          orderBy: {
+            statistics: {
+              averageRating: 'desc',
+            },
+          },
+          include: {
+            statistics: true,
+          },
+        });
+      }
+
+      if (section === 'hidden-gems') {
+        const allBooks = await this.prisma.book.findMany({
+          where,
+          include: {
+            statistics: true,
+          },
+          take: 100,
+        });
+        const randomHiddenGems = allBooks
+          .sort(() => 0.5 - Math.random())
+          .slice(0, take);
+        return randomHiddenGems;
+      }
+
+      if (section === 'essentials') {
+        return await this.prisma.book.findMany({
+          where,
+          take: take,
+          include: {
+            statistics: true,
+            genres: { include: { genre: { select: { name: true } } } },
+          },
+        });
+      }
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error during getting books by a specific genre section.',
+      );
+    }
+  }
+
+  /**
    * @summary Retrieves books that have multiple editions, indicating their popularity and longevity. The method fetches approved books and orders them by the count of their associated ISBNs in descending order, limited to the top 15 entries. Each book includes related data such as statistics, comments, genres, and ISBNs.
    * @description This method identifies books that have multiple editions by counting the number of associated ISBNs for each book. It retrieves approved books from the database and orders them based on the count of their ISBNs in descending order, which serves as an indicator of their popularity and longevity. The method limits the results to the top 15 entries and includes related information such as statistics (e.g., average rating, rating count), comments from users, associated genres with their names, and ISBNs for each book. This allows users to discover books that have been reprinted or have multiple editions, suggesting that they are well-loved and have stood the test of time.
    * @param take The number of books to retrieve.
@@ -1671,7 +1846,7 @@ export class BooksService {
     const getSearchPageContent = [
       {
         title: 'Find Your Next Favorite',
-        subtitle: 'Discover books and genres that match your interests.',
+        subtitle: 'Discover books that match your interests.',
         data: randomBooks,
       },
     ];
@@ -1711,11 +1886,11 @@ export class BooksService {
         title: 'For the Fans of',
         subtitle: favoriteAuthorBooks.authorName,
         data: favoriteAuthorBooks.books,
-        image: favoriteAuthorBooks.authorImage,
+        profilePic: favoriteAuthorBooks.authorImage,
       },
       {
         title: `${genreBooksSimilars2} Essentials`,
-        subtitle: 'The defining chapters and timeless voices of the genre.',
+        subtitle: 'The timeless voices of the genre',
         data: lovedBooksSimilars2.data,
         image: null,
       },
@@ -1726,8 +1901,8 @@ export class BooksService {
         image: lovedBooksSimilars.coverImage,
       },
       {
-        title: `More ${forProd}, Just For You`,
-        subtitle: `Explore a curated collection of ${forProd} masterpieces, tailored to your journey.`,
+        title: `More ${forProd}, For You`,
+        subtitle: `Explore the collection of ${forProd}`,
         data: randomGenreBooks,
         image: null,
       },
@@ -1967,7 +2142,7 @@ export class BooksService {
     });
     return {
       title: theBestBook?.title,
-      coverImage: theBestBook?.smallerCoverPicKey,
+      coverImage: theBestBook?.smallerCoverPic,
       data: theBestBook
         ? await this.getSimilarBooksByAnotherBook(theBestBook.id, take)
         : [],

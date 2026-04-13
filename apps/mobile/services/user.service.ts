@@ -37,4 +37,10 @@ export const UserService = {
 		console.log("Profile updated successfully:", response.data);
 		return response.data;
 	},
+
+	// GET /social/comments/history
+	getCommentHistory: async () => {
+		const response = await apiClient.get("/social/comments/history");
+		return response.data;
+	},
 };

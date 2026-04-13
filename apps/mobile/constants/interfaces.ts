@@ -118,16 +118,25 @@ export interface MainPageData {
 	books: BookSection[];
 }
 
+export interface MyCollectionsData {
+	authors: AuthorSection;
+	books: BookSection;
+}
+
 export interface AuthorSection {
 	data: Author[];
 	subtitle: string;
 	title: string;
+	image?: string;
+	profilePic?: string;
 }
 
 export interface BookSection {
 	data: Book[];
 	subtitle: string;
 	title: string;
+	image?: string;
+	profilePic?: string;
 }
 
 export interface SearchResultBook {
@@ -233,4 +242,38 @@ export interface SearchEverythingResponse {
 	books: SearchBook[];
 	authors: SearchAuthor[];
 	genres: SearchGenre[];
+}
+
+export interface CommentHistoryBook {
+	id: string;
+	title: string;
+	authorId: string | null;
+	googleBookId: string | null;
+	openLibraryId: string | null;
+	smallerCoverPic: string;
+	biggerCoverPic: string;
+	smallerCoverPicKey: string | null;
+	biggerCoverPicKey: string | null;
+	originalPublisher: string | null;
+	originalPublicationYear: number | null;
+	latestPublicationYear: number | null;
+	pageNumber: number | null;
+	description: string;
+	createdAt: Date;
+	updatedAt: Date;
+	approveStatus: boolean;
+}
+
+export interface CommentHistoryCount {
+	votes: number;
+}
+
+export interface CommentHistoryResponse {
+	id: string;
+	text: string;
+	createdAt: Date;
+	userId: string;
+	bookId: string;
+	book: CommentHistoryBook;
+	_count: CommentHistoryCount;
 }

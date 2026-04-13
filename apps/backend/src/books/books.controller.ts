@@ -35,6 +35,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { AuthorsService } from 'src/authors/authors.service';
 import type { GenreType } from './books.service';
 import { Session } from 'src/auth/session.decorator';
+import { title } from 'process';
 
 @ApiTags('Books')
 @Controller('books')
@@ -335,6 +336,34 @@ export class BooksController {
     return this.booksService.getBooksByASpecificGenre(genre, take);
   }
 
+  @Get('specific-genre-page/:genre')
+  @ApiOperation({
+    summary: 'Get book sections by a specific genre',
+    description: 'Retrieves book sections that belong to a specific genre.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'Book sections retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the book sections. Please try again later.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid genre type provided.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  getBooksSectionsByASpecificGenre(
+    @Param('genre') genre: GenreType,
+    @Query('take') take: number = 15,
+  ) {
+    if (!Object.values(GenreTypeEnum).includes(genre as GenreTypeEnum)) {
+      throw new BadRequestException('Invalid genre type.');
+    }
+    return this.booksService.getBooksSectionsByASpecificGenre(genre, take);
+  }
+
   @Get('searchpage')
   @ApiOperation({
     summary: 'Get search page content',
@@ -353,8 +382,8 @@ export class BooksController {
   @UseGuards(SessionGuard, new RolesGuard(['user']))
   async getSearchPageContent() {
     const searchPageContent = {
-      author: await this.authorsService.getSearchAuthorContent(),
-      book: await this.booksService.getSearchPageContent(),
+      authors: await this.authorsService.getSearchAuthorContent(),
+      books: await this.booksService.getSearchPageContent(),
     };
     return searchPageContent;
   }
@@ -378,9 +407,42 @@ export class BooksController {
   async getDiscoverPageContent(@Session() session: any) {
     const userId = session.userDataInAccessToken.email;
     const discoverPageContent = {
-      author: await this.authorsService.getDiscoverAuthorsContent(userId),
-      book: await this.booksService.getDiscoverPageContent(userId),
+      authors: await this.authorsService.getDiscoverAuthorsContent(userId),
+      books: await this.booksService.getDiscoverPageContent(userId),
     };
     return discoverPageContent;
+  }
+
+  @Get('mycollections')
+  @ApiOperation({
+    summary: 'Get user collections content',
+    description:
+      'Retrieves the content needed for the collections page, including recommended authors and books.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Collections page content retrieved successfully.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving the collections page content. Please try again later.',
+  })
+  @ApiCookieAuth()
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  async getMyCollectionsContent(@Session() session: any) {
+    const userId = session.userDataInAccessToken.email;
+    const myCollectionsContent = {
+      authors: {
+        title: 'Your Favorite Authors',
+        subtitle: 'Authors you have interacted with the most.',
+        data: await this.authorsService.getMyCollectionsAuthorsContent(userId),
+      },
+      books: {
+        title: 'Your Favorite Books',
+        subtitle: 'Books you have interacted with the most.',
+        data: await this.booksService.getMyCollectionsBooksContent(userId),
+      },
+    };
+    return myCollectionsContent;
   }
 }
