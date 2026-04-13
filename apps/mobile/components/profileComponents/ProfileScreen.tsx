@@ -14,6 +14,7 @@ import {
 	Alert,
 	Keyboard,
 	ActivityIndicator,
+	DeviceEventEmitter,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
@@ -149,6 +150,7 @@ const ManageProfile = ({
 			syncProfile && (await syncProfile());
 			Keyboard.dismiss();
 			await refreshUserSession();
+			DeviceEventEmitter.emit("profilePictureUpdated");
 		} catch (e) {
 			console.error("Error syncing profile with server:", e);
 		}
@@ -721,7 +723,7 @@ const styles = StyleSheet.create({
 	},
 	menuItemLeft: { flexDirection: "row", alignItems: "center" },
 	iconPlaceholder: { marginRight: 10 },
-	menuItemLabel: { fontSize: 18, fontFamily: "modern_no_20_regular" },
+	menuItemLabel: { fontSize: 16, fontFamily: "modern_no_20_regular" },
 	separator: { height: 1, marginHorizontal: 15 },
 	logoutButton: {
 		flexDirection: "row",

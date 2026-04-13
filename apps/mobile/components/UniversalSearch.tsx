@@ -455,9 +455,9 @@ const UniversalSearch = ({
 										>
 											Recent Searches
 										</Text>
-										{filteredHistory.map((item, index) => (
+										{filteredHistory.map((item) => (
 											<TouchableOpacity
-												key={index}
+												key={item}
 												style={styles.historyItem}
 												onPress={() => selectHistoryItem(item)}
 											>
@@ -494,8 +494,9 @@ const UniversalSearch = ({
 										>
 											Bookmarked Memories
 										</Text>
-										{previouslyOpened.map((book, index) => (
+										{previouslyOpened.map((book) => (
 											<BookResultItem
+												key={book.foundBook.id}
 												/*@ts-ignore*/
 												item={{
 													...book.foundBook,
@@ -524,7 +525,7 @@ const UniversalSearch = ({
 									data={renderListData()}
 									itemLayoutAnimation={FadeInLeft.duration(400)}
 									entering={FadeInLeft.duration(300)}
-									keyExtractor={(item, index) => index.toString()}
+									keyExtractor={(item, index) => `${item.type}-${index}`}
 									renderItem={renderItem}
 									contentContainerStyle={{ paddingBottom: 40 }}
 									showsVerticalScrollIndicator={false}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	StyleSheet,
 	View,
@@ -8,13 +8,15 @@ import {
 	Image,
 	ScrollView,
 	Keyboard,
-	Platform,
+	Dimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { useKeyboardVisible } from "@/hooks/use-keyboard-visible";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 	isDarkMode,
@@ -43,20 +45,12 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 		await AsyncStorage.setItem("user_nickname", text);
 	};
 
-	const saveNicknameToStorage = async () => {
-		try {
-			await AsyncStorage.setItem("user_nickname", nickname);
-		} catch (e) {
-			console.error("Save error:", e);
-		}
-	};
-
 	const pickImage = async () => {
 		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 		if (status !== "granted") return;
 
 		let result = await ImagePicker.launchImageLibraryAsync({
-			mediaTypes: "images",
+			mediaTypes: ImagePicker.MediaTypeOptions.Images,
 			allowsEditing: true,
 			aspect: [1, 1],
 			quality: 0.7,
@@ -70,70 +64,70 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 	};
 
 	return (
-		<View style={{ flex: 1, width: "100%" }}>
+		<View style={styles.outerContainer}>
 			<ScrollView
-				style={[styles.container]}
+				style={styles.container}
 				contentContainerStyle={styles.scrollContent}
 				showsVerticalScrollIndicator={false}
+				keyboardShouldPersistTaps="handled"
 			>
-				{!keyboardVisible && (
-					<View style={styles.imageContainer}>
-						<TouchableOpacity onPress={pickImage} activeOpacity={0.85}>
-							<View style={styles.imageWrapper}>
-								{image ? (
-									<Image
-										source={{ uri: image }}
-										style={[
-											styles.profileImage,
-											{
-												borderColor: isDarkMode
-													? Colors.thirdColorDark
-													: Colors.mainColorLight,
-											},
-										]}
-									/>
-								) : (
-									<View
-										style={[
-											styles.profileImage,
-											styles.placeholder,
-											{
-												backgroundColor: isDarkMode
-													? Colors.thirdColorDark
-													: Colors.thirdColorLight,
-											},
-										]}
-									>
-										<Ionicons
-											name="person-outline"
-											size={50}
-											color={
-												isDarkMode
-													? Colors.loginTextDark
-													: Colors.darkerTextLight
-											}
-										/>
-									</View>
-								)}
-								<View
+				<View
+					style={[
+						styles.imageContainer,
+						keyboardVisible && styles.imageContainerHidden,
+					]}
+				>
+					<TouchableOpacity onPress={pickImage} activeOpacity={0.85}>
+						<View style={styles.imageWrapper}>
+							{image ? (
+								<Image
+									source={{ uri: image }}
 									style={[
-										styles.editIconBadge,
+										styles.profileImage,
 										{
-											backgroundColor: isDarkMode
-												? Colors.thirdColorDark
-												: Colors.mainColorLight,
 											borderColor: isDarkMode
 												? Colors.thirdColorDark
 												: Colors.mainColorLight,
 										},
 									]}
+								/>
+							) : (
+								<View
+									style={[
+										styles.profileImage,
+										styles.placeholder,
+										{
+											backgroundColor: isDarkMode
+												? Colors.thirdColorDark
+												: Colors.thirdColorLight,
+										},
+									]}
 								>
-									<Ionicons name="camera" size={18} color="#ffffff" />
+									<Ionicons
+										name="person-outline"
+										size={50}
+										color={
+											isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight
+										}
+									/>
 								</View>
+							)}
+							<View
+								style={[
+									styles.editIconBadge,
+									{
+										backgroundColor: isDarkMode
+											? Colors.thirdColorDark
+											: Colors.mainColorLight,
+										borderColor: themeBackground(isDarkMode),
+									},
+								]}
+							>
+								<Ionicons name="camera" size={18} color="#ffffff" />
 							</View>
-						</TouchableOpacity>
-					</View>
-				)}
+						</View>
+					</TouchableOpacity>
+				</View>
 
 				<View style={styles.inputWrapper}>
 					<Text
@@ -169,16 +163,11 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 							]}
 							value={nickname}
 							onChangeText={handleNicknameChange}
-							onBlur={saveNicknameToStorage}
 							placeholder="Your unique nickname"
 							placeholderTextColor={
 								isDarkMode ? Colors.loginTextDark : Colors.darkerTextLight
 							}
-							onSubmitEditing={() => {
-								Keyboard.dismiss();
-							}}
-							blurOnSubmit={false}
-							disableFullscreenUI={true}
+							onSubmitEditing={Keyboard.dismiss}
 							underlineColorAndroid="transparent"
 						/>
 					</View>
@@ -188,26 +177,37 @@ const ProfileEditScreen: React.FC<{ isDarkMode: boolean }> = ({
 	);
 };
 
+const themeBackground = (isDark: boolean) =>
+	isDark ? Colors.dark.background : Colors.light.background;
+
 const styles = StyleSheet.create({
+	outerContainer: {
+		flex: 1,
+		width: "100%",
+	},
 	container: {
 		flex: 1,
-		marginTop: 60,
-		width: "100%",
 	},
 	scrollContent: {
 		alignItems: "center",
+		paddingTop: 40,
+		paddingBottom: 20,
 	},
 	imageContainer: {
 		alignItems: "center",
-		marginBottom: 20,
+		marginBottom: 30,
+	},
+	imageContainerHidden: {
+		transform: [{ scale: 0.8 }],
+		marginBottom: 10,
 	},
 	imageWrapper: {
 		position: "relative",
 	},
 	profileImage: {
-		width: 200,
-		height: 200,
-		borderRadius: 100,
+		width: SCREEN_WIDTH * 0.45,
+		height: SCREEN_WIDTH * 0.45,
+		borderRadius: (SCREEN_WIDTH * 0.45) / 2,
 		borderWidth: 2,
 	},
 	placeholder: {
@@ -216,30 +216,32 @@ const styles = StyleSheet.create({
 	},
 	editIconBadge: {
 		position: "absolute",
-		bottom: 5,
-		right: 5,
-		width: 36,
-		height: 36,
-		borderRadius: 18,
+		bottom: 8,
+		right: 8,
+		width: 40,
+		height: 40,
+		borderRadius: 20,
 		justifyContent: "center",
 		alignItems: "center",
 		borderWidth: 3,
 	},
 	inputWrapper: {
-		width: 300,
+		width: "85%", // Fix 300 helyett rugalmas 85%
 		marginTop: 10,
 	},
 	label: {
 		fontSize: 18,
 		marginBottom: 8,
 		fontFamily: "modern_no_20_regular",
+		textAlign: "left",
+		width: "100%",
 	},
 	inputContainer: {
 		flexDirection: "row",
 		alignItems: "center",
-		borderRadius: 30,
-		paddingHorizontal: 20,
-		height: 55,
+		borderRadius: 25,
+		paddingHorizontal: 15,
+		height: 56,
 		borderWidth: 1,
 		borderColor: "rgba(0,0,0,0.05)",
 	},
@@ -250,6 +252,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontFamily: "Poppins_300Light",
 		fontSize: 16,
+		height: "100%",
 	},
 });
 

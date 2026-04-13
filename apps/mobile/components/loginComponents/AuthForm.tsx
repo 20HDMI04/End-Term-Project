@@ -24,12 +24,10 @@ WebBrowser.maybeCompleteAuthSession();
 
 interface AuthFormProps {
 	isSignUp: boolean;
-	stopBounce: () => void;
 }
 
 export default function AuthForm({
 	isSignUp: isSignUpProp,
-	stopBounce,
 }: AuthFormProps): JSX.Element {
 	const router = useRouter();
 	const { onLogin, onRegister, onLoginWithThirdParty, finalizeLogin } =
@@ -87,7 +85,7 @@ export default function AuthForm({
 
 		if (!result.error) {
 			setModalMessage(
-				isSignUp ? "Account created successfully!" : "Login successful!"
+				isSignUp ? "Account created successfully!" : "Login successful!",
 			);
 			setIsSuccess(true);
 			setModalVisible(true);
@@ -149,7 +147,6 @@ export default function AuthForm({
 					}
 					isDarkMode={isDarkMode}
 					loading={loading}
-					stopBounce={stopBounce}
 				/>
 
 				<CustomPasswordInput
@@ -165,7 +162,6 @@ export default function AuthForm({
 					}
 					isDarkMode={isDarkMode}
 					loading={loading}
-					stopBounce={stopBounce}
 				/>
 
 				{isSignUp && (
@@ -182,7 +178,6 @@ export default function AuthForm({
 						}
 						loading={loading}
 						placeholder="Confirm password"
-						stopBounce={stopBounce}
 						isDarkMode={isDarkMode}
 					/>
 				)}
@@ -199,7 +194,6 @@ export default function AuthForm({
 					]}
 					onPress={() => {
 						handleAuth();
-						stopBounce();
 					}}
 					disabled={loading}
 				>
@@ -222,7 +216,6 @@ export default function AuthForm({
 					style={styles.googleButton}
 					onPress={() => {
 						handleGoogleSignIn();
-						stopBounce();
 					}}
 					disabled={loading}
 				>

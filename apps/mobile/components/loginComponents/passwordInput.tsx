@@ -10,7 +10,6 @@ interface PasswordInputProps {
 	backgroundColor: string;
 	fontAndIconColor: string;
 	loading: boolean;
-	stopBounce: () => void;
 	placeholder?: string;
 	isDarkMode?: boolean;
 }
@@ -38,12 +37,10 @@ const CustomPasswordInput = (Props: PasswordInputProps) => {
 				value={Props.value}
 				onChangeText={(e) => {
 					Props.setValue(e);
-					Props.stopBounce();
 				}}
 				placeholderTextColor={Props.fontAndIconColor}
 				secureTextEntry={isSecureEntry}
 				editable={!Props.loading}
-				onTouchStart={Props.stopBounce}
 			/>
 
 			<TouchableOpacity onPress={toggleVisibility} style={styles.toggleButton}>

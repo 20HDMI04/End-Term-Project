@@ -15,27 +15,37 @@ export const UserService = {
 	) => {
 		const endpoint = isFirstTime ? "/user/me-the-first-time" : "/user/me";
 		console.log("Updating profile. Endpoint:", endpoint);
-		let payload: FormData | any;
-		let headers: Record<string, string> = {};
+
+		const payload = new FormData();
+
+		Object.keys(data).forEach((key) => {
+			if (data[key] !== undefined && data[key] !== null) {
+				payload.append(key, data[key]);
+			}
+		});
 
 		if (file) {
-			payload = new FormData();
-			Object.keys(data).forEach((key) => payload.append(key, data[key]));
-
 			payload.append("file", {
 				uri: file.uri,
 				name: file.fileName || "profile_pic.jpg",
 				type: file.type || "image/jpeg",
 			} as any);
-
-			headers = { "Content-Type": "multipart/form-data" };
-		} else {
-			payload = data;
 		}
 
-		const response = await apiClient.patch(endpoint, payload, { headers });
-		console.log("Profile updated successfully:", response.data);
-		return response.data;
+		const headers = { "Content-Type": "multipart/form-data" };
+
+		try {
+			console.log("Sending payload to server...");
+			const response = await apiClient.patch(endpoint, payload, { headers });
+			console.log("Profile updated successfully:", response.data);
+			return response.data;
+		} catch (error: any) {
+			console.error(
+				"Error updating profile:",
+				error.response?.data || error.message,
+			);
+			throw error;
+		}
 	},
 
 	// GET /social/comments/history

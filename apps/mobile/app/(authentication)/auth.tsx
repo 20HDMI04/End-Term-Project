@@ -31,18 +31,6 @@ export default function AuthScreen() {
 	const [isSignUp, setIsSignUp] = useState(false);
 	const bounceY = useSharedValue(0);
 
-	const startBounce = () => {
-		setTimeout(() => {
-			bounceY.value = withRepeat(withTiming(-15, { duration: 1000 }), -1, true);
-		}, 6000);
-	};
-
-	const stopBounce = () => {
-		bounceY.value = withTiming(0, {
-			duration: 1000,
-		});
-	};
-
 	const getLottieSource = () => {
 		try {
 			let source = require("../../assets/lottie/EndTermAnimationLogin-Light.json");
@@ -60,10 +48,6 @@ export default function AuthScreen() {
 	useEffect(() => {
 		if (!isShown) setIsSignUp(false);
 	}, [isShown]);
-
-	useEffect(() => {
-		stopBounce();
-	}, [setIsSignUp]);
 
 	const getImageSource = () => {
 		try {
@@ -126,7 +110,6 @@ export default function AuthScreen() {
 							onPress={() => {
 								setIsSignUp(true);
 								setIsShown(true);
-								startBounce();
 							}}
 						>
 							<Text
@@ -144,7 +127,6 @@ export default function AuthScreen() {
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={() => {
-								startBounce();
 								setIsShown(true);
 							}}
 							style={[
@@ -182,7 +164,7 @@ export default function AuthScreen() {
 							entering={SlideInDown.springify().damping(85).delay(100)}
 							exiting={SlideOutDown}
 						>
-							<AuthForm isSignUp={isSignUp} stopBounce={stopBounce} />
+							<AuthForm isSignUp={isSignUp} />
 						</Animated.View>
 					</View>
 				</Animated.View>

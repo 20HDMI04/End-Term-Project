@@ -36,6 +36,7 @@ import AuthorDetailModal from "@/components/AuthorDetailModal";
 import BookDetailModal from "@/components/BookDetailModal";
 import { ProfileData } from "./(tabs)/settings";
 import { Storage } from "@/utils/storage";
+import { Text, TextInput } from "react-native";
 
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -56,6 +57,18 @@ try {
 }
 
 SplashScreenRN.preventAutoHideAsync();
+
+if ((Text as any).defaultProps) {
+	(Text as any).defaultProps.allowFontScaling = false;
+} else {
+	(Text as any).defaultProps = { allowFontScaling: false };
+}
+
+if ((TextInput as any).defaultProps) {
+	(TextInput as any).defaultProps.allowFontScaling = false;
+} else {
+	(TextInput as any).defaultProps = { allowFontScaling: false };
+}
 
 function RootLayoutNav() {
 	const { authState } = useAuth();

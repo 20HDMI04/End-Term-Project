@@ -7,13 +7,6 @@ import {
 	Text,
 	View,
 } from "react-native";
-
-import { Collapsible } from "@/components/ui/collapsible";
-import { ExternalLink } from "@/components/external-link";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors, Fonts } from "@/constants/theme";
 import { runOnJS } from "react-native-reanimated";
 import {
@@ -24,7 +17,7 @@ import {
 	ScrollView,
 	TouchableOpacity,
 } from "react-native-gesture-handler";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	FindOneBookResponse,
@@ -65,11 +58,19 @@ export default function BookmarksScreen() {
 	}, []);
 
 	useEffect(() => {
-		async function fetchEverything() {
-			await handleGettingPageData();
-		}
 		fetchEverything();
 	}, []);
+
+	useFocusEffect(
+		useCallback(() => {
+			fetchEverything();
+		}, []),
+	);
+
+	async function fetchEverything() {
+		await handleGettingPageData();
+	}
+	fetchEverything();
 
 	const handleGettingPageData = async () => {
 		const fetchData = async () => {
@@ -144,10 +145,6 @@ export default function BookmarksScreen() {
 		setAuthorDetailVisible(false);
 		setSelectedAuthorId(null);
 	};
-
-	useEffect(() => {
-		console.log("Main List Fav Data:", mainListFav);
-	}, [mainListFav]);
 
 	const theme = {
 		card: isDarkMode ? Colors.mainColorDarker : "#FFFFFF",
@@ -228,7 +225,7 @@ export default function BookmarksScreen() {
 					<Text
 						style={{
 							fontSize: 30,
-							color: isDarkMode ? "#FFFFFF" : Colors.mainColorDark,
+							color: isDarkMode ? "#FFFFFF" : Colors.mainColorLight,
 							textAlign: "center",
 							fontFamily: "modern_no_20_regular",
 							marginTop: 50,

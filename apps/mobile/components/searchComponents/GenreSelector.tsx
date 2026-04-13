@@ -486,11 +486,12 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	description: {
-		fontSize: 20,
+		fontSize: 18,
 		fontFamily: "modern_no_20_regular",
 		marginTop: 10,
 		textAlign: "center",
 		marginBottom: 20,
+		marginHorizontal: "5%",
 	},
 });
 

@@ -99,11 +99,20 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 		console.log("Syncing profile with server. isFirstTime:", isFirstTime);
 		try {
 			const savedImageUri = await AsyncStorage.getItem("user_image");
-			const savedNickname = await AsyncStorage.getItem("user_nickname");
+			let savedNickname = await AsyncStorage.getItem("user_nickname");
 
 			if (!savedNickname) {
 				console.warn("No nickname found in storage, skipping profile sync.");
-				return;
+				if (isFirstTime) {
+					savedNickname = "Guest" + Math.floor(Math.random() * 1000);
+					await AsyncStorage.setItem("user_nickname", savedNickname);
+					console.log(
+						"Assigned random nickname for first-time user:",
+						savedNickname,
+					);
+				} else {
+					return;
+				}
 			}
 
 			let filePayload = null;
@@ -120,14 +129,18 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
 			const data = {
 				nickname: savedNickname,
 			};
-			const result = await UserService.updateProfile(
-				data,
-				filePayload,
-				isFirstTime,
-			);
-
-			await getMe();
-			return result;
+			console.log("Profile sync data prepared:", { data, filePayload });
+			try {
+				const result = await UserService.updateProfile(
+					data,
+					filePayload || null,
+					isFirstTime,
+				);
+				await getMe();
+				return result;
+			} catch (error) {
+				console.error("Error updating profile:", error);
+			}
 		} catch (error) {
 			console.error("Error syncing profile with server:", error);
 			throw error;
