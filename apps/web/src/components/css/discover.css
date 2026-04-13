@@ -1,0 +1,107 @@
+:root {
+    --bg-color: #f7f4dc;
+    --text-color: #516523;
+    --header-bg: #485B1F;
+    --accent-bg: #3746183f;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+    --bg-color: #222E3A;
+    --text-color: #fff;
+    --header-bg: #324252;
+    --accent-bg: #3242524c;
+    --card-bg: #2b3a4a;
+    --card-shadow: rgba(0,0,0,0.4);
+}
+
+.search-bar-on-discoverpage {
+    margin: 20px 20px 20px 15px;
+    width: 15%;
+}
+
+.search-bar-on-the-left {
+    display: flex;
+    justify-content: flex-start;
+    margin: 20px 50px 30px 20px;
+}
+
+.search-bar input {
+    max-width: 500px;
+    padding: 12px 16px;
+    border-radius: 25px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+}
+
+p {
+    color: var(--text-color);
+}
+
+.space {
+    padding-top: 350px;
+}
+
+.authors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.author-card {
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.author-card img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px var(--card-shadow);
+    margin-bottom: 6px;
+}
+
+.author-card:hover {
+    transform: scale(1.07);
+}
+
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 12px;
+    padding: 0 10px;
+}
+
+.h1-discover {
+    font-family: "Modern No. 20";
+    color: var(--text-color);
+    margin-bottom: 0;
+    padding-left: 280px;
+    padding-bottom: 30px;
+}
+
+.search-results {
+    padding: 15px;
+    margin-bottom: 20px;
+    padding-left: 50px;
+}
+
+@media (max-width: 1200px) {
+    .books-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media (max-width: 992px) {
+    .books-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .books-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 576px) {
+    .books-grid { grid-template-columns: repeat(2, 1fr); }
+}

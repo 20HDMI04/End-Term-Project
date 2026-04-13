@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
-import { IconSun, IconMoon } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconStar, IconStarFilled } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import { Link } from "react-router-dom";
 
 export function BookDetails() {
     const { id } = useParams();
@@ -13,91 +14,205 @@ export function BookDetails() {
     const { theme, toggleTheme } = useTheme();
     const [book, setBook] = useState<Book | null>(null);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
+
+    const [rating, setRating] = useState<number>(0);
+    const [hoverRating, setHoverRating] = useState<number>(0);
+    const [isRatingLoading, setIsRatingLoading] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
-            const data = await api.getData();
-            setAuthorList(data.authors);
-
-            const allBooks = data.books.flatMap((section: BookSection) => section.data);
-            const selectedBook = allBooks.find((b) => b.id === id);
-            setBook(selectedBook || null);
+            if (!id) return;
+            
+            try {
+                // Fetch both the specific book and main page data for authors
+                const [bookData, mainData] = await Promise.all([
+                    api.getBook(id),
+                    api.getData()
+                ]);
+                setBook(bookData);
+                setAuthorList(mainData.authors);
+            } catch (err) {
+                console.error("Error fetching book:", err);
+                // Fallback: try getting from main page data only
+                const data = await api.getData();
+                setAuthorList(data.authors);
+                const allBooks = data.books.flatMap((section: BookSection) => section.data);
+                const selectedBook = allBooks.find((b) => b.id === id);
+                setBook(selectedBook || null);
+            }
         }
         fetchData();
-    }, [id]);
+    }, [id, api]);
 
-    function getAuthorName(authorId: string | undefined): string {
-        if (!authorList) return "Unknown author";
-        for (const section of authorList) {
-            const author = section.data.find((a) => a.id === authorId);
-            if (author) return author.name;
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
         }
-        return "Unknown author";
-    }
+        fetchUser();
+    }, [api]);
+
+    // Check if book is favorited
+    useEffect(() => {
+        async function checkFavorite() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                const isFav = currentUser.favoriteBooks?.some((fav: any) => fav.book.id === id);
+                setIsFavorited(isFav || false);
+            } catch (err) {
+                console.error("Error checking favorite status:", err);
+            }
+        }
+        if (id) checkFavorite();
+    }, [id, api]);
 
     function getAuthor(authorId: string | undefined) {
-        if (!authorList) return null;
+        if (!authorList || !authorId) return null;
 
         for (const section of authorList) {
-            const author = section.data.find((a) => a.id === authorId);
+            const author = section.data.find((a) => String(a.id) === String(authorId));
             if (author) return author;
         }
         return null;
     }
 
+    useEffect(() => {
+        async function loadUserRating() {
+            try {
+                const user = await api.getCurrentUser();
+                const existing = user?.ratings?.find((r: any) => r.bookId === id);
+                if (existing) setRating(existing.score);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (id) loadUserRating();
+    }, [id, api]);
+
+    async function handleFavoriteClick() {
+        if (!id || isLoading) return;
+
+        setIsLoading(true);
+        try {
+            console.log("Current favorite state:", isFavorited);
+            console.log("Book ID:", id);
+
+            if (isFavorited) {
+                console.log("Unliking book...");
+                await api.unlikeBook(id);
+                setIsFavorited(false);
+            } else {
+                console.log("Liking book...");
+                await api.likeBook(id);
+                setIsFavorited(true);
+            }
+            console.log("Success!");
+        } catch (err: any) {
+            console.error("Error toggling favorite:", err);
+            alert(`Failed to update favorite:\n${err.message || err}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    async function submitRating(value: number) {
+        if (!id || isRatingLoading) return;
+
+        console.log("current rating:", rating);
+        console.log("clicked rating:", value);
+
+        setIsRatingLoading(true);
+
+        try {
+            const intRating = Math.round(value);
+
+            const isUpdate = rating > 0;
+
+            if (isUpdate) {
+                await api.updateRating(id, intRating);
+            } else {
+                await api.rateBook(id, intRating);
+            }
+
+            console.log(`⭐ Rated book ${id} with ${intRating}/5`);
+
+            setRating(intRating);
+            setHoverRating(0);
+
+        } catch (err) {
+            console.error("Rating error:", err);
+        } finally {
+            setIsRatingLoading(false);
+        }
+    }
+
     if (!book) return <div className="container mt-5">Loading...</div>;
 
-    const author = getAuthor(book.author.name);
+    const author = getAuthor(book.authorId) ?? null;
 
     return (
         <div className="home-container">
             {/* Navbar */}
-			<nav className="navbar navbar-expand-lg">
-				<div className="container-fluid">
-					<img
-						src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
-						alt="logo"
-						className="logo"
-					/>
+            <nav className="navbar navbar-expand-lg">
+                <div className="container-fluid">
+                    <img
+                        src={theme === "light" ? "/logo.svg" : "/logo2.svg"}
+                        alt="logo"
+                        className="logo"
+                    />
 
-					<div className="navbar-content">
-						<ul className="navbar-nav">
-							<li className="nav-item">
-								<a className="nav-link" href="/">Home</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="/search">Search</a>
-							</li>
-							<li className="nav-item">
-								<a className="nav-link" href="/discover">Discover</a>
-							</li>
-						</ul>
+                    <div className="navbar-content">
+                        <ul className="navbar-nav">
+                            <li className="nav-item">
+                                <a className="nav-link" href="/">Home</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/search">Search</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link" href="/discover">Discover</a>
+                            </li>
+                        </ul>
 
-						<div className="navbar-right">
-							<button
-								className="Darkmode-changer"
-								onClick={toggleTheme}
-								aria-label="Toggle color scheme"
-							>
-								<span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
-									<IconSun size={20} stroke={2} />
-								</span>
-								<span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
-									<IconMoon size={20} stroke={2} />
-								</span>
-							</button>
+                        <div className="navbar-right">
+                            <button
+                                className="Darkmode-changer"
+                                onClick={toggleTheme}
+                                aria-label="Toggle color scheme"
+                            >
+                                <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
+                                    <IconSun size={20} stroke={2} />
+                                </span>
+                                <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}>
+                                    <IconMoon size={20} stroke={2} />
+                                </span>
+                            </button>
 
-							<a href="/user/me">
-								<img
-									src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
-									alt="profile"
-									className="profile-pic"
-								/>
-							</a>
-						</div>
-					</div>
-				</div>
-			</nav>
+                            <a href="/user/me">
+                                <img
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
+                                    alt="profile"
+                                    className="profile-pic"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
 
             <div className="container mt-4">
                 <div className="book-page-text row">
@@ -117,9 +232,46 @@ export function BookDetails() {
                             alt={book.title}
                         />
 
-                        <button className="btn btn-success mt-3 w-100">
-                            Add to Favorites
+                        <button
+                            className={`btn w-100 mt-3 ${isFavorited ? 'btn-danger' : 'btn-success'}`}
+                            onClick={handleFavoriteClick}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Loading...' : isFavorited ? '❤️ Remove from Favorites' : '♡ Add to Favorites'}
                         </button>
+
+                        {/* RATING UI */}
+                        <div className="mt-3 text-center">
+                            <div style={{ display: "flex", justifyContent: "center", gap: 4 }}>
+                                {Array.from({ length: 5 }).map((_, index) => {
+                                    const value = index + 1;
+                                    const filled = value <= (hoverRating || rating);
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{ cursor: "pointer" }}
+                                            onMouseEnter={() => setHoverRating(value)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            onClick={() => submitRating(value)}
+                                        >
+                                            {filled ? (
+                                                <IconStarFilled size={26} color="#f5c542" />
+                                            ) : (
+                                                <IconStar size={26} color="#ddd" />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {rating > 0 && (
+                                <p className="mt-1">
+                                    <strong>{rating.toFixed(0)}</strong> / 5
+                                </p>
+                            )}
+                        </div>
+
                     </div>
 
                     {/* RIGHT SIDE */}
@@ -134,10 +286,10 @@ export function BookDetails() {
                         {/* ⭐ RATING */}
                         <div className="book-page-text d-flex align-items-center gap-2 mb-2">
                             <strong>
-                                {book.statistics?.averageRating?.toFixed(2) ?? "N/A"} ⭐
+                                ⭐{book.statistics?.averageRating?.toFixed(2) ?? "N/A"}
                             </strong>
                             <span className="book-page-text">
-                                {book.statistics?.ratingCount ?? 0} ratings | {book.statistics?.reviewCount ?? 0} reviews
+                                &nbsp;{book.statistics?.ratingCount ?? 0} ratings
                             </span>
                         </div>
 
@@ -154,18 +306,20 @@ export function BookDetails() {
                             {book.genres && book.genres.length > 0 ? (
                                 book.genres.map((g: any) =>
                                     g.genre ? (
-                                        <span
-                                            key={g.genre.id}
+                                        <Link
+                                            key={g.genreId}
+                                            to={`/genres/${g.genreId}`} // ide navigál a kattintás
                                             className="book-genres"
                                             style={{
                                                 color: "white",
                                                 borderRadius: "20px",
                                                 padding: "6px 14px",
-                                                fontSize: "0.9rem"
+                                                fontSize: "0.9rem",
+                                                textDecoration: "none"
                                             }}
                                         >
                                             {g.genre.name}
-                                        </span>
+                                        </Link>
                                     ) : null
                                 )
                             ) : (
@@ -188,16 +342,22 @@ export function BookDetails() {
                         <h5>About the author</h5>
                         {author ? (
                             <div className="d-flex gap-3 align-items-start mt-3">
-                                <img
-                                    src={author.smallerProfilePic || "/def_profile_icon.svg"}
-                                    alt={author.name}
-                                    style={{
-                                        width: "70px",
-                                        height: "70px",
-                                        borderRadius: "50%",
-                                        objectFit: "cover"
-                                    }}
-                                />
+                                <Link
+                                    to={`/author/${book.authorId}`}
+                                    style={{ textDecoration: "none", color: "inherit" }}
+                                    className="author-link-wrapper"
+                                >
+                                    <img
+                                        src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                        alt={author.name}
+                                        style={{
+                                            width: "70px",
+                                            height: "70px",
+                                            borderRadius: "50%",
+                                            objectFit: "cover"
+                                        }}
+                                    />
+                                </Link>
 
                                 <div>
                                     <h5 className="book-page-text">
@@ -221,6 +381,13 @@ export function BookDetails() {
                         )}
                     </div>
                 </div>
+            </div>
+
+            <div className="gap"></div>
+
+            <div className="footer2">
+                <p>Copyright© Readsy 2025. All rights reserved.</p>
+                <p className="Privacy">Privacy & Policy</p>
             </div>
         </div>
     );

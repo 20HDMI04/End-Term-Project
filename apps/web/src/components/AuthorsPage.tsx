@@ -12,6 +12,7 @@ export function AuthorsPage() {
     const [authorList, setAuthorList] = useState<AuthorSection[]>();
     const [authors, setAuthors] = useState<any[]>([]);
     const { theme, toggleTheme } = useTheme();
+    const [user, setUser] = useState<any>(null);
 
     // Adatok betöltése
     useEffect(() => {
@@ -27,20 +28,32 @@ export function AuthorsPage() {
                 );
 
             setAuthors(allAuthors);
-            
+
         }
 
         fetchAuthors();
     }, []);
 
-	const handleAuthorImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-		const currentTheme = e.currentTarget.getAttribute('data-theme');
-		if(currentTheme === "light") {
-			e.currentTarget.src = "/user.png";
-		} else {
-			e.currentTarget.src = "/user2.png";
-		}
-	}, []);
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
+
+    const handleAuthorImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        const currentTheme = e.currentTarget.getAttribute('data-theme');
+        if (currentTheme === "light") {
+            e.currentTarget.src = "/user.png";
+        } else {
+            e.currentTarget.src = "/user2.png";
+        }
+    }, []);
 
     return (
         <div className="home-container">
@@ -82,7 +95,13 @@ export function AuthorsPage() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -94,7 +113,7 @@ export function AuthorsPage() {
 
             {/* CONTENT */}
             <div className="container mt-4">
-                <h1 className="listing-h1-books">All Authors</h1>
+                <h1 className="listing-h1-books">All Authors</h1><br />
                 <div className="row g-3">
                     {authors.map((author) => (
                         <div
@@ -106,7 +125,11 @@ export function AuthorsPage() {
                                 style={{ textDecoration: "none", color: "inherit" }}
                             >
                                 <img
-                                    src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                    key={theme + (author.smallerProfilePic ?? "")}
+                                    src={
+                                        author.smallerProfilePic ||
+                                        (theme === "light" ? "/user.png" : "/user2.png")
+                                    }
                                     alt={author.name}
                                     data-theme={theme}
                                     style={{

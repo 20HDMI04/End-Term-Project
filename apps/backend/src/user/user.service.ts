@@ -32,6 +32,33 @@ export class UserService {
     try {
       return await this.prisma.user.findUniqueOrThrow({
         where: { email: email },
+        include: {
+          favoriteBooks: {
+            include: {
+              book: {
+                include: {
+                  statistics: true,
+                },
+              },
+            },
+          },
+          favoriteAuthors: {
+            include: {
+              author: true,
+            },
+          },
+          ratings: true,
+          comments: true,
+          haveReadIt: {
+            include: {
+              book: {
+                include: {
+                  statistics: true,
+                },
+              },
+            },
+          },
+        },
         omit: {
           id: true,
           biggerProfilePicKey: true,

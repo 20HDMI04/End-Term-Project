@@ -17,13 +17,16 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ApiProvider } from "./context/apiContext";
 import { ThemeProvider } from "./context/darkmodeContext";
+import { MantineProvider } from "@mantine/core";
 
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
 		<ApiProvider>
 			<ThemeProvider>
-				<App />
+				<MantineProvider>
+      				<App />
+    			</MantineProvider>
 			</ThemeProvider>
 		</ApiProvider>
 	</StrictMode>

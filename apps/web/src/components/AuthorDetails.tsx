@@ -6,6 +6,7 @@ import { useApi } from "../context/apiContext";
 import type { AuthorSection, BookSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import "./css/author.css"
 
 export function AuthorDetails() {
     const { id } = useParams();
@@ -13,33 +14,111 @@ export function AuthorDetails() {
     const { theme, toggleTheme } = useTheme();
     const [author, setAuthor] = useState<any>(null);
     const [books, setBooks] = useState<any[]>([]);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         async function fetchData() {
-            const data = await api.getData();
+            if (!id) return;
 
-            // 👤 Author keresése
-            for (const section of data.authors as AuthorSection[]) {
-                const found = section.data.find((a) => a.id === id);
-                if (found) {
-                    setAuthor(found);
-                    break;
+            try {
+                // Fetch both the specific author and main page data for books
+                const [authorData, mainData] = await Promise.all([
+                    api.getAuthor(id),
+                    api.getData()
+                ]);
+                setAuthor(authorData);
+
+                // 📚 Könyvek lekérése + duplikáció szűrés
+                const allBooks = mainData.books.flatMap((section: BookSection) => section.data);
+                const filteredBooks = allBooks.filter((b) => b.authorId === id);
+
+                const uniqueBooks = Array.from(
+                    new Map(filteredBooks.map((b) => [b.id, b])).values()
+                );
+
+                setBooks(uniqueBooks);
+            } catch (err) {
+                console.error("Error fetching author:", err);
+                // Fallback: try getting from main page data only
+                const data = await api.getData();
+
+                // 👤 Author keresése
+                for (const section of data.authors as AuthorSection[]) {
+                    const found = section.data.find((a) => a.id === id);
+                    if (found) {
+                        setAuthor(found);
+                        break;
+                    }
                 }
+
+                // 📚 Könyvek lekérése + duplikáció szűrés
+                const allBooks = data.books.flatMap((section: BookSection) => section.data);
+                const filteredBooks = allBooks.filter((b) => b.authorId === id);
+
+                const uniqueBooks = Array.from(
+                    new Map(filteredBooks.map((b) => [b.id, b])).values()
+                );
+
+                setBooks(uniqueBooks);
             }
-
-            // 📚 Könyvek lekérése + duplikáció szűrés
-            const allBooks = data.books.flatMap((section: BookSection) => section.data);
-            const filteredBooks = allBooks.filter((b) => b.authorId === id);
-
-            const uniqueBooks = Array.from(
-                new Map(filteredBooks.map((b) => [b.id, b])).values()
-            );
-
-            setBooks(uniqueBooks);
         }
 
         fetchData();
-    }, [id]);
+    }, [id, api]);
+
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                setUser(currentUser);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        fetchUser();
+    }, [api]);
+
+    // Check if author is favorited
+    useEffect(() => {
+        async function checkFavorite() {
+            try {
+                const currentUser = await api.getCurrentUser();
+                const isFav = currentUser.favoriteAuthors?.some((fav: any) => fav.author.id === id);
+                setIsFavorited(isFav || false);
+            } catch (err) {
+                console.error("Error checking favorite status:", err);
+            }
+        }
+        if (id) checkFavorite();
+    }, [id, api]);
+
+    async function handleFavoriteClick() {
+        if (!id || isLoading) return;
+
+        setIsLoading(true);
+        try {
+            console.log("Current favorite state:", isFavorited);
+            console.log("Author ID:", id);
+
+            if (isFavorited) {
+                console.log("Unliking author...");
+                await api.unlikeAuthor(id);
+                setIsFavorited(false);
+            } else {
+                console.log("Liking author...");
+                await api.likeAuthor(id);
+                setIsFavorited(true);
+            }
+            console.log("Success!");
+        } catch (err: any) {
+            console.error("Error toggling favorite:", err);
+            alert(`Failed to update favorite:\n${err.message || err}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     if (!author) return <div className="container mt-5">Loading...</div>;
 
@@ -83,7 +162,13 @@ export function AuthorDetails() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "def_profile_icon.svg" : "def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -118,6 +203,14 @@ export function AuthorDetails() {
                                 }}
                             />
                         </div>
+
+                        <button
+                            className={`custom-btn ${isFavorited ? 'btn-danger' : 'btn-success'} btn w-100 mt-3`}
+                            onClick={handleFavoriteClick}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Loading...' : isFavorited ? '❤️ Remove from Favorites' : '♡ Add to Favorites'}
+                        </button>
                     </div>
 
                     {/* 📄 RIGHT SIDE */}
@@ -129,7 +222,7 @@ export function AuthorDetails() {
                             {author.birthDate && ` • ${new Date(author.birthDate).getFullYear()}`}
                         </p>
 
-                        <p  className="author-page-text" style={{ maxWidth: "700px" }}>
+                        <p className="author-page-text" style={{ maxWidth: "700px" }}>
                             {author.bio ?? "No biography available."}
                         </p>
 
