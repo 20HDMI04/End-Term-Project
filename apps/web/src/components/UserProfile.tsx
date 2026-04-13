@@ -5,6 +5,9 @@ import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import "./css/home.css"
+import { signOut } from "supertokens-auth-react/recipe/session";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export function UserProfile() {
     const api = useApi();
@@ -13,6 +16,8 @@ export function UserProfile() {
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingPicture, setIsUploadingPicture] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         async function fetchUser() {
@@ -28,6 +33,22 @@ export function UserProfile() {
         }
         fetchUser();
     }, [api]);
+    const handleLogout = (): void => {
+        Swal.fire({
+            title: "Biztosan kijelentkezel?",
+            text: "A jelenlegi session megszűnik.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Igen",
+            cancelButtonText: "Mégse",
+            reverseButtons: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                await signOut();
+                navigate("/auth");
+            }
+        });
+    };
 
     const refreshUser = async () => {
         setIsLoading(true);
@@ -92,7 +113,12 @@ export function UserProfile() {
                         </ul>
 
                         <div className="navbar-right">
-                            <button className="Darkmode-changer" onClick={toggleTheme}>
+                            <button 
+                                className="Darkmode-changer" 
+                                onClick={toggleTheme}
+                                title="Toggle dark mode"
+                                aria-label="Toggle dark mode"
+                            >
                                 <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}>
                                     <IconSun size={20} stroke={2} />
                                 </span>
@@ -144,6 +170,9 @@ export function UserProfile() {
                             accept="image/*"
                             onChange={handleFileChange}
                             style={{ display: "none" }}
+                            aria-label="Upload profile picture"
+                            title="Upload profile picture"
+                            disabled={isUploadingPicture}
                         />
 
                         <h2 className="mt-3">{user.nickname ?? user.username}</h2>
@@ -160,6 +189,9 @@ export function UserProfile() {
                         <button onClick={refreshUser} disabled={isLoading} className="btn btn-success w-100 mt-3">
                             {isLoading ? "Refreshing..." : "Refresh"}
                         </button>
+                        <button onClick={handleLogout} className="btn btn-success w-100 mt-3">
+                            Logout
+                        </button>
                     </div>
 
                     {/* RIGHT */}
@@ -173,7 +205,7 @@ export function UserProfile() {
                                 <div className="d-flex flex-wrap gap-3">
 
                                     {user.favoriteBooks.map((f: any) => {
-                                        const myRating = getMyRating(f.book.id);
+                                        //const myRating = getMyRating(f.book.id);
 
                                         return (
                                             <a key={f.book.id} href={`/book/${f.book.id}`} style={{ textDecoration: "none" }}>
@@ -189,11 +221,12 @@ export function UserProfile() {
                                                                     backgroundSize: "cover",
                                                                 }}
                                                             >
-                                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{myRating != null ? `${myRating}` : "Not rated"}
-                                                            </p>
+                                                                {f.book.statistics?.averageRating != null
+                                                                    ? f.book.statistics.averageRating.toFixed(2)
+                                                                    : "N/A"}                                                            </p>
                                                         </div>
 
-                                                        
+
 
                                                         <img
                                                             src={f.book.biggerCoverPic || "/logo.svg"}
@@ -224,7 +257,7 @@ export function UserProfile() {
 
                         <div className="authors-container mt-5">
                             {user.favoriteAuthors?.length ? (
-                                <div className="d-flex flex-wrap gap-5" style={{paddingLeft: "55px"}}>
+                                <div className="d-flex flex-wrap gap-5" style={{ paddingLeft: "55px" }}>
                                     {user.favoriteAuthors.map((f: any) => (
                                         <a key={f.author.id} href={`/author/${f.author.id}`} style={{ textDecoration: "none" }}>
                                             <img

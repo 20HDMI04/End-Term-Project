@@ -4,6 +4,8 @@ import type { MainPageData } from "../components/interfaces/interfaces";
 
 interface ApiContextType {
     getData: () => Promise<MainPageData>;
+    getBook: (bookId: string) => Promise<any>;
+    getAuthor: (authorId: string) => Promise<any>;
     getCurrentUser: () => Promise<any>;
     likeBook: (bookId: string) => Promise<any>;
     unlikeBook: (bookId: string) => Promise<any>;
@@ -23,6 +25,22 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
     async function getData(): Promise<MainPageData> {
         const res = await fetch("http://localhost:3002/books/mainpage");
         if (!res.ok) throw new Error("Failed to fetch main page data");
+        const json = await res.json();
+        return json;
+    }
+
+    // Fetch a single book by ID with complete data and statistics
+    async function getBook(bookId: string): Promise<any> {
+        const res = await fetch(`http://localhost:3002/books/${bookId}`);
+        if (!res.ok) throw new Error("Failed to fetch book");
+        const json = await res.json();
+        return json;
+    }
+
+    // Fetch a single author by ID with complete data
+    async function getAuthor(authorId: string): Promise<any> {
+        const res = await fetch(`http://localhost:3002/authors/${authorId}`);
+        if (!res.ok) throw new Error("Failed to fetch author");
         const json = await res.json();
         return json;
     }
@@ -201,7 +219,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <ApiContext.Provider value={{ getData, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser, updateUserProfile, rateBook, updateRating }}>
+        <ApiContext.Provider value={{ getData, getBook, getAuthor, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser, updateUserProfile, rateBook, updateRating }}>
             {children}
         </ApiContext.Provider>
     );

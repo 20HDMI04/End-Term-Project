@@ -20,26 +20,49 @@ export function AuthorDetails() {
 
     useEffect(() => {
         async function fetchData() {
-            const data = await api.getData();
+            if (!id) return;
 
-            // 👤 Author keresése
-            for (const section of data.authors as AuthorSection[]) {
-                const found = section.data.find((a) => a.id === id);
-                if (found) {
-                    setAuthor(found);
-                    break;
+            try {
+                // Fetch both the specific author and main page data for books
+                const [authorData, mainData] = await Promise.all([
+                    api.getAuthor(id),
+                    api.getData()
+                ]);
+                setAuthor(authorData);
+
+                // 📚 Könyvek lekérése + duplikáció szűrés
+                const allBooks = mainData.books.flatMap((section: BookSection) => section.data);
+                const filteredBooks = allBooks.filter((b) => b.authorId === id);
+
+                const uniqueBooks = Array.from(
+                    new Map(filteredBooks.map((b) => [b.id, b])).values()
+                );
+
+                setBooks(uniqueBooks);
+            } catch (err) {
+                console.error("Error fetching author:", err);
+                // Fallback: try getting from main page data only
+                const data = await api.getData();
+
+                // 👤 Author keresése
+                for (const section of data.authors as AuthorSection[]) {
+                    const found = section.data.find((a) => a.id === id);
+                    if (found) {
+                        setAuthor(found);
+                        break;
+                    }
                 }
+
+                // 📚 Könyvek lekérése + duplikáció szűrés
+                const allBooks = data.books.flatMap((section: BookSection) => section.data);
+                const filteredBooks = allBooks.filter((b) => b.authorId === id);
+
+                const uniqueBooks = Array.from(
+                    new Map(filteredBooks.map((b) => [b.id, b])).values()
+                );
+
+                setBooks(uniqueBooks);
             }
-
-            // 📚 Könyvek lekérése + duplikáció szűrés
-            const allBooks = data.books.flatMap((section: BookSection) => section.data);
-            const filteredBooks = allBooks.filter((b) => b.authorId === id);
-
-            const uniqueBooks = Array.from(
-                new Map(filteredBooks.map((b) => [b.id, b])).values()
-            );
-
-            setBooks(uniqueBooks);
         }
 
         fetchData();

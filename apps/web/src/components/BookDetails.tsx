@@ -22,16 +22,27 @@ export function BookDetails() {
     const [hoverRating, setHoverRating] = useState<number>(0);
     const [isRatingLoading, setIsRatingLoading] = useState(false);
 
-    const displayRating = hoverRating || rating;
-
     useEffect(() => {
         async function fetchData() {
-            const data = await api.getData();
-            setAuthorList(data.authors);
-
-            const allBooks = data.books.flatMap((section: BookSection) => section.data);
-            const selectedBook = allBooks.find((b) => b.id === id);
-            setBook(selectedBook || null);
+            if (!id) return;
+            
+            try {
+                // Fetch both the specific book and main page data for authors
+                const [bookData, mainData] = await Promise.all([
+                    api.getBook(id),
+                    api.getData()
+                ]);
+                setBook(bookData);
+                setAuthorList(mainData.authors);
+            } catch (err) {
+                console.error("Error fetching book:", err);
+                // Fallback: try getting from main page data only
+                const data = await api.getData();
+                setAuthorList(data.authors);
+                const allBooks = data.books.flatMap((section: BookSection) => section.data);
+                const selectedBook = allBooks.find((b) => b.id === id);
+                setBook(selectedBook || null);
+            }
         }
         fetchData();
     }, [id, api]);
@@ -278,7 +289,7 @@ export function BookDetails() {
                                 ⭐{book.statistics?.averageRating?.toFixed(2) ?? "N/A"}
                             </strong>
                             <span className="book-page-text">
-                                &nbsp;{book.statistics?.ratingCount ?? 0} ratings {/*| {book.statistics?.reviewCount ?? 0} reviews */}
+                                &nbsp;{book.statistics?.ratingCount ?? 0} ratings
                             </span>
                         </div>
 

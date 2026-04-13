@@ -35,7 +35,11 @@ export class UserService {
         include: {
           favoriteBooks: {
             include: {
-              book: true,
+              book: {
+                include: {
+                  statistics: true,
+                },
+              },
             },
           },
           favoriteAuthors: {
@@ -47,7 +51,11 @@ export class UserService {
           comments: true,
           haveReadIt: {
             include: {
-              book: true,
+              book: {
+                include: {
+                  statistics: true,
+                },
+              },
             },
           },
         },

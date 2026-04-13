@@ -102,7 +102,7 @@ export function BooksPage() {
 
             {/* CONTENT */}
             <div className="container mt-4">
-                <h1 className="listing-h1-books">All Books</h1>
+                <h1 className="listing-h1-books" style={{marginBottom: "10px"}}>All Books</h1>
 
                 <div className="d-flex flex-wrap justify-start gap-4">
                     {books.map((book) => (

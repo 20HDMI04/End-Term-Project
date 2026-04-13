@@ -13,6 +13,41 @@ export function Home() {
 	const [booksList, setBookList] = useState<BookSection[]>();
 	const [authorList, setAuthorList] = useState<AuthorSection[]>();
 	const { theme, toggleTheme } = useTheme();
+	const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+	// Calculate how many items to show based on screen width
+	const getItemsToShow = (type: 'books' | 'authors') => {
+		if (windowWidth < 576) {
+			// Mobile
+			return type === 'books' ? 2 : 2;
+		} else if (windowWidth < 768) {
+			// Small tablet
+			return type === 'books' ? 3 : 3;
+		} else if (windowWidth < 1024) {
+			// Tablet
+			return type === 'books' ? 4 : 4;
+		} else if (windowWidth < 1100) {
+			// Desktop
+			return type === 'books' ? 6 : 6;
+		} else if (windowWidth < 1200) {
+			// Large desktop
+			return type === 'books' ? 7 : 7;
+		}
+		else if (windowWidth < 1400) {
+			return type === 'books' ? 8 : 8;
+		} else {
+			// Large desktop
+			return type === 'books' ? 9 : 9;
+		}
+		
+	};
+
+	// Track window resize
+	useEffect(() => {
+		const handleResize = () => setWindowWidth(window.innerWidth);
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
 
 	const handleBookImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
 		e.currentTarget.src = "/book.png";
@@ -34,10 +69,9 @@ export function Home() {
 			setAuthorList(consoleData.authors);
 		}
 		Books();
-	}, []);
+	}, [api]);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	//const [setUser] = useState<any>(null);
 	const [user, setUser] = useState<any>(null);
 
 	useEffect(() => {
@@ -50,7 +84,7 @@ export function Home() {
 			}
 		}
 		fetchUser();
-	}, []);
+	}, [api]);
 
 
 
@@ -130,7 +164,7 @@ export function Home() {
 
 			{/* Popular Books Section */}
 			<div className="books-container-main">
-				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 50px", marginTop: "20px" }}>
+				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
 					<h1 className="listing-h1-books">Popular Books</h1>
 					<Link to="/bookspage" className="see-all-link">
 						<a href="/discover" className="see-all-link">
@@ -141,7 +175,7 @@ export function Home() {
 
 
 				<div className="books-container mt-4">
-					<div className="d-flex flex-wrap gap-3 justify-start">
+				<div className="d-flex flex-nowrap gap-4 justify-start" style={{ overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
 						{booksList
 							?.flatMap((section: BookSection) => section.data)
 							.filter((value, index, self) =>
@@ -151,7 +185,7 @@ export function Home() {
 								(a: Book, b: Book) =>
 									(b.statistics?.averageRating ?? 0) - (a.statistics?.averageRating ?? 0)
 							)
-							.slice(0, 6)
+							.slice(0, getItemsToShow('books'))
 							.map((book: Book, index: number) => (
 								<Link
 									key={`${book.id}-${index}`}
@@ -210,7 +244,7 @@ export function Home() {
 
 			{/* Popular Authors */}
 			<div className="authors-container-main">
-				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 50px", marginTop: "20px" }}>
+				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
 					<h1 className="listing-h1-authors">Popular Authors</h1>
 					<Link to="/authorspage" className="see-all-link">
 						<a href="/discover" className="see-all-link">
@@ -220,13 +254,13 @@ export function Home() {
 				</div>
 
 				<div className="authors-container mt-5">
-					<div className="d-flex justify-content-center gap-5 flex-wrap">
+				<div className="d-flex justify-content-start gap-5 flex-nowrap" style={{ paddingLeft: "20px", overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
 						{authorList
 							?.flatMap((section: AuthorSection) => section.data)
 							.filter((value, index, self) =>
 								index === self.findIndex(author => author.id === value.id)
 							)
-							.slice(0, 6)
+						.slice(0, getItemsToShow('authors'))
 							.map((author, index) => (
 								<Link key={`${author.id}-${index}`} to={`/author/${author.id}`} className="text-center">
 									<img
