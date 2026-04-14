@@ -1,4 +1,4 @@
-import {
+﻿import {
   Injectable,
   ConflictException,
   InternalServerErrorException,
@@ -130,7 +130,7 @@ export class BooksService {
           originalPublicationYear: createBookDto.originalPublicationYear,
           latestPublicationYear: createBookDto.latestPublicationYear,
           pageNumber: createBookDto.pageNumber || 0,
-          approveStatus: false,
+          approveStatus: true,
 
           smallerCoverPic: s3Result.small,
           biggerCoverPic: s3Result.large,

@@ -17,6 +17,7 @@ interface ApiContextType {
     updateUserProfile: (file: File | null, data: any) => Promise<any>;
     rateBook: (bookId: string, score: number) => Promise<any>;
     updateRating: (bookId: string, score: number) => Promise<any>;
+    createBook: (file: File | null, bookData: any) => Promise<any>;
 }
 
 const ApiContext = createContext<ApiContextType>(null as any);
@@ -262,8 +263,64 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
         return text ? JSON.parse(text) : { success: true };
     }
 
+    // Create a new book
+    async function createBook(file: File | null, bookData: any): Promise<any> {
+        try {
+            const formData = new FormData();
+
+            if (file) {
+                formData.append("file", file);
+            }
+
+            // Append book data
+            formData.append("title", bookData.title);
+            formData.append("description", bookData.description);
+            
+            // Append ISBNs - each ISBN as a separate form field
+            if (Array.isArray(bookData.isbns)) {
+                bookData.isbns.forEach((isbn: string) => {
+                    formData.append("isbns", isbn);
+                });
+            }
+            
+            // Append genre names - each genre as a separate form field
+            if (Array.isArray(bookData.genreNames)) {
+                bookData.genreNames.forEach((genre: string) => {
+                    formData.append("genreNames", genre);
+                });
+            }
+            
+            if (bookData.pageNumber) {
+                formData.append("pageNumber", String(bookData.pageNumber));
+            }
+            if (bookData.latestPublicationYear) {
+                formData.append("latestPublicationYear", String(bookData.latestPublicationYear));
+            }
+
+            console.log("Creating book with isbns:", bookData.isbns);
+            
+            const res = await fetch("http://localhost:3002/books", {
+                method: "POST",
+                credentials: "include",
+                body: formData
+            });
+
+            const text = await res.text();
+            console.log("Response status:", res.status, "Body:", text);
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+
+            return text ? JSON.parse(text) : { success: true };
+        } catch (err) {
+            console.error("Error creating book:", err);
+            throw err;
+        }
+    }
+
     return (
-        <ApiContext.Provider value={{ getData, getBook, getAuthor, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, addHaveRead, removeHaveRead, refetchUser, updateUserProfile, rateBook, updateRating }}>
+        <ApiContext.Provider value={{ getData, getBook, getAuthor, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, addHaveRead, removeHaveRead, refetchUser, updateUserProfile, rateBook, updateRating, createBook }}>
             {children}
         </ApiContext.Provider>
     );

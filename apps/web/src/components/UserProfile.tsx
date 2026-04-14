@@ -287,9 +287,17 @@ export function UserProfile() {
                                                     <div className="card book-card" style={{ width: "150px" }}>
 
                                                         <div className="rating-main">
-                                                            <p className="rating-display">
-                                                                {myRating != null ? `You rated: ${myRating}/5` : "Not rated"}
-                                                            </p>
+                                                            <p
+                                                                className="rating-display"
+                                                                style={{
+                                                                    backgroundImage: `url(${theme === "light" ? "/rating.svg" : "/rating2.svg"})`,
+                                                                    backgroundRepeat: "no-repeat",
+                                                                    backgroundSize: "cover",
+                                                                }}
+                                                            >
+                                                                {h.book.statistics?.averageRating != null
+                                                                    ? h.book.statistics.averageRating.toFixed(2)
+                                                                    : "N/A"}                                                            </p>
                                                         </div>
 
                                                         <img
@@ -312,6 +320,18 @@ export function UserProfile() {
                             ) : (
                                 <p className="text-muted">No books read yet.</p>
                             )}
+                        </div>
+
+                        {/* Add a Book Section */}
+                        <h1 className="listing-h1-books mt-5">Add a New Book</h1>
+                        <div className="books-container mt-4">
+                            <div className="card p-4" style={{ maxWidth: "600px" }}>
+                                <h5>Create a New Book</h5>
+                                <p className="text-muted">Share a book you've discovered with the community.</p>
+                                <a href="/add-book" className="btn btn-success w-100">
+                                    + Add Book
+                                </a>
+                            </div>
                         </div>
 
                     </div>
