@@ -228,14 +228,16 @@ nav {
     text-decoration: none;
     text-align: center;
     color: white;
+    display: grid;
     justify-content: center;
+    align-items: center;
 }
 
 /* Books Row */
 .books-container-main {
     margin-top: 60px;
-    margin-left: 20px;
-    margin-right: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
     align-content: center;
     justify-content: center;
 }
@@ -264,8 +266,8 @@ nav {
     background-color: var(--accent-bg);
     transition: background-color 0.7s;
     margin-top: 80px;
-    margin-left: 20px;
-    margin-right: 20px;
+    padding-left: 15px;
+    padding-right: 20px;
     min-height: 350px;
     align-content: center;
 }
@@ -349,10 +351,9 @@ nav {
 
 /* Footer */
 .footer {
-    display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px 40px;
+    padding: 50px 40px 25px 40px;
     background-color: var(--header-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";

@@ -187,9 +187,7 @@ export function Home() {
 				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
 					<h1 className="listing-h1-books">Popular Books</h1>
 					<Link to="/bookspage" className="see-all-link">
-						<a href="/discover" className="see-all-link">
 							<p className="see-all mb-0">See All➛</p>
-						</a>
 					</Link>
 				</div>
 
@@ -267,9 +265,7 @@ export function Home() {
 				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
 					<h1 className="listing-h1-authors">Popular Authors</h1>
 					<Link to="/authorspage" className="see-all-link">
-						<a href="/discover" className="see-all-link">
-							<p className="see-all mb-0">See All➛</p>
-						</a>
+						<p className="see-all mb-0">See All➛</p>
 					</Link>
 				</div>
 
@@ -314,9 +310,9 @@ export function Home() {
 					<p>
 						<div className="contributors-list-a-tab-closer-to-the-middle">
 							<h2 className="contact-h1">Contact us</h2>
-							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a><br />
-							<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a><br />
-							<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a><br />
+							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a>
+							<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a>
+							<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a>
 						</div>
 					</p>
 				</div>

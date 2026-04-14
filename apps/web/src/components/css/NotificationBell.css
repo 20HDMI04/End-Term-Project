@@ -9,7 +9,7 @@
 	color: var(--text-color);
 	transition: all 0.3s ease;
 	padding: 5px 8px;
-	margin-right: 10px;
+	/*margin-right: 10px;*/
 	border-radius: 6px;
 }
 
