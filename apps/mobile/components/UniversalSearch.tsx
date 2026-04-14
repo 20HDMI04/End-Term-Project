@@ -379,7 +379,7 @@ const UniversalSearch = ({
 			>
 				<Ionicons name="search-outline" size={20} color={theme.textPrimary} />
 				<Text style={[styles.triggerText, { color: theme.textSecondary }]}>
-					{query || "Search for authors, books, genres ..."}
+					{query || "Search for authors, books ..."}
 				</Text>
 			</Pressable>
 

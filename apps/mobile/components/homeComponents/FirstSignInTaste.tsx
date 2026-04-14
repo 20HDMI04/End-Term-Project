@@ -22,6 +22,7 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import SearchBarForFirstTasteBook from "./SearchBarForFirstTasteBook";
 import { useApi } from "@/contexts/ApiContext";
 import { StatusBar } from "expo-status-bar";
+import { PixelRatio } from "react-native";
 
 interface MultiPageOverlayProps {
 	visible: boolean;
@@ -262,6 +263,21 @@ const MultiPageOverlay = ({
 	);
 };
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// Base width from iPhone 11
+const BASE_WIDTH = 375;
+
+const widthScale = SCREEN_WIDTH / BASE_WIDTH;
+
+const moderateScale = (size: number, factor = 0.5) =>
+	size + (widthScale * size - size) * factor;
+
+export const responsiveFontSize = (fontSize: number, factor = 0.5) => {
+	const newSize = moderateScale(fontSize, factor);
+	return Math.round(PixelRatio.roundToNearestPixel(newSize));
+};
+
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
@@ -290,14 +306,14 @@ const styles = StyleSheet.create({
 		marginVertical: 20,
 	},
 	text: {
-		fontSize: 42,
+		fontSize: responsiveFontSize(38),
 		width: "90%",
 		textAlign: "left",
 		fontFamily: "modern_no_20_regular",
 		marginBottom: 10,
 	},
 	textSmall: {
-		fontSize: 18,
+		fontSize: responsiveFontSize(18),
 		textAlign: "center",
 		fontFamily: "modern_no_20_regular",
 		paddingHorizontal: 10,

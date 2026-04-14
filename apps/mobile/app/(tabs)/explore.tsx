@@ -108,7 +108,7 @@ export default function TabTwoScreen() {
 		<GestureDetector gesture={Gesture.Exclusive(swipeLeft, swipeRight)}>
 			<ScrollView
 				keyboardShouldPersistTaps="handled"
-				style={{ flex: 1, marginTop: 40 }}
+				style={{ flex: 1, marginTop: 60 }}
 				refreshControl={
 					<RefreshControl
 						refreshing={refreshing}

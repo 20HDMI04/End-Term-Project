@@ -10,6 +10,10 @@
     "newArchEnabled": true,
     "android": {
       "package": "com.hdmi.readsy",
+      "navigationBar": {
+        "visible": "sticky-immersive",
+        "backgroundColor": "#00000000"
+      },
       "adaptiveIcon": {
         "backgroundColor": "#FDFBF7",
         "foregroundImage": "./assets/images/adaptive-icon.png"
