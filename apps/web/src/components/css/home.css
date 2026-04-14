@@ -235,7 +235,6 @@ nav {
 
 /* Books Row */
 .books-container-main {
-    margin-top: 60px;
     padding-left: 20px;
     padding-right: 20px;
     align-content: center;
@@ -265,11 +264,15 @@ nav {
 .authors-container-main {
     background-color: var(--accent-bg);
     transition: background-color 0.7s;
-    margin-top: 80px;
     padding-left: 15px;
     padding-right: 20px;
     min-height: 350px;
     align-content: center;
+}
+
+.paddingForAuthors {
+    padding-top: 80px;
+    margin-top: 40px;
 }
 
 .books-container {
