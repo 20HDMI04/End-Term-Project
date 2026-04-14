@@ -104,9 +104,9 @@ export class BooksController {
     description:
       'An unexpected error occurred while approving the book. Please try again later.',
   })
-  @UseGuards(SessionGuard, new RolesGuard(['admin']))
-  approve(@Param('id') id: string) {
-    return this.booksService.approve(id);
+  @UseGuards(SessionGuard)
+  approve(@Param('id') id: string, @Session() session: any) {
+    return this.booksService.approve(id, session);
   }
 
   @Patch('disapprove/:id')
@@ -122,9 +122,25 @@ export class BooksController {
     description:
       'An unexpected error occurred while disapproving the book. Please try again later.',
   })
+  @UseGuards(SessionGuard)
+  disapprove(@Param('id') id: string, @Session() session: any) {
+    return this.booksService.disapprove(id, session);
+  }
+
+  @Get('pending/list')
+  @ApiOperation({
+    summary: 'Get pending books awaiting admin approval',
+    description: 'Retrieves all books with approveStatus = false (awaiting admin review).',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({ status: 200, description: 'Pending books retrieved successfully.' })
+  @ApiInternalServerErrorResponse({
+    description:
+      'An unexpected error occurred while retrieving pending books. Please try again later.',
+  })
   @UseGuards(SessionGuard, new RolesGuard(['admin']))
-  disapprove(@Param('id') id: string) {
-    return this.booksService.disapprove(id);
+  getPendingBooks(@Query() query: PaginationDto) {
+    return this.booksService.getPendingBooks(query);
   }
 
   @Get()

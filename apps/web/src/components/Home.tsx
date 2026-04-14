@@ -6,6 +6,8 @@ import type { BookSection, AuthorSection, Book } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import { Link } from "react-router-dom";
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
 
 export function Home() {
 	const api = useApi();
@@ -14,6 +16,7 @@ export function Home() {
 	const [authorList, setAuthorList] = useState<AuthorSection[]>();
 	const { theme, toggleTheme } = useTheme();
 	const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+	const [isAdmin, setIsAdmin] = useState(false);
 
 	// Calculate how many items to show based on screen width
 	const getItemsToShow = (type: 'books' | 'authors') => {
@@ -86,6 +89,22 @@ export function Home() {
 		fetchUser();
 	}, [api]);
 
+	// Check if user is admin
+	useEffect(() => {
+		const checkAdminRole = async () => {
+			try {
+				if (await Session.doesSessionExist()) {
+					const payload = await Session.getAccessTokenPayloadSecurely();
+					const roles = payload.roles?.roles || payload.roles || [];
+					setIsAdmin(roles.includes('admin'));
+				}
+			} catch (err) {
+				console.error('Error checking admin role:', err);
+			}
+		};
+		checkAdminRole();
+	}, []);
+
 
 
 	return (
@@ -114,6 +133,7 @@ export function Home() {
 						</ul>
 
 						<div className="navbar-right">
+							<NotificationBell isAdmin={isAdmin} />
 							<button
 								className="Darkmode-changer"
 								onClick={toggleTheme}

@@ -7,6 +7,8 @@ import type { AuthorSection, BookSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import "./css/author.css"
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
 
 export function AuthorDetails() {
     const { id } = useParams();
@@ -17,6 +19,7 @@ export function AuthorDetails() {
     const [isFavorited, setIsFavorited] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -62,6 +65,22 @@ export function AuthorDetails() {
         }
         fetchUser();
     }, [api]);
+
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
 
     // Check if author is favorited
     useEffect(() => {
@@ -130,6 +149,7 @@ export function AuthorDetails() {
                         </ul>
 
                         <div className="navbar-right">
+                            <NotificationBell isAdmin={isAdmin} />
                             <button
                                 className="Darkmode-changer"
                                 onClick={toggleTheme}

@@ -1,9 +1,11 @@
 import "bootstrap/dist/css/bootstrap.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
 import Swal from "sweetalert2";
 import "./css/home.css";
 
@@ -32,6 +34,7 @@ export function AddBook() {
     const { theme, toggleTheme } = useTheme();
     const api = useApi();
     const [isLoading, setIsLoading] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -42,6 +45,22 @@ export function AddBook() {
         publicationYear: "",
         genreNames: [] as string[]
     });
+
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -177,6 +196,7 @@ export function AddBook() {
                         </ul>
 
                         <div className="navbar-right">
+                            <NotificationBell isAdmin={isAdmin} />
                             <button
                                 className="Darkmode-changer"
                                 onClick={toggleTheme}

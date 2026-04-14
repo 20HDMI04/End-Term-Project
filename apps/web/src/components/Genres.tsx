@@ -5,6 +5,9 @@ import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from "@tabler/icons-react";
 import { useTheme } from "../context/darkmodeContext";
 import type { BookSection, Book } from "./interfaces/interfaces";
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
+import "./css/home.css";
 
 interface Genre {
     id: string;
@@ -19,6 +22,8 @@ export function Genre() {
     const [user, setUser] = useState<any>(null);
     const [books, setBooks] = useState<Book[]>([]);
     const [genres, setGenres] = useState<Genre[]>([]);
+    const [isAdmin, setIsAdmin] = useState(false);
+
 
     // 🎯 NULL = ALL GENRES (clean solution)
     const selectedGenre = id ?? null;
@@ -70,6 +75,22 @@ export function Genre() {
         fetchUser();
     }, [api]);
 
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
+
     // 🎯 FILTER LOGIC
     const filteredBooks =
         !selectedGenre
@@ -106,6 +127,7 @@ export function Genre() {
 
                         <div className="navbar-right">
 
+                            <NotificationBell isAdmin={isAdmin} />
                             <button
                                 className="Darkmode-changer"
                                 onClick={toggleTheme}

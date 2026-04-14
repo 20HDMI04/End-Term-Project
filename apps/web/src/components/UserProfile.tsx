@@ -8,6 +8,8 @@ import "./css/home.css"
 import { signOut } from "supertokens-auth-react/recipe/session";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { NotificationBell } from "./NotificationBell";
+import Session from "supertokens-auth-react/recipe/session";
 
 export function UserProfile() {
     const api = useApi();
@@ -17,6 +19,7 @@ export function UserProfile() {
     const [isUploadingPicture, setIsUploadingPicture] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
+    const [isAdmin, setIsAdmin] = useState(false);
 
 
     useEffect(() => {
@@ -33,6 +36,23 @@ export function UserProfile() {
         }
         fetchUser();
     }, [api]);
+
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
+
     const handleLogout = (): void => {
         Swal.fire({
             title: "Biztosan kijelentkezel?",
@@ -113,6 +133,7 @@ export function UserProfile() {
                         </ul>
 
                         <div className="navbar-right">
+                            <NotificationBell isAdmin={isAdmin} />
                             <button 
                                 className="Darkmode-changer" 
                                 onClick={toggleTheme}

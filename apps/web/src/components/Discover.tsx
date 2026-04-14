@@ -6,6 +6,8 @@ import { useApi } from "../context/apiContext";
 import { Link } from "react-router-dom";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import "./css/discover.css";
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
 
 export function Discover() {
     const api = useApi();
@@ -14,6 +16,7 @@ export function Discover() {
     const [booksList, setBooksList] = useState<Book[]>([]);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
     const [query, setQuery] = useState("");
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -42,6 +45,22 @@ export function Discover() {
         }
         fetchUser();
     }, [api]);
+
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
 
     // === Author név lekérése ===
     function getAuthorName(authorId: string | undefined): string {
@@ -95,6 +114,7 @@ export function Discover() {
                             </ul>
 
                             <div className="navbar-right">
+                                <NotificationBell isAdmin={isAdmin} />
                                 <button className="Darkmode-changer" onClick={toggleTheme} aria-label="Toggle color scheme">
                                     <span className={`icon sun-icon ${theme === "light" ? "visible" : ""}`}><IconSun size={20} stroke={2} /></span>
                                     <span className={`icon moon-icon ${theme === "dark" ? "visible" : ""}`}><IconMoon size={20} stroke={2} /></span>

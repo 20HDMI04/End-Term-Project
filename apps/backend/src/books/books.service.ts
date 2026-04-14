@@ -4,6 +4,7 @@
   InternalServerErrorException,
   NotImplementedException,
   NotFoundException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -425,12 +426,22 @@ export class BooksService {
 
   /**
    * @summary Approves a book by setting its approveStatus to true in the database. The method takes the book ID as a parameter and updates the corresponding record. If the book with the given ID does not exist, it throws a NotFoundException. If any other error occurs during the update process, it throws an InternalServerErrorException.
-   * @description This method is used to approve a book entry in the database by updating its approveStatus field to true. It first attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while approving the book.
+   * @description This method is used to approve a book entry in the database by updating its approveStatus field to true. First checks if the user has admin role. It first attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while approving the book.
    * @param id - The unique identifier of the book to be approved. This ID is used to locate the specific book record in the database that needs to be updated.
+   * @param session - The user session object to check admin role
    * @throws NotFoundException if the book with the given ID does not exist in the database.
+   * @throws ForbiddenException if the user does not have admin role
    * @returns The updated book record with approveStatus set to true if the operation is successful. If the book is not found, it returns a NotFoundException. If any other error occurs, it returns an InternalServerErrorException.
    */
-  async approve(id: string) {
+  async approve(id: string, session: any) {
+    // Check admin role
+    const roles = session.userDataInAccessToken?.roles?.roles || 
+                  session.userDataInAccessToken?.roles || 
+                  [];
+    if (!roles.includes('admin')) {
+      throw new ForbiddenException('You do not have permission to approve books');
+    }
+
     try {
       return await this.prisma.book.update({
         where: { id },
@@ -452,10 +463,20 @@ export class BooksService {
    * @summary Disapproves a book by setting its approveStatus to false in the database.
    * @description This method is used to disapprove a book entry in the database by updating its approveStatus field to false. Similar to the approve method, it attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while disapproving the book.
    * @param id - The unique identifier of the book to be disapproved.
+   * @param session - The user session object to check admin role
+   * @throws ForbiddenException if the user does not have admin role
    * @returns The updated book record with approveStatus set to false if the operation is successful.
    * @throws NotFoundException if the book with the given ID does not exist in the database.
    */
-  async disapprove(id: string) {
+  async disapprove(id: string, session: any) {
+    // Check admin role
+    const roles = session.userDataInAccessToken?.roles?.roles || 
+                  session.userDataInAccessToken?.roles || 
+                  [];
+    if (!roles.includes('admin')) {
+      throw new ForbiddenException('You do not have permission to disapprove books');
+    }
+
     try {
       return await this.prisma.book.update({
         where: { id },
@@ -469,6 +490,51 @@ export class BooksService {
       }
       throw new InternalServerErrorException(
         'An error occurred while disapproving the book.',
+      );
+    }
+  }
+
+  /**
+   * @summary Retrieves all books awaiting admin approval (approveStatus = false).
+   * @description This method fetches all books with approveStatus = false from the database, sorted by creation date (newest first). It includes related data such as author, genres, statistics, and ISBN information. Supports pagination through the PaginationDto query parameter.
+   * @param query - The pagination query parameters (page, limit, sortBy, etc.).
+   * @returns An array of books awaiting approval with related information, or pagination data if applicable.
+   * @throws InternalServerErrorException if an error occurs while fetching pending books.
+   */
+  async getPendingBooks(query: PaginationDto) {
+    try {
+      const take = query.limit || 10;
+      const skip = ((query.page || 1) - 1) * take;
+
+      const [books, total] = await Promise.all([
+        this.prisma.book.findMany({
+          where: { approveStatus: false },
+          include: {
+            author: true,
+            genres: { include: { genre: true } },
+            statistics: true,
+            isbns: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take,
+        }),
+        this.prisma.book.count({ where: { approveStatus: false } }),
+      ]);
+
+      return {
+        data: books,
+        pagination: {
+          total,
+          page: query.page || 1,
+          limit: take,
+          totalPages: Math.ceil(total / take),
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error fetching pending books:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while retrieving pending books.',
       );
     }
   }

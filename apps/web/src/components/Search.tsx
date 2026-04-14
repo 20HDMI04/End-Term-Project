@@ -7,6 +7,9 @@ import { useApi } from "../context/apiContext";
 import { Link } from "react-router-dom";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import "./css/search.css";
+import { NotificationBell } from "./NotificationBell";
+import Session from "supertokens-auth-react/recipe/session";
+
 
 
 export function Search() {
@@ -16,6 +19,8 @@ export function Search() {
   const [query, setQuery] = useState("");
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
 
   // Betöltjük az összes könyvet és szerzőt
   useEffect(() => {
@@ -34,16 +39,32 @@ export function Search() {
   }, []);
 
   useEffect(() => {
-  async function fetchUser() {
-    try {
-      const currentUser = await api.getCurrentUser();
-      setUser(currentUser);
-    } catch (err) {
-      console.error(err);
+    async function fetchUser() {
+      try {
+        const currentUser = await api.getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
-  fetchUser();
-}, [api]);
+    fetchUser();
+  }, [api]);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      try {
+        if (await Session.doesSessionExist()) {
+          const payload = await Session.getAccessTokenPayloadSecurely();
+          const roles = payload.roles?.roles || payload.roles || [];
+          setIsAdmin(roles.includes('admin'));
+        }
+      } catch (err) {
+        console.error('Error checking admin role:', err);
+      }
+    };
+    checkAdminRole();
+  }, []);
 
   // Author név lekérése
   function getAuthorName(authorId: string | undefined): string {
@@ -92,6 +113,7 @@ export function Search() {
             </ul>
 
             <div className="navbar-right">
+              <NotificationBell isAdmin={isAdmin} />
               <button
                 className="Darkmode-changer"
                 onClick={toggleTheme}
@@ -107,14 +129,14 @@ export function Search() {
 
               <a href="/user/me">
                 <img
-									src={
-										user?.smallerProfilePic ||
-										user?.biggerProfilePic ||
-										(theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
-									}
-									alt="profile"
-									className="profile-pic"
-								/>
+                  src={
+                    user?.smallerProfilePic ||
+                    user?.biggerProfilePic ||
+                    (theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+                  }
+                  alt="profile"
+                  className="profile-pic"
+                />
               </a>
             </div>
           </div>
