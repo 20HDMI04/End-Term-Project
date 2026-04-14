@@ -335,7 +335,7 @@ export function BookDetails() {
                         <h2>{book.title}</h2>
                         <h5 className="book-page-text">
                             <a href={`/author/${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
-                                {book.author.name}
+                                {book.author.name || "Unknown Author"}
                             </a>
                         </h5>
 
