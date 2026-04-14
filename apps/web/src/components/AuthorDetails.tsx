@@ -23,25 +23,6 @@ export function AuthorDetails() {
             if (!id) return;
 
             try {
-                // Fetch both the specific author and main page data for books
-                const [authorData, mainData] = await Promise.all([
-                    api.getAuthor(id),
-                    api.getData()
-                ]);
-                setAuthor(authorData);
-
-                // 📚 Könyvek lekérése + duplikáció szűrés
-                const allBooks = mainData.books.flatMap((section: BookSection) => section.data);
-                const filteredBooks = allBooks.filter((b) => b.authorId === id);
-
-                const uniqueBooks = Array.from(
-                    new Map(filteredBooks.map((b) => [b.id, b])).values()
-                );
-
-                setBooks(uniqueBooks);
-            } catch (err) {
-                console.error("Error fetching author:", err);
-                // Fallback: try getting from main page data only
                 const data = await api.getData();
 
                 // 👤 Author keresése
@@ -62,6 +43,8 @@ export function AuthorDetails() {
                 );
 
                 setBooks(uniqueBooks);
+            } catch (err) {
+                console.error("Error fetching author:", err);
             }
         }
 

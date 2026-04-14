@@ -11,6 +11,8 @@ interface ApiContextType {
     unlikeBook: (bookId: string) => Promise<any>;
     likeAuthor: (authorId: string) => Promise<any>;
     unlikeAuthor: (authorId: string) => Promise<any>;
+    addHaveRead: (bookId: string) => Promise<any>;
+    removeHaveRead: (bookId: string) => Promise<any>;
     refetchUser: () => Promise<any>;
     updateUserProfile: (file: File | null, data: any) => Promise<any>;
     rateBook: (bookId: string, score: number) => Promise<any>;
@@ -139,6 +141,48 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }
 
+    // Add book to have read
+    async function addHaveRead(bookId: string): Promise<any> {
+        try {
+            const url = `http://localhost:3002/social/haveread/${bookId}`;
+            console.log("Calling:", url);
+            const res = await fetch(url, {
+                method: "POST",
+                credentials: "include"
+            });
+            const text = await res.text();
+            console.log("Response status:", res.status, "Body:", text);
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+            return text ? JSON.parse(text) : { success: true };
+        } catch (err) {
+            console.error("Error in addHaveRead:", err);
+            throw err;
+        }
+    }
+
+    // Remove book from have read
+    async function removeHaveRead(bookId: string): Promise<any> {
+        try {
+            const url = `http://localhost:3002/social/haveread/${bookId}`;
+            console.log("Calling:", url);
+            const res = await fetch(url, {
+                method: "PATCH",
+                credentials: "include"
+            });
+            const text = await res.text();
+            console.log("Response status:", res.status, "Body:", text);
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+            return text ? JSON.parse(text) : { success: true };
+        } catch (err) {
+            console.error("Error in removeHaveRead:", err);
+            throw err;
+        }
+    }
+
     // Refetch user data - used to refresh profile after favoriting
     async function refetchUser(): Promise<any> {
         return getCurrentUser();
@@ -219,7 +263,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <ApiContext.Provider value={{ getData, getBook, getAuthor, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, refetchUser, updateUserProfile, rateBook, updateRating }}>
+        <ApiContext.Provider value={{ getData, getBook, getAuthor, getCurrentUser, likeBook, unlikeBook, likeAuthor, unlikeAuthor, addHaveRead, removeHaveRead, refetchUser, updateUserProfile, rateBook, updateRating }}>
             {children}
         </ApiContext.Provider>
     );

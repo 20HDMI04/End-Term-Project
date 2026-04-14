@@ -219,6 +219,29 @@ export class SocialController {
     return this.socialService.haveReadTheBook(bookId, user_email);
   }
 
+  @Patch('haveread/:bookId')
+  @ApiOperation({
+    summary: 'Remove a book from have read',
+    description:
+      'Removes the specified book from the currently authenticated user\'s have read list.',
+  })
+  @ApiCookieAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The book has been successfully removed from have read.',
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An error occurred while removing the book from have read.',
+  })
+  @ApiNotFoundResponse({
+    description: 'The specified book was not found.',
+  })
+  @UseGuards(SessionGuard, new RolesGuard(['user']))
+  removeHaveReadTheBook(@Param('bookId') bookId: string, @Session() session: any) {
+    const user_email = session.userDataInAccessToken.email;
+    return this.socialService.removeHaveReadTheBook(bookId, user_email);
+  }
+
   @Post('book/:bookId/like')
   @ApiOperation({
     summary: 'Like a specific book',
