@@ -8,6 +8,7 @@ import {
 	Dimensions,
 	SafeAreaView,
 	DeviceEventEmitter,
+	Platform,
 } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useColorScheme } from "react-native";
@@ -66,6 +67,7 @@ const MultiPageOverlay = ({
 			return null;
 		}
 	}, [isDarkMode]);
+
 	return (
 		<Modal
 			visible={visible}

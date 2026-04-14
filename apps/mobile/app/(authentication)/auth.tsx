@@ -21,6 +21,8 @@ import Animated, {
 	withRepeat,
 	withTiming,
 } from "react-native-reanimated";
+import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBarBehavior } from "expo-navigation-bar";
 
 export default function AuthScreen() {
 	const animationRef = useRef<LottieView>(null);
@@ -62,6 +64,15 @@ export default function AuthScreen() {
 			return;
 		}
 	};
+
+	useEffect(() => {
+		if (Platform.OS === "android") {
+			NavigationBar.setBehaviorAsync(
+				"sticky-immersive" as NavigationBarBehavior,
+			);
+			NavigationBar.setVisibilityAsync("hidden");
+		}
+	}, []);
 
 	const lottieSource = getLottieSource();
 
