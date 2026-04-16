@@ -298,21 +298,22 @@ nav {
 .rating-main {
     position: absolute;
     top: 8px;
-    left: 80px;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    z-index: 10;
+    left: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
 }
 
 .rating-display {
+    margin: 0;
+    padding: 4px 22px 4px 10px;
+    display: flex;
+    align-items: center;
+
+    font-weight: 700;
+    font-size: 0.85rem;
+
     color: #f7f4dc;
-    margin: 0px;
-    min-width: 60px;
-    padding-left: 6px;
+    line-height: 1;
 }
 
 .books-display-main {
