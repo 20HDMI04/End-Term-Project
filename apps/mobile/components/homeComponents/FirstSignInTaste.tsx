@@ -1,5 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View, Text, Modal, TouchableOpacity } from "react-native";
+import {
+	StyleSheet,
+	View,
+	Text,
+	Modal,
+	TouchableOpacity,
+	Dimensions,
+	SafeAreaView,
+	DeviceEventEmitter,
+	Platform,
+} from "react-native";
 import PagerView from "react-native-pager-view";
 import { useColorScheme } from "react-native";
 import { Colors } from "@/constants/theme";
@@ -12,12 +22,15 @@ import { ToastProvider } from "@/contexts/ToastContext";
 import SearchBarForFirstTasteBook from "./SearchBarForFirstTasteBook";
 import { useApi } from "@/contexts/ApiContext";
 import { StatusBar } from "expo-status-bar";
+import { PixelRatio } from "react-native";
 
 interface MultiPageOverlayProps {
 	visible: boolean;
 	onClose: () => void;
 	isDarkMode: boolean;
 }
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const MultiPageOverlay = ({
 	visible,
@@ -55,6 +68,7 @@ const MultiPageOverlay = ({
 			return null;
 		}
 	}, [isDarkMode]);
+
 	return (
 		<Modal
 			visible={visible}
@@ -64,65 +78,53 @@ const MultiPageOverlay = ({
 			statusBarTranslucent={false}
 		>
 			<ToastProvider>
-				<View style={[styles.container]}>
+				<SafeAreaView style={[styles.container]}>
 					<PagerView
 						style={styles.pagerView}
 						initialPage={0}
 						ref={ref}
-						onPageSelected={(e) => {
-							setCurrentPage(e.nativeEvent.position);
-						}}
-						keyboardDismissMode="none"
-						scrollEnabled={true}
-						offscreenPageLimit={3}
+						onPageSelected={(e) => setCurrentPage(e.nativeEvent.position)}
+						keyboardDismissMode="on-drag"
+						offscreenPageLimit={1}
 					>
 						<View
 							key="1"
 							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							<Text style={[styles.text, { color: theme.text }]}>
-								Your Journey Starts Here.
-							</Text>
-							<View style={styles.lottieViewHolder}>
-								{lottieSource && (
-									<LottieView
-										autoPlay={true}
-										ref={animationRef}
-										loop={true}
-										style={styles.lottie}
-										source={lottieSource}
-										onAnimationFailure={(error) => {
-											console.error("Animation failed:", error);
-										}}
-										resizeMode="contain"
-										speed={1.0}
-									/>
-								)}
+							<View style={styles.contentContainer}>
+								<Text style={[styles.text, { color: theme.text, bottom: 30 }]}>
+									Your Journey Starts Here.
+								</Text>
+								<View style={styles.lottieViewHolder}>
+									{lottieSource && (
+										<LottieView
+											autoPlay
+											loop
+											style={styles.lottie}
+											source={lottieSource}
+											resizeMode="contain"
+										/>
+									)}
+								</View>
+								<Text
+									style={[styles.textSmall, { color: theme.secondaryText }]}
+								>
+									Join thousands of users who are leveling up their lives.
+								</Text>
 							</View>
-							<Text style={[styles.textSmall, { color: theme.secondaryText }]}>
-								Join thousands of users who are leveling up their lives.
-							</Text>
+
 							<TouchableOpacity
 								onPress={goToNextPage}
 								style={[
 									isDarkMode ? Colors.buttonDark : Colors.button,
 									styles.button,
-									{
-										flexDirection: "row",
-										alignItems: "center",
-										justifyContent: "space-between",
-										paddingHorizontal: 10,
-										top: 88,
-									},
 								]}
 							>
 								<View style={{ width: 26 }} />
 								<Text
 									style={[
 										styles.textStyle,
-										{
-											color: isDarkMode ? Colors.mainColorDark : "#ffffff",
-										},
+										{ color: isDarkMode ? Colors.mainColorDark : "#ffffff" },
 									]}
 								>
 									Next Step
@@ -130,39 +132,32 @@ const MultiPageOverlay = ({
 								<ArrowRight
 									style={{ width: 32, height: 32 }}
 									fill={isDarkMode ? "#000000" : "#ffffff"}
-								></ArrowRight>
+								/>
 							</TouchableOpacity>
 						</View>
 						<View
 							key="2"
 							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							<Text style={[styles.textSection2, { color: theme.text }]}>
-								Own your reader profile.
-							</Text>
-							<ProfileEditScreen isDarkMode={isDarkMode} />
+							<View style={[styles.contentContainer, { top: 50 }]}>
+								<Text style={[styles.text, { color: theme.text }]}>
+									Own your reader profile.
+								</Text>
+								<ProfileEditScreen isDarkMode={isDarkMode} />
+							</View>
 							{!keyboardVisible && (
 								<TouchableOpacity
 									onPress={goToNextPage}
 									style={[
 										isDarkMode ? Colors.buttonDark : Colors.button,
 										styles.button,
-										{
-											flexDirection: "row",
-											alignItems: "center",
-											justifyContent: "space-between",
-											paddingHorizontal: 10,
-											bottom: 2,
-										},
 									]}
 								>
 									<View style={{ width: 26 }} />
 									<Text
 										style={[
 											styles.textStyle,
-											{
-												color: isDarkMode ? Colors.mainColorDark : "#ffffff",
-											},
+											{ color: isDarkMode ? Colors.mainColorDark : "#ffffff" },
 										]}
 									>
 										Next Step
@@ -170,7 +165,7 @@ const MultiPageOverlay = ({
 									<ArrowRight
 										style={{ width: 32, height: 32 }}
 										fill={isDarkMode ? "#000000" : "#ffffff"}
-									></ArrowRight>
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
@@ -178,44 +173,25 @@ const MultiPageOverlay = ({
 							key="3"
 							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							<Text
-								style={[
-									styles.text,
-									{
-										color: theme.text,
-										bottom: 0,
-										paddingBottom: 20,
-										marginTop: 40,
-									},
-								]}
-							>
-								Stay close to your favorites
-							</Text>
-							<SearchBarForFirstTaste isDarkMode={isDarkMode} />
+							<View style={[styles.contentContainer, { top: 10 }]}>
+								<Text style={[styles.text, { color: theme.text }]}>
+									Stay close to your favorites
+								</Text>
+								<SearchBarForFirstTaste isDarkMode={isDarkMode} />
+							</View>
 							{!keyboardVisible && (
 								<TouchableOpacity
 									onPress={goToNextPage}
 									style={[
 										isDarkMode ? Colors.buttonDark : Colors.button,
 										styles.button,
-										{
-											flexDirection: "row",
-											alignItems: "center",
-											justifyContent: "space-between",
-											paddingHorizontal: 10,
-											bottom: 2,
-											transitionDuration: "300ms",
-											transitionProperty: "top, opacity",
-										},
 									]}
 								>
 									<View style={{ width: 26 }} />
 									<Text
 										style={[
 											styles.textStyle,
-											{
-												color: isDarkMode ? Colors.mainColorDark : "#ffffff",
-											},
+											{ color: isDarkMode ? Colors.mainColorDark : "#ffffff" },
 										]}
 									>
 										Next Step
@@ -223,7 +199,7 @@ const MultiPageOverlay = ({
 									<ArrowRight
 										style={{ width: 32, height: 32 }}
 										fill={isDarkMode ? "#000000" : "#ffffff"}
-									></ArrowRight>
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
@@ -231,44 +207,27 @@ const MultiPageOverlay = ({
 							key="4"
 							style={[styles.page, { backgroundColor: theme.background }]}
 						>
-							<Text
-								style={[
-									styles.text,
-									{
-										color: theme.text,
-										bottom: 0,
-										paddingBottom: 20,
-										marginTop: 40,
-									},
-								]}
-							>
-								Help us know you better.
-							</Text>
-							<SearchBarForFirstTasteBook isDarkMode={isDarkMode} />
+							<View style={[styles.contentContainer, { top: 10 }]}>
+								<Text style={[styles.text, { color: theme.text }]}>
+									Help us know you better.
+								</Text>
+								<SearchBarForFirstTasteBook isDarkMode={isDarkMode} />
+							</View>
 							{!keyboardVisible && (
 								<TouchableOpacity
-									onPress={onClose}
+									onPress={() => {
+										onClose();
+									}}
 									style={[
 										isDarkMode ? Colors.buttonDark : Colors.button,
 										styles.button,
-										{
-											flexDirection: "row",
-											alignItems: "center",
-											justifyContent: "space-between",
-											paddingHorizontal: 10,
-											bottom: 2,
-											transitionDuration: "300ms",
-											transitionProperty: "top, opacity",
-										},
 									]}
 								>
 									<View style={{ width: 26 }} />
 									<Text
 										style={[
 											styles.textStyle,
-											{
-												color: isDarkMode ? Colors.mainColorDark : "#ffffff",
-											},
+											{ color: isDarkMode ? Colors.mainColorDark : "#ffffff" },
 										]}
 									>
 										Start Your Journey
@@ -276,7 +235,7 @@ const MultiPageOverlay = ({
 									<ArrowRight
 										style={{ width: 32, height: 32 }}
 										fill={isDarkMode ? "#000000" : "#ffffff"}
-									></ArrowRight>
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
@@ -288,64 +247,76 @@ const MultiPageOverlay = ({
 								key={index}
 								style={[
 									styles.dot,
-									currentPage === index
-										? [styles.activeDot, { backgroundColor: theme.activeDot }]
-										: { backgroundColor: theme.inactiveDot },
+									{
+										backgroundColor:
+											currentPage === index
+												? theme.activeDot
+												: theme.inactiveDot,
+									},
 								]}
 							/>
 						))}
 					</View>
-				</View>
+				</SafeAreaView>
 			</ToastProvider>
 		</Modal>
 	);
+};
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// Base width from iPhone 11
+const BASE_WIDTH = 375;
+
+const widthScale = SCREEN_WIDTH / BASE_WIDTH;
+
+const moderateScale = (size: number, factor = 0.5) =>
+	size + (widthScale * size - size) * factor;
+
+export const responsiveFontSize = (fontSize: number, factor = 0.5) => {
+	const newSize = moderateScale(fontSize, factor);
+	return Math.round(PixelRatio.roundToNearestPixel(newSize));
 };
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 	},
-	lottieViewHolder: {
-		alignItems: "center",
-		justifyContent: "center",
-		borderRadius: 90,
-		width: 330,
-		height: 330,
-		overflow: "hidden",
-		top: 16,
-	},
 	pagerView: {
 		flex: 1,
 	},
 	page: {
 		flex: 1,
+		padding: 20,
+		justifyContent: "space-between",
+		alignItems: "center",
+	},
+	contentContainer: {
+		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		padding: 20,
+		width: "100%",
+	},
+	lottieViewHolder: {
+		alignItems: "center",
+		justifyContent: "center",
+		width: 300,
+		height: 300,
+		overflow: "hidden",
+		marginVertical: 20,
 	},
 	text: {
-		fontSize: 56,
-		width: "95%",
-		marginLeft: 5,
+		fontSize: responsiveFontSize(38),
+		width: "90%",
 		textAlign: "left",
 		fontFamily: "modern_no_20_regular",
-		bottom: 54,
-	},
-	textSection2: {
-		fontSize: 56,
-		width: "95%",
-		marginLeft: 5,
-		textAlign: "left",
-		fontFamily: "modern_no_20_regular",
-		marginTop: 40,
+		marginBottom: 10,
 	},
 	textSmall: {
-		fontSize: 20,
-		marginLeft: 10,
-		width: "94%",
+		fontSize: responsiveFontSize(18),
 		textAlign: "center",
 		fontFamily: "modern_no_20_regular",
-		top: 16,
+		paddingHorizontal: 10,
 	},
 	indicatorContainer: {
 		flexDirection: "row",
@@ -353,35 +324,49 @@ const styles = StyleSheet.create({
 		top: 20,
 		alignSelf: "center",
 	},
-	textStyle: {
-		fontSize: 16,
-		fontFamily: "Poppins_300Light",
+	button: {
+		width: "100%",
+		height: 56,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		paddingHorizontal: 20,
+		borderRadius: 30,
+		marginBottom: 20,
+	},
+	lottie: {
+		width: "100%",
+		height: "100%",
 	},
 	dot: {
 		width: 70,
 		height: 4,
 		borderRadius: 5,
-		marginHorizontal: 6,
+		marginHorizontal: 4,
 	},
+
+	textSection2: {
+		fontSize: 50,
+		width: "95%",
+		marginLeft: 5,
+		textAlign: "left",
+		fontFamily: "modern_no_20_regular",
+		marginTop: 40,
+	},
+
+	textStyle: {
+		fontSize: 16,
+		fontFamily: "Poppins_300Light",
+	},
+
 	activeDot: {
 		width: 70,
 	},
-	button: {
-		width: "94%",
-		height: 50,
-		marginBottom: 10,
-		justifyContent: "center",
-		alignItems: "center",
-		borderRadius: 30,
-	},
+
 	buttonText: {
 		color: "white",
 		fontWeight: "bold",
 		fontSize: 16,
-	},
-	lottie: {
-		width: 400,
-		height: 400,
 	},
 });
 

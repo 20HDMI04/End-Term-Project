@@ -14,6 +14,7 @@ import {
 	Alert,
 	Keyboard,
 	ActivityIndicator,
+	DeviceEventEmitter,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
@@ -149,6 +150,7 @@ const ManageProfile = ({
 			syncProfile && (await syncProfile());
 			Keyboard.dismiss();
 			await refreshUserSession();
+			DeviceEventEmitter.emit("profilePictureUpdated");
 		} catch (e) {
 			console.error("Error syncing profile with server:", e);
 		}
@@ -661,6 +663,7 @@ export default function ProfileScreen({
 					<Ionicons name="log-out-outline" size={24} color="#A52A2A" />
 					<Text style={styles.logoutText}>Log out</Text>
 				</Pressable>
+				<View style={{ height: 120 }}></View>
 			</ScrollView>
 
 			<FAQModal
@@ -705,8 +708,8 @@ const styles = StyleSheet.create({
 		marginBottom: 40,
 	},
 	profileImage: { width: 100, height: 100, borderRadius: 50, marginRight: 20 },
-	userName: { fontSize: 24, fontFamily: "modern_no_20_regular" },
-	userEmail: { fontSize: 18, fontFamily: "modern_no_20_regular" },
+	userName: { fontSize: 20, fontFamily: "modern_no_20_regular" },
+	userEmail: { fontSize: 15, fontFamily: "modern_no_20_regular" },
 	menuBlock: {
 		borderRadius: 20,
 		marginBottom: 20,
@@ -721,7 +724,7 @@ const styles = StyleSheet.create({
 	},
 	menuItemLeft: { flexDirection: "row", alignItems: "center" },
 	iconPlaceholder: { marginRight: 10 },
-	menuItemLabel: { fontSize: 18, fontFamily: "modern_no_20_regular" },
+	menuItemLabel: { fontSize: 16, fontFamily: "modern_no_20_regular" },
 	separator: { height: 1, marginHorizontal: 15 },
 	logoutButton: {
 		flexDirection: "row",

@@ -7,6 +7,7 @@ import {
 	useColorScheme,
 	ActivityIndicator,
 	Modal,
+	DeviceEventEmitter,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,10 +52,10 @@ export default function HomeScreen() {
 
 	useEffect(() => {
 		if (authState.isAuthenticated && authState.roles !== undefined) {
-			//@ts-ignore
-			let isNewUser = Array.from(authState.roles.roles || []).includes(
-				"new_user",
-			);
+			let isNewUser = Array.from(
+				//@ts-ignore
+				authState.roles || authState.roles.roles || [],
+			).includes("new_user");
 			if (isNewUser) {
 				setModalVisibility(true);
 			}
@@ -84,6 +85,8 @@ export default function HomeScreen() {
 	const handleSavePress = async () => {
 		try {
 			await api.syncProfileWithServer(true);
+			await api.getMe();
+			DeviceEventEmitter.emit("profilePictureUpdated");
 		} catch (e) {
 			console.error("Error syncing profile with server:", e);
 		}

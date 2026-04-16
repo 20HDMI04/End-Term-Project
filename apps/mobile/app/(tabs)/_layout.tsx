@@ -22,6 +22,9 @@ import Compass from "@/assets/svgs/compass-light.svg";
 import House from "@/assets/svgs/house-light.svg";
 import MagnifyGlass from "@/assets/svgs/magnifying-glass-light.svg";
 import User from "@/assets/svgs/user-light.svg";
+import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBarBehavior } from "expo-navigation-bar";
+import { Immersive } from "react-native-immersive";
 
 const ROUTE_INDEX_MAP: Record<string, number> = {
 	"(tabs)": 0,
@@ -46,6 +49,23 @@ export default function TabLayout() {
 	useEffect(() => {
 		const currentRoute = segments[segments.length - 1] || "index";
 		tabIndex.value = ROUTE_INDEX_MAP[currentRoute] ?? 0;
+
+		if (Platform.OS === "android") {
+			NavigationBar.setBehaviorAsync(
+				"sticky-immersive" as NavigationBarBehavior,
+			);
+			NavigationBar.setVisibilityAsync("hidden");
+		}
+
+		Immersive.on();
+
+		return () => {
+			if (Platform.OS === "android") {
+				NavigationBar.setBehaviorAsync("default" as NavigationBarBehavior);
+				NavigationBar.setVisibilityAsync("visible");
+			}
+			Immersive.off();
+		};
 	}, [segments]);
 
 	const TAB_BAR_PADDING = 24;

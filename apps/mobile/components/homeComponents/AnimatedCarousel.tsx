@@ -1,12 +1,9 @@
 import React from "react";
 import { StyleSheet, View, Animated, Dimensions } from "react-native";
 import { BookCard } from "./BookCard";
-// --- Konstansok és Alapvető Beállítások ---
 
-// Képernyő szélessége
 const { width } = Dimensions.get("window");
 
-// Az egyes elemek szélessége (Az eredeti cikkben az item magassága volt, most a SZÉLESSÉG a fontos)
 const ITEM_SIZE = width * 0.7;
 
 const EMPTY_ITEM_SIZE = (width - ITEM_SIZE) / 2;
@@ -33,7 +30,7 @@ export function AnimatedCarousel() {
 				showsHorizontalScrollIndicator={false}
 				onScroll={Animated.event(
 					[{ nativeEvent: { contentOffset: { x: scrollX } } }],
-					{ useNativeDriver: true }
+					{ useNativeDriver: true },
 				)}
 				snapToInterval={ITEM_SIZE}
 				renderItem={({ item, index }) => (

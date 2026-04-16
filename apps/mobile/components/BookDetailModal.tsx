@@ -15,6 +15,7 @@ import {
 	ActivityIndicator,
 	Alert,
 	Keyboard,
+	DeviceEventEmitter,
 } from "react-native";
 import Animated, {
 	useSharedValue,
@@ -66,9 +67,21 @@ const BookDetailModal = ({
 	const [bookData, setBookData] = useState<FindOneBookResponse | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+	const [profilePicUrl, setProfilePicUrl] = useState<string>(profilePic);
 
 	useEffect(() => {
 		setCurrentUserEmail(email);
+		const subscription = DeviceEventEmitter.addListener(
+			"profilePictureUpdated",
+			() => {
+				Storage.getItem("user").then((data) => {
+					if (data && data.smallerProfilePic) {
+						setProfilePicUrl(data.smallerProfilePic);
+					}
+				});
+			},
+		);
+		return () => subscription.remove();
 	}, [email]);
 
 	const similarBooksSection = {
@@ -610,9 +623,9 @@ const BookDetailModal = ({
 										{ backgroundColor: theme.fallbackBg },
 									]}
 								>
-									{!userAvatarError && profilePic ? (
+									{!userAvatarError && profilePicUrl ? (
 										<Image
-											source={{ uri: useChangePicUrlToPipline(profilePic) }}
+											source={{ uri: useChangePicUrlToPipline(profilePicUrl) }}
 											style={styles.inputAvatarImage}
 											onError={() => setUserAvatarError(true)}
 										/>

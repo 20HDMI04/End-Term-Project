@@ -21,6 +21,8 @@ import Animated, {
 	withRepeat,
 	withTiming,
 } from "react-native-reanimated";
+import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBarBehavior } from "expo-navigation-bar";
 
 export default function AuthScreen() {
 	const animationRef = useRef<LottieView>(null);
@@ -30,18 +32,6 @@ export default function AuthScreen() {
 	const [isShown, setIsShown] = useState(false);
 	const [isSignUp, setIsSignUp] = useState(false);
 	const bounceY = useSharedValue(0);
-
-	const startBounce = () => {
-		setTimeout(() => {
-			bounceY.value = withRepeat(withTiming(-15, { duration: 1000 }), -1, true);
-		}, 6000);
-	};
-
-	const stopBounce = () => {
-		bounceY.value = withTiming(0, {
-			duration: 1000,
-		});
-	};
 
 	const getLottieSource = () => {
 		try {
@@ -61,10 +51,6 @@ export default function AuthScreen() {
 		if (!isShown) setIsSignUp(false);
 	}, [isShown]);
 
-	useEffect(() => {
-		stopBounce();
-	}, [setIsSignUp]);
-
 	const getImageSource = () => {
 		try {
 			let source = require("../../assets/images/LogoWithAndroid.png");
@@ -78,6 +64,15 @@ export default function AuthScreen() {
 			return;
 		}
 	};
+
+	useEffect(() => {
+		if (Platform.OS === "android") {
+			NavigationBar.setBehaviorAsync(
+				"sticky-immersive" as NavigationBarBehavior,
+			);
+			NavigationBar.setVisibilityAsync("hidden");
+		}
+	}, []);
 
 	const lottieSource = getLottieSource();
 
@@ -126,7 +121,6 @@ export default function AuthScreen() {
 							onPress={() => {
 								setIsSignUp(true);
 								setIsShown(true);
-								startBounce();
 							}}
 						>
 							<Text
@@ -144,7 +138,6 @@ export default function AuthScreen() {
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={() => {
-								startBounce();
 								setIsShown(true);
 							}}
 							style={[
@@ -182,7 +175,7 @@ export default function AuthScreen() {
 							entering={SlideInDown.springify().damping(85).delay(100)}
 							exiting={SlideOutDown}
 						>
-							<AuthForm isSignUp={isSignUp} stopBounce={stopBounce} />
+							<AuthForm isSignUp={isSignUp} />
 						</Animated.View>
 					</View>
 				</Animated.View>
@@ -230,7 +223,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		bottom: -70,
 		width: "100%",
-		height: "113%",
+		height: "125%",
 		justifyContent: "center",
 		alignItems: "stretch",
 		zIndex: 1000,

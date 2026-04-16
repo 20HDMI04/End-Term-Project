@@ -10,6 +10,10 @@
     "newArchEnabled": true,
     "android": {
       "package": "com.hdmi.readsy",
+      "navigationBar": {
+        "visible": "sticky-immersive",
+        "backgroundColor": "#00000000"
+      },
       "adaptiveIcon": {
         "backgroundColor": "#FDFBF7",
         "foregroundImage": "./assets/images/adaptive-icon.png"
@@ -22,7 +26,10 @@
           "android": {
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "buildToolsVersion": "35.0.0"
+            "buildToolsVersion": "35.0.0",
+            "extraInsets": {
+              "navigationBar": false
+            }
           }
         }
       ],

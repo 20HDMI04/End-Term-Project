@@ -10,7 +10,6 @@ interface EmailInputProps {
 	fontAndIconColor: string;
 	loading: boolean;
 	isDarkMode?: boolean;
-	stopBounce: () => void;
 }
 
 const CustomEmailInput = (Props: EmailInputProps) => {
@@ -30,15 +29,12 @@ const CustomEmailInput = (Props: EmailInputProps) => {
 				value={Props.value}
 				onChangeText={(e) => {
 					Props.setValue(e);
-					Props.stopBounce();
 				}}
 				autoCapitalize="none"
 				keyboardType="email-address"
 				placeholderTextColor={Props.fontAndIconColor}
 				editable={!Props.loading}
-				onTouchStart={() => {
-					Props.stopBounce();
-				}}
+				onTouchStart={() => {}}
 			/>
 		</View>
 	);

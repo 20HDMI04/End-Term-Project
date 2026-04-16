@@ -92,6 +92,7 @@ export class UserService {
     isFirstTime: boolean,
   ) {
     if (isFirstTime && typeof updateUserDto.nickname !== 'string') {
+      console.log(updateUserDto);
       throw new BadRequestException(
         'Nickname is required for first-time update',
       );
