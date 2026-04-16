@@ -258,7 +258,6 @@ export function UserProfile() {
 
                                                         <div className="card-body p-2">
                                                             <h6>{f.book.title}</h6>
-                                                            <p>{f.book.author?.name ?? "Unknown"}</p>
                                                         </div>
 
                                                     </div>
