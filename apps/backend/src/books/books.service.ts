@@ -470,65 +470,77 @@ export class BooksService {
    * @throws NotFoundException if the book with the given ID does not exist in the database.
    */
   async disapprove(id: string, session: any) {
-    // Check admin role
-    const roles = session.userDataInAccessToken?.roles?.roles || 
-                  session.userDataInAccessToken?.roles || 
-                  [];
-    if (!roles.includes('admin')) {
-      throw new ForbiddenException('You do not have permission to disapprove books');
-    }
+  // Check admin role
+  const roles =
+    session.userDataInAccessToken?.roles?.roles ||
+    session.userDataInAccessToken?.roles ||
+    [];
 
-    try {
-      // First, get the book to retrieve image keys for S3 cleanup
-      const book = await this.prisma.book.findUnique({
-        where: { id },
-      });
+  if (!roles.includes('admin')) {
+    throw new ForbiddenException(
+      'You do not have permission to disapprove books',
+    );
+  }
 
-      if (!book) {
-        throw new NotFoundException(
-          'The book with the given ID does not exist.',
-        );
-      }
+  try {
+    // Get book
+    const book = await this.prisma.book.findUnique({
+      where: { id },
+    });
 
-      // Delete S3 images if they exist and have keys
-      if (book.smallerCoverPicKey) {
-        try {
-          await this.s3Service.deleteImage(book.smallerCoverPicKey);
-        } catch (error) {
-          this.logger.warn(`Failed to delete S3 image: ${book.smallerCoverPicKey}`);
-        }
-      }
-
-      if (book.biggerCoverPicKey) {
-        try {
-          await this.s3Service.deleteImage(book.biggerCoverPicKey);
-        } catch (error) {
-          this.logger.warn(`Failed to delete S3 image: ${book.biggerCoverPicKey}`);
-        }
-      }
-
-      // Delete the book from database (cascade will handle related records)
-      await this.prisma.book.delete({
-        where: { id },
-      });
-
-      return { success: true, message: 'Book has been deleted successfully.' };
-    } catch (error) {
-      // Rethrow NestJS exceptions as-is
-      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
-        throw error;
-      }
-      // Handle Prisma errors
-      if (error.code === 'P2025') {
-        throw new NotFoundException(
-          'The book with the given ID does not exist.',
-        );
-      }
-      throw new InternalServerErrorException(
-        'An error occurred while deleting the book.',
+    if (!book) {
+      throw new NotFoundException(
+        'The book with the given ID does not exist.',
       );
     }
+
+    // === Collect S3 keys ===
+    const keysToDelete = [
+      book.smallerCoverPicKey,
+      book.biggerCoverPicKey,
+    ].filter((key): key is string => Boolean(key));
+
+    // === Delete from S3 (batch) ===
+    if (keysToDelete.length > 0) {
+      try {
+        await this.s3Service.deleteImages('book', keysToDelete);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to delete S3 images: ${keysToDelete.join(', ')}`,
+        );
+      }
+    }
+
+    // === Delete from DB ===
+    await this.prisma.book.delete({
+      where: { id },
+    });
+
+    return {
+      success: true,
+      message: 'Book has been deleted successfully.',
+    };
+  } catch (error: any) {
+    // Rethrow known errors
+    if (
+      error instanceof NotFoundException ||
+      error instanceof ForbiddenException
+    ) {
+      throw error;
+    }
+
+    // Prisma specific
+    if (error.code === 'P2025') {
+      throw new NotFoundException(
+        'The book with the given ID does not exist.',
+      );
+    }
+
+    throw new InternalServerErrorException(
+      'An error occurred while deleting the book.',
+    );
   }
+}
 
   /**
    * @summary Retrieves all books awaiting admin approval (approveStatus = false).
