@@ -131,7 +131,7 @@ export class BooksService {
           originalPublicationYear: createBookDto.originalPublicationYear,
           latestPublicationYear: createBookDto.latestPublicationYear,
           pageNumber: createBookDto.pageNumber || 0,
-          approveStatus: true,
+          approveStatus: false,
 
           smallerCoverPic: s3Result.small,
           biggerCoverPic: s3Result.large,
@@ -460,12 +460,12 @@ export class BooksService {
   }
 
   /**
-   * @summary Disapproves a book by setting its approveStatus to false in the database.
-   * @description This method is used to disapprove a book entry in the database by updating its approveStatus field to false. Similar to the approve method, it attempts to find and update the book record based on the provided ID. If the book is not found, it catches the specific error code (P2025) thrown by Prisma and responds with a NotFoundException indicating that the book does not exist. For any other errors that may occur during the update process, it logs the error and throws a generic InternalServerErrorException to indicate that an error occurred while disapproving the book.
-   * @param id - The unique identifier of the book to be disapproved.
+   * @summary Disapproves and deletes a book from the database.
+   * @description This method is used to reject a book entry by deleting it from the database along with its associated data. It removes the book record and cleans up S3 images if they were uploaded. If the book is not found, it throws a NotFoundException. Only admins can perform this action.
+   * @param id - The unique identifier of the book to be disapproved and deleted.
    * @param session - The user session object to check admin role
    * @throws ForbiddenException if the user does not have admin role
-   * @returns The updated book record with approveStatus set to false if the operation is successful.
+   * @returns A success message indicating the book has been deleted
    * @throws NotFoundException if the book with the given ID does not exist in the database.
    */
   async disapprove(id: string, session: any) {
@@ -478,10 +478,40 @@ export class BooksService {
     }
 
     try {
-      return await this.prisma.book.update({
+      // First, get the book to retrieve image keys for S3 cleanup
+      const book = await this.prisma.book.findUnique({
         where: { id },
-        data: { approveStatus: false },
       });
+
+      if (!book) {
+        throw new NotFoundException(
+          'The book with the given ID does not exist.',
+        );
+      }
+
+      // Delete S3 images if they exist and have keys
+      if (book.smallerCoverPicKey) {
+        try {
+          await this.s3Service.deleteImage(book.smallerCoverPicKey);
+        } catch (error) {
+          this.logger.warn(`Failed to delete S3 image: ${book.smallerCoverPicKey}`);
+        }
+      }
+
+      if (book.biggerCoverPicKey) {
+        try {
+          await this.s3Service.deleteImage(book.biggerCoverPicKey);
+        } catch (error) {
+          this.logger.warn(`Failed to delete S3 image: ${book.biggerCoverPicKey}`);
+        }
+      }
+
+      // Delete the book from database (cascade will handle related records)
+      await this.prisma.book.delete({
+        where: { id },
+      });
+
+      return { success: true, message: 'Book has been deleted successfully.' };
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(
@@ -489,7 +519,7 @@ export class BooksService {
         );
       }
       throw new InternalServerErrorException(
-        'An error occurred while disapproving the book.',
+        'An error occurred while deleting the book.',
       );
     }
   }

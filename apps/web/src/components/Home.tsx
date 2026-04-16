@@ -423,24 +423,20 @@ export function Home() {
 			<div>{/* Explore genres */}</div>
 			<div>{/* Popular Authors */}</div>
 
-			{/* Footer */}
-			<footer className="footer">
-				<div>
-					<p>
-						<div className="contributors-list-a-tab-closer-to-the-middle">
-							<h2 className="contact-h1">Contact us</h2>
-							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a>
-							<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a>
-							<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a>
-						</div>
-					</p>
-				</div>
-			</footer>
-
-			<div className="footer2">
-				<p>Copyright© Readsy 2025. All rights reserved.</p>
-				<p className="Privacy">Privacy & Policy</p>
+		{/* Footer */}
+		<footer className="footer">
+			<div className="contributors-list-a-tab-closer-to-the-middle">
+				<h2 className="contact-h1">Contact us</h2>
+				<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a>
+				<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a>
+				<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a>
 			</div>
+		</footer>
+
+		<div className="footer2">
+			<p>Copyright© Readsy 2025. All rights reserved.</p>
+			<p className="Privacy">Privacy & Policy</p>
 		</div>
-	);
+	</div>
+);
 }

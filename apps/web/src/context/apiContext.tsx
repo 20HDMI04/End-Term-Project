@@ -296,6 +296,9 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
             if (bookData.latestPublicationYear) {
                 formData.append("latestPublicationYear", String(bookData.latestPublicationYear));
             }
+            if (bookData.authorId) {
+                formData.append("authorId", bookData.authorId);
+            }
 
             console.log("Creating book with isbns:", bookData.isbns);
             

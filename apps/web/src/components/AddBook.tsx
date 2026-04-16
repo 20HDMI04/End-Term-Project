@@ -37,14 +37,37 @@ export function AddBook() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+    const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
+    const [genreSearch, setGenreSearch] = useState("");
+    const [authorSearch, setAuthorSearch] = useState("");
     const [formData, setFormData] = useState({
         title: "",
         isbn: "",
+        chosenAuthor: "",
         description: "",
         pageNumber: "",
         publicationYear: "",
         genreNames: [] as string[]
     });
+
+    // Fetch authors for selection
+    useEffect(() => {
+        async function fetchAuthors() {
+            try {
+                const data = await api.getData();
+                const allAuthors = data.authors
+                    .flatMap((section) => section.data)
+                    .filter((value, index, self) =>
+                        index === self.findIndex((a) => a.id === value.id)
+                    );
+                setAuthors(allAuthors.map((a) => ({ id: a.id, name: a.name })));
+            } catch (err) {
+                console.error('Error fetching authors:', err);
+                setAuthors([]);
+            }
+        }
+        fetchAuthors();
+    }, [api]);
 
     // Check if user is admin
     useEffect(() => {
@@ -78,6 +101,25 @@ export function AddBook() {
                 : [...prev.genreNames, genre]
         }));
     };
+
+    const handleAuthorToggle = (authorId: string) => {
+        setFormData(prev => ({
+            ...prev,
+            chosenAuthor: prev.chosenAuthor === authorId ? "" : authorId
+        }));
+    };
+
+    const filteredGenres = AVAILABLE_GENRES.filter(genre =>
+        genre.toLowerCase().includes(genreSearch.toLowerCase()) &&
+        !formData.genreNames.includes(genre)
+    );
+
+    const filteredAuthors = authors.filter(author =>
+        author.name.toLowerCase().includes(authorSearch.toLowerCase()) &&
+        author.id !== formData.chosenAuthor
+    );
+
+    const getAuthorName = (id: string) => authors.find(a => a.id === id)?.name || "Unknown";
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -114,7 +156,13 @@ export function AddBook() {
             return;
         }
 
+        if (!formData.chosenAuthor) {
+            Swal.fire("Error", "Please select at least one author", "error");
+            return;
+        }
+
         // Show confirmation popup
+        const selectedAuthorName = getAuthorName(formData.chosenAuthor);
         const result = await Swal.fire({
             title: "Add New Book?",
             html: `
@@ -122,6 +170,7 @@ export function AddBook() {
                     ${coverImagePreview ? `<div style="margin-bottom: 15px; text-align: center;"><img src="${coverImagePreview}" alt="Preview" style="max-width: 150px; max-height: 200px; border-radius: 5px;"/></div>` : ''}
                     <p><strong>Title:</strong> ${formData.title}</p>
                     <p><strong>ISBN:</strong> ${formData.isbn}</p>
+                    <p><strong>Author:</strong> ${selectedAuthorName}</p>
                     <p><strong>Genres:</strong> ${formData.genreNames.join(", ")}</p>
                     ${formData.pageNumber ? `<p><strong>Pages:</strong> ${formData.pageNumber}</p>` : ''}
                     ${formData.publicationYear ? `<p><strong>Publication Year:</strong> ${formData.publicationYear}</p>` : ''}
@@ -146,24 +195,27 @@ export function AddBook() {
                     title: formData.title,
                     isbns: [formData.isbn],
                     description: formData.description,
+                    authorId: formData.chosenAuthor,
                     pageNumber: formData.pageNumber ? parseInt(formData.pageNumber) : null,
                     latestPublicationYear: formData.publicationYear ? parseInt(formData.publicationYear) : null,
                     genreNames: formData.genreNames
                 }
+                
             );
 
             Swal.fire(
-                "Success!",
-                "Book has been added successfully.",
-                "success"
+                "Pending Approval",
+                "Your book has been submitted successfully and is awaiting admin approval. You will be notified once it has been reviewed.",
+                "info"
             ).then(() => {
+                console.log(formData.chosenAuthor);
                 navigate("/user/me");
             });
-        } catch (err: any) {
+        } catch (err) {
             console.error("Error adding book:", err);
             Swal.fire(
                 "Error",
-                err.message || "Failed to add book. Please try again.",
+                (err as Error).message || "Failed to add book. Please try again.",
                 "error"
             );
         } finally {
@@ -263,6 +315,83 @@ export function AddBook() {
 
                                 <div className="mb-3">
                                     <label className="form-label" style={{ color: "var(--text-color)" }}>
+                                        <strong>Author *</strong>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control mb-2"
+                                        placeholder="Search authors..."
+                                        value={authorSearch}
+                                        onChange={(e) => setAuthorSearch(e.target.value)}
+                                        style={{ backgroundColor: "var(--secondary-bg)", color: "var(--text-color)" }}
+                                    />
+                                    {formData.chosenAuthor && (
+                                        <div style={{
+                                            backgroundColor: "#6c8f5e",
+                                            color: "white",
+                                            padding: "10px 12px",
+                                            borderRadius: "5px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            marginBottom: "10px"
+                                        }}>
+                                            {getAuthorName(formData.chosenAuthor)}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleAuthorToggle(formData.chosenAuthor)}
+                                                style={{
+                                                    background: "none",
+                                                    border: "none",
+                                                    color: "white",
+                                                    cursor: "pointer",
+                                                    fontSize: "18px",
+                                                    padding: "0",
+                                                    display: "flex",
+                                                    alignItems: "center"
+                                                }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    )}
+                                    {authorSearch && filteredAuthors.length > 0 && (
+                                        <div style={{
+                                            backgroundColor: "var(--secondary-bg)",
+                                            borderRadius: "5px",
+                                            maxHeight: "200px",
+                                            overflowY: "auto",
+                                            padding: "8px"
+                                        }}>
+                                            {filteredAuthors.map(author => (
+                                                <div
+                                                    key={author.id}
+                                                    onClick={() => {
+                                                        handleAuthorToggle(author.id);
+                                                        setAuthorSearch("");
+                                                    }}
+                                                    style={{
+                                                        padding: "8px 12px",
+                                                        cursor: "pointer",
+                                                        color: "var(--text-color)",
+                                                        borderRadius: "4px",
+                                                        marginBottom: "4px",
+                                                        backgroundColor: "var(--accent-bg)",
+                                                        transition: "background-color 0.2s",
+                                                        border: "1px solid var(--border-color, #ddd)"
+                                                    }}
+                                                    onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "0.8"}
+                                                    onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "1"}
+                                                >
+                                                    {author.name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label" style={{ color: "var(--text-color)" }}>
                                         <strong>Description *</strong>
                                     </label>
                                     <textarea
@@ -281,28 +410,86 @@ export function AddBook() {
 
                                 <div className="mb-3">
                                     <label className="form-label" style={{ color: "var(--text-color)" }}>
-                                        <strong>Genres * (Select at least one)</strong>
+                                        <strong>Genres *</strong>
                                     </label>
-                                    <div style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-                                        gap: "10px",
-                                        backgroundColor: "var(--secondary-bg)",
-                                        padding: "10px",
-                                        borderRadius: "5px"
-                                    }}>
-                                        {AVAILABLE_GENRES.map(genre => (
-                                            <label key={genre} style={{ display: "flex", alignItems: "center", cursor: "pointer", color: "var(--text-color)" }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.genreNames.includes(genre)}
-                                                    onChange={() => handleGenreToggle(genre)}
-                                                    style={{ marginRight: "8px" }}
-                                                />
-                                                {genre}
-                                            </label>
-                                        ))}
-                                    </div>
+                                    <input
+                                        type="text"
+                                        className="form-control mb-2"
+                                        placeholder="Search genres..."
+                                        value={genreSearch}
+                                        onChange={(e) => setGenreSearch(e.target.value)}
+                                        style={{ backgroundColor: "var(--secondary-bg)", color: "var(--text-color)" }}
+                                    />
+                                    {formData.genreNames.length > 0 && (
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
+                                            {formData.genreNames.map(genre => (
+                                                <div
+                                                    key={genre}
+                                                    style={{
+                                                        backgroundColor: "#6c8f5e",
+                                                        color: "white",
+                                                        padding: "6px 12px",
+                                                        borderRadius: "20px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: "8px",
+                                                        fontSize: "14px"
+                                                    }}
+                                                >
+                                                    {genre}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleGenreToggle(genre)}
+                                                        style={{
+                                                            background: "none",
+                                                            border: "none",
+                                                            color: "white",
+                                                            cursor: "pointer",
+                                                            fontSize: "18px",
+                                                            padding: "0",
+                                                            display: "flex",
+                                                            alignItems: "center"
+                                                        }}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {genreSearch && filteredGenres.length > 0 && (
+                                        <div style={{
+                                            backgroundColor: "var(--secondary-bg)",
+                                            borderRadius: "5px",
+                                            maxHeight: "200px",
+                                            overflowY: "auto",
+                                            padding: "8px"
+                                        }}>
+                                            {filteredGenres.map(genre => (
+                                                <div
+                                                    key={genre}
+                                                    onClick={() => {
+                                                        handleGenreToggle(genre);
+                                                        setGenreSearch("");
+                                                    }}
+                                                    style={{
+                                                        padding: "8px 12px",
+                                                        cursor: "pointer",
+                                                        color: "var(--text-color)",
+                                                        borderRadius: "4px",
+                                                        marginBottom: "4px",
+                                                        backgroundColor: "var(--accent-bg)",
+                                                        transition: "background-color 0.2s",
+                                                        border: "1px solid var(--border-color, #ddd)"
+                                                    }}
+                                                    onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "0.8"}
+                                                    onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "1"}
+                                                >
+                                                    {genre}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mb-3">
