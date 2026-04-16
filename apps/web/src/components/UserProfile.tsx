@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
-import { useEffect, useState, useRef, type ChangeEvent } from "react";
+import { useEffect, useState, useRef} from "react";
 import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
@@ -109,10 +109,7 @@ export function UserProfile() {
     if (!user) return <div className="container mt-5 text-dark">Loading...</div>;
 
     // ⭐ HELPER: saját rating kikeresése
-    const getMyRating = (bookId: string) => {
-        return user?.ratings?.find((r: any) => r.bookId === bookId)?.score;
-    };
-
+    
     return (
         <div className="home-container">
 
