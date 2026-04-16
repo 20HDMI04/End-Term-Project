@@ -12,9 +12,9 @@ import { NotificationBell } from "./NotificationBell";
 export function Home() {
 	const api = useApi();
 
+	const { theme, toggleTheme } = useTheme();
 	const [booksList, setBookList] = useState<BookSection[]>();
 	const [authorList, setAuthorList] = useState<AuthorSection[]>();
-	const { theme, toggleTheme } = useTheme();
 	const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 	const [isAdmin, setIsAdmin] = useState(false);
 
@@ -42,7 +42,7 @@ export function Home() {
 			// Large desktop
 			return type === 'books' ? 9 : 9;
 		}
-		
+
 	};
 
 	// Track window resize
@@ -54,14 +54,6 @@ export function Home() {
 
 	const handleBookImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
 		e.currentTarget.src = "/book.png";
-	};
-
-	const handleAuthorImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-		if (theme === "light") {
-			e.currentTarget.src = "/user.png";
-		} else {
-			e.currentTarget.src = "/user2.png";
-		}
 	};
 
 	// Adatok betöltése
@@ -104,8 +96,6 @@ export function Home() {
 		};
 		checkAdminRole();
 	}, []);
-
-
 
 	return (
 		<div className="home-container">
@@ -187,15 +177,13 @@ export function Home() {
 				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
 					<h1 className="listing-h1-books">Popular Books</h1>
 					<Link to="/bookspage" className="see-all-link">
-						<a href="/discover" className="see-all-link">
-							<p className="see-all mb-0">See All➛</p>
-						</a>
+						<p className="see-all mb-0">See All➛</p>
 					</Link>
 				</div>
 
 
 				<div className="books-container mt-4">
-				<div className="d-flex flex-nowrap gap-4 justify-start" style={{ overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
+					<div className="d-flex flex-nowrap gap-4 justify-start" style={{ overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
 						{booksList
 							?.flatMap((section: BookSection) => section.data)
 							.filter((value, index, self) =>
@@ -261,48 +249,175 @@ export function Home() {
 				</div>
 			</div>
 
+			{/* Other Book Sections */}
+			{booksList
+				?.filter((section) => section.title !== "Popular Books")
+				.map((section, sectionIndex) => (
+					<div key={sectionIndex} className="books-container-main">
+						<div
+							className="d-flex align-items-center justify-content-between"
+							style={{ margin: "0 20px", marginTop: "20px" }}
+						>
+							<div>
+								<h1 className="listing-h1-books">{section.title}</h1>
+								{section.subtitle && (
+									<p style={{ margin: 0, opacity: 0.7 }}>{section.subtitle}</p>
+								)}
+							</div>
 
-			{/* Popular Authors */}
-			<div className="authors-container-main">
-				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
-					<h1 className="listing-h1-authors">Popular Authors</h1>
-					<Link to="/authorspage" className="see-all-link">
-						<a href="/discover" className="see-all-link">
-							<p className="see-all mb-0">See All➛</p>
-						</a>
-					</Link>
-				</div>
+							<Link to="/bookspage" className="see-all-link">
+								<p className="see-all mb-0">See All➛</p>
+							</Link>
+						</div>
 
-				<div className="authors-container mt-5">
-				<div className="d-flex justify-content-start gap-5 flex-nowrap" style={{ paddingLeft: "20px", overflowX: "auto", scrollbarWidth: "none", msOverflowStyle: "none" }}>
-						{authorList
-							?.flatMap((section: AuthorSection) => section.data)
-							.filter((value, index, self) =>
-								index === self.findIndex(author => author.id === value.id)
-							)
-						.slice(0, getItemsToShow('authors'))
-							.map((author, index) => (
-								<Link key={`${author.id}-${index}`} to={`/author/${author.id}`} className="text-center">
-									<img
-										className="author-ppic"
-										src={author.smallerProfilePic || "/logo.svg"}
-										alt={author.name}
-										style={{
-											width: "140px",
-											height: "140px",
-											objectFit: "cover",
-											borderRadius: "50%",
+						<div className="books-container mt-4">
+							<div
+								className="d-flex flex-nowrap gap-4 justify-start"
+								style={{
+									overflowX: "auto",
+									scrollbarWidth: "none",
+									msOverflowStyle: "none",
+								}}
+							>
+								{section.data
+									?.filter(
+										(value, index, self) =>
+											index === self.findIndex((book) => book.id === value.id)
+									)
+									.slice(0, getItemsToShow("books"))
+									.map((book: Book, index: number) => (
+										<Link
+											key={`${book.id}-${index}`}
+											to={`/book/${book.id}`}
+											style={{ textDecoration: "none" }}
+										>
+											<div className="books-display-main">
+												<div
+													className="card book-card"
+													style={{
+														width: "150px",
+														display: "flex",
+														flexDirection: "column",
+													}}
+												>
+													<div className="rating-main">
+														<p
+															className="rating-display"
+															style={{
+																backgroundImage: `url(${theme === "light"
+																	? "/rating.svg"
+																	: "/rating2.svg"
+																	})`,
+																backgroundRepeat: "no-repeat",
+																backgroundSize: "cover",
+															}}
+														>
+															{book.statistics?.averageRating != null
+																? book.statistics.averageRating.toFixed(2)
+																: "N/A"}
+														</p>
+													</div>
 
-										}}
-										onError={handleAuthorImageError}
-									/>
-									<p className="author-name">
-										{author.name ?? "Unknown Author"}
-									</p>
-								</Link>
-							))}
+													<img
+														src={book.biggerCoverPic || "/logo.svg"}
+														className="card-img-top"
+														alt={book.title}
+														style={{
+															height: "250px",
+															objectFit: "cover",
+															flexShrink: 0,
+															borderRadius: "5px",
+														}}
+														onError={handleBookImageError}
+													/>
+
+													<div
+														className="card-body p-2"
+														style={{ flexGrow: 1 }}
+													>
+														<h6 className="card-title">{book.title}</h6>
+														<p className="card-text">
+															{book.author?.name ?? "Unknown"}
+														</p>
+													</div>
+												</div>
+											</div>
+										</Link>
+									))}
+							</div>
+						</div>
 					</div>
-				</div>
+				))}
+
+			{/* Authors Section */}
+			<div className="paddingForAuthors">
+				{authorList?.map((section: AuthorSection, sectionIndex) => (
+					<div key={sectionIndex} className="authors-container-main">
+
+						<div
+							className="d-flex align-items-center justify-content-between"
+							style={{ margin: "0 20px", marginTop: "20px" }}
+						>
+							<div>
+								<h1 className="listing-h1-authors">{section.title}</h1>
+								{section.subtitle && (
+									<p style={{ margin: 0, opacity: 0.7 }}>{section.subtitle}</p>
+								)}
+							</div>
+
+							<Link to="/authorspage" className="see-all-link">
+								<p className="see-all mb-0">See All➛</p>
+							</Link>
+						</div>
+
+						<div className="authors-container mt-5">
+							<div
+								className="d-flex justify-content-start gap-5 flex-nowrap"
+								style={{
+									paddingLeft: "20px",
+									overflowX: "auto",
+									scrollbarWidth: "none",
+									msOverflowStyle: "none",
+								}}
+							>
+								{section.data
+									?.slice(0, getItemsToShow("authors"))
+									.map((author) => (
+										<Link
+											key={`${author.id}-${theme}`}
+											to={`/author/${author.id}`}
+											className="text-center"
+										>
+											<img
+												className="author-ic"
+												src={
+													author.smallerProfilePic ||
+													(theme === "light" ? "/user.png" : "/user2.png")
+												}
+												data-theme={theme}
+												style={{
+													width: "120px",
+													height: "120px",
+													borderRadius: "50%",
+													objectFit: "cover",
+													boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+													transition: "transform 0.3s",
+													cursor: "pointer",
+													marginBottom: "5px",
+												}}
+												onError={(e) => {
+													e.currentTarget.src = theme === "light" ? "/user.png" : "/user2.png";
+												}}
+											/>
+											<p className="author-name">
+												{author.name ?? "Unknown Author"}
+											</p>
+										</Link>
+									))}
+							</div>
+						</div>
+					</div>
+				))}
 			</div>
 
 			<div>{/* Explore genres */}</div>
@@ -314,9 +429,9 @@ export function Home() {
 					<p>
 						<div className="contributors-list-a-tab-closer-to-the-middle">
 							<h2 className="contact-h1">Contact us</h2>
-							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a><br />
-							<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a><br />
-							<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a><br />
+							<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a>
+							<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a>
+							<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a>
 						</div>
 					</p>
 				</div>

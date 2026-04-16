@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type ChangeEvent } from "react";
 import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
@@ -134,8 +134,8 @@ export function UserProfile() {
 
                         <div className="navbar-right">
                             <NotificationBell isAdmin={isAdmin} />
-                            <button 
-                                className="Darkmode-changer" 
+                            <button
+                                className="Darkmode-changer"
                                 onClick={toggleTheme}
                                 title="Toggle dark mode"
                                 aria-label="Toggle dark mode"
@@ -273,34 +273,82 @@ export function UserProfile() {
                             )}
                         </div>
 
-                        {/* AUTHORS + READ BOOKS unchanged */}
-                        <h1 className="listing-h1-authors mt-5">Favorite Authors</h1>
+                        {/* AUTHORS + READ BOOKS */}
+                        <h1 className="listing-h1-authors">Favorite Authors</h1>
 
                         <div className="authors-container mt-5">
                             {user.favoriteAuthors?.length ? (
-                                <div className="d-flex flex-wrap gap-5" style={{ paddingLeft: "55px" }}>
-                                    {user.favoriteAuthors.map((f: any) => (
-                                        <a key={f.author.id} href={`/author/${f.author.id}`} style={{ textDecoration: "none" }}>
-                                            <img
-                                                src={f.author.smallerProfilePic || "/logo.svg"}
-                                                style={{ width: 140, height: 140, borderRadius: "50%" }}
-                                            />
-                                            <p>{f.author.name}</p>
-                                        </a>
-                                    ))}
+                                <div className="d-flex flex-wrap gap-4 justify-content-start">
+
+                                    {user.favoriteAuthors.map((f: any) => {
+                                        const author = f?.author;
+
+                                        const fallback =
+                                            theme === "light"
+                                                ? "/user.png"
+                                                : "/user2.png";
+
+                                        const imgSrc =
+                                            author?.smallerProfilePic ||
+                                            author?.biggerProfilePic ||
+                                            fallback;
+
+                                        return (
+                                            <a
+                                                key={author?.id}
+                                                href={`/author/${author?.id}`}
+                                                style={{
+                                                    textDecoration: "none",
+                                                    color: "inherit",
+                                                    width: "140px",
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    textAlign: "center",
+                                                }}
+                                            >
+                                                <img
+                                                    src={imgSrc}
+                                                    alt={author?.name ?? "Unknown Author"}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = fallback;
+                                                    }}
+                                                    style={{
+                                                        width: "140px",
+                                                        height: "140px",
+                                                        borderRadius: "50%",
+                                                        objectFit: "cover",
+                                                        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                                                        marginBottom: "8px",
+                                                    }}
+                                                />
+
+                                                <p
+                                                    style={{
+                                                        margin: 0,
+                                                        fontSize: "14px",
+                                                        fontWeight: 500,
+                                                        color: theme === "light" ? "#111" : "#eee",
+                                                    }}
+                                                >
+                                                    {author?.name ?? "Unknown"}
+                                                </p>
+                                            </a>
+                                        );
+                                    })}
+
                                 </div>
                             ) : (
                                 <p className="text-muted">No favorite authors yet.</p>
                             )}
                         </div>
-
-                        <h1 className="listing-h1-books mt-5">Books I've Read</h1>
+                        <h1 className="listing-h1-books mt-5" style={{marginTop: "30px"}}>Books I've Read</h1>
 
                         <div className="books-container mt-4">
                             {user.haveReadIt?.length ? (
                                 <div className="d-flex flex-wrap gap-3">
                                     {user.haveReadIt.map((h: any) => {
-                                        const myRating = getMyRating(h.book.id);
+                                        //const myRating = getMyRating(h.book.id);
 
                                         return (
                                             <a key={h.book.id} href={`/book/${h.book.id}`} style={{ textDecoration: "none" }}>
