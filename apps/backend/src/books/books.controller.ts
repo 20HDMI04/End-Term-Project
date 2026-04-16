@@ -104,7 +104,7 @@ export class BooksController {
     description:
       'An unexpected error occurred while approving the book. Please try again later.',
   })
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
   approve(@Param('id') id: string, @Session() session: any) {
     return this.booksService.approve(id, session);
   }
@@ -122,7 +122,7 @@ export class BooksController {
     description:
       'An unexpected error occurred while disapproving the book. Please try again later.',
   })
-  @UseGuards(SessionGuard)
+  @UseGuards(SessionGuard, new RolesGuard(['admin']))
   disapprove(@Param('id') id: string, @Session() session: any) {
     return this.booksService.disapprove(id, session);
   }

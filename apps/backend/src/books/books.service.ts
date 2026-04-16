@@ -448,6 +448,7 @@ export class BooksService {
         data: { approveStatus: true },
       });
     } catch (error) {
+      // Handle Prisma errors
       if (error.code === 'P2025') {
         throw new NotFoundException(
           'The book with the given ID does not exist.',
@@ -513,6 +514,11 @@ export class BooksService {
 
       return { success: true, message: 'Book has been deleted successfully.' };
     } catch (error) {
+      // Rethrow NestJS exceptions as-is
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      // Handle Prisma errors
       if (error.code === 'P2025') {
         throw new NotFoundException(
           'The book with the given ID does not exist.',
