@@ -164,14 +164,23 @@ p {
 /* === RESPONSIVE === */
 
 /* TABLET */
-@media (max-width: 992px) {
-    .discover-layout {
+@media (max-width: 576px) {
+    .discover-sidebar {
+        display: flex;
         flex-direction: column;
+        gap: 10px;
     }
 
-    .discover-sidebar {
-        width: 100%;
-        position: static;
+    .sidebar-section ul {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-section li {
+        padding: 6px 10px;
+        background: var(--card-bg);
+        border-radius: 20px;
     }
 }
 

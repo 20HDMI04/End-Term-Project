@@ -374,7 +374,11 @@ nav {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
-    max-height: 10px;    
+    max-height: 10px;
+    
+    p {
+        color: white;
+    }
 }
 
 .link {
