@@ -53,8 +53,9 @@ export class SocialController {
       'An error occurred while retrieving comments for the specified book.',
   })
   @UseGuards(SessionGuard, new RolesGuard(['user']))
-  findComments(@Param('bookId') bookId: string) {
-    return this.socialService.findComments(bookId);
+  findComments(@Param('bookId') bookId: string, @Session() session: any) {
+    const user_email = session.userDataInAccessToken.email;
+    return this.socialService.findComments(bookId, user_email);
   }
 
   @Post('/comments/:bookId')
