@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
-import { IconSun, IconMoon, IconStar, IconStarFilled } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconStar, IconStarFilled, IconTrash, IconEdit, IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import { Link } from "react-router-dom";
 import Session from "supertokens-auth-react/recipe/session";
@@ -589,7 +589,7 @@ export function BookDetails() {
                                                     }`}
                                                     onClick={() => toggleLike(comment)}
                                                 >
-                                                    👍 {comment.likeCount ?? 0}
+                                                    <IconThumbUp/> {comment.likeCount ?? 0}
                                                 </button>
 
                                                 {/* EDIT OWN */}
@@ -598,7 +598,7 @@ export function BookDetails() {
                                                         className="btn btn-sm btn-outline-primary"
                                                         onClick={() => startEdit(comment)}
                                                     >
-                                                        Edit
+                                                        <IconEdit/>
                                                     </button>
                                                 )}
 
@@ -608,7 +608,7 @@ export function BookDetails() {
                                                         className="btn btn-sm btn-outline-secondary"
                                                         onClick={() => handleDelete(comment.id)}
                                                     >
-                                                        Delete
+                                                        <IconTrash/>
                                                     </button>
                                                 )}
                                             </div>
