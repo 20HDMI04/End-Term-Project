@@ -249,21 +249,14 @@ export function Search() {
             </div>
           ))}
 
-          {/* ❌ EMPTY STATE */}
           {filteredBooks.length === 0 && (
             <div className="empty-state">
-              <img
-                src={theme === "light" ? "/book.png" : "/book2.png"}
-                alt="No results"
-                className="empty-img"
-                width="200px"
-              />
-              <h4>No results found</h4>
               <p>
                 We couldn’t find any books matching "<strong>{query}</strong>".
               </p>
               <button
                 className="btn btn-outline-secondary mt-2"
+                style={{marginBottom: "20px", marginLeft: "20px"}}
                 onClick={() => setQuery("")}
               >
                 Clear search

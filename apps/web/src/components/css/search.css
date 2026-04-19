@@ -32,3 +32,8 @@ body {
     padding-right: 30px;
     margin-bottom: 10px;
 }
+
+.row {
+    margin-left: 300px;
+    margin-right: 250px;
+}
