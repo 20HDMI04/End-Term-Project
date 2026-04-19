@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
-import { useEffect, useState, useRef} from "react";
+import { useEffect, useState, useRef } from "react";
 import { useApi } from "../context/apiContext";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
@@ -109,7 +109,7 @@ export function UserProfile() {
     if (!user) return <div className="container mt-5 text-dark">Loading...</div>;
 
     // ⭐ HELPER: saját rating kikeresése
-    
+
     return (
         <div className="home-container">
 
@@ -193,7 +193,7 @@ export function UserProfile() {
                             disabled={isUploadingPicture}
                         />
 
-                        <h2 className="listing-h1-authors mt-3">{user.nickname ?? user.username}</h2>
+                        <h2 className="listing-h1-authors mt-3">{user.name || (user.email.split("@")[0])}</h2>
                         <p>{user.email}</p>
 
                         <div className="mt-4" style={{ textAlign: "left", paddingLeft: "20px" }}>
@@ -223,8 +223,6 @@ export function UserProfile() {
                                 <div className="d-flex flex-wrap gap-3">
 
                                     {user.favoriteBooks.map((f: any) => {
-                                        //const myRating = getMyRating(f.book.id);
-
                                         return (
                                             <a key={f.book.id} href={`/book/${f.book.id}`} style={{ textDecoration: "none" }}>
                                                 <div className="books-display-main">
@@ -338,7 +336,7 @@ export function UserProfile() {
                                 <p className="text-muted">No favorite authors yet.</p>
                             )}
                         </div>
-                        <h1 className="listing-h1-books mt-5" style={{marginTop: "30px"}}>Books I've Read</h1>
+                        <h1 className="listing-h1-books mt-5" style={{ marginTop: "30px" }}>Books I've Read</h1>
 
                         <div className="books-container mt-4">
                             {user.haveReadIt?.length ? (

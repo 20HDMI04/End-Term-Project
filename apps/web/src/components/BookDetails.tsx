@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
-import { IconSun, IconMoon, IconStar, IconStarFilled, IconTrash, IconEdit, IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconStar, IconStarFilled, IconTrash, IconEdit, IconThumbUp } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import { Link } from "react-router-dom";
 import Session from "supertokens-auth-react/recipe/session";
