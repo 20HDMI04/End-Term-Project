@@ -74,16 +74,7 @@ export function Search() {
       if (author) return author.name;
     }
     return "Unknown author";
-  }
-
-  // 🔥 GENRE LISTA
-  const genres = Array.from(
-    new Set(
-      booksList.flatMap(book =>
-        book.genres?.map(g => g.genre.name) || []
-      )
-    )
-  );
+  } 
 
   // 🔎 SZŰRÉS
   const filteredBooks = booksList.filter((book) => {
