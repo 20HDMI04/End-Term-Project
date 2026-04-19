@@ -330,7 +330,7 @@ export function Discover() {
                             </>
                         )}
 
-                        {filteredBooks.length === 0 && (
+                        {query && booksList.length > 0 && filteredBooks.length === 0 && (
                             <div className="empty-state">
                                 <p>
                                     We couldn’t find any books matching "<strong>{query}</strong>".
