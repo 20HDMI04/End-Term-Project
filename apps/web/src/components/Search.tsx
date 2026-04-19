@@ -182,7 +182,7 @@ export function Search() {
                           backgroundSize: "cover"
                         }}
                       >
-                        {book.statistics?.averageRating ?? "No rating"}
+                        {book.statistics?.averageRating.toFixed(2) ?? "No rating"}
                       </p>
                     </div>
                     <img
