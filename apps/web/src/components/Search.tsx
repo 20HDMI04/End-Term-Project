@@ -195,7 +195,7 @@ export function Search() {
 
       {/* 📚 TALÁLATOK */}
       {query.trim() !== "" && (
-        <div className="row g-3">
+        <div className="row g-3" style={{marginLeft: "300px", marginRight: "250px"}}>
           {filteredBooks.map((book) => (
             <div key={book.id} className="book-col">
               <Link to={`/book/${book.id}`} style={{ textDecoration: "none", color: "inherit" }}>

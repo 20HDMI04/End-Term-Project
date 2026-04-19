@@ -281,11 +281,11 @@ export function BookDetails() {
                     prev.map((c) =>
                         c.id === comment.id
                             ? {
-                                  ...c,
-                                  likedByUser: false,
-                                  isLikedByMe: false,
-                                  likeCount: Math.max(0, (c.likeCount ?? 0) - 1),
-                              }
+                                ...c,
+                                likedByUser: false,
+                                isLikedByMe: false,
+                                likeCount: Math.max(0, (c.likeCount ?? 0) - 1),
+                            }
                             : c,
                     ),
                 );
@@ -295,11 +295,11 @@ export function BookDetails() {
                     prev.map((c) =>
                         c.id === comment.id
                             ? {
-                                  ...c,
-                                  likedByUser: true,
-                                  isLikedByMe: true,
-                                  likeCount: (c.likeCount ?? 0) + 1,
-                              }
+                                ...c,
+                                likedByUser: true,
+                                isLikedByMe: true,
+                                likeCount: (c.likeCount ?? 0) + 1,
+                            }
                             : c,
                     ),
                 );
@@ -511,113 +511,6 @@ export function BookDetails() {
 
                         <hr />
 
-                        <h5>Comments</h5>
-
-                        {/* ADD COMMENT */}
-                        <div className="d-flex gap-2 mb-3">
-                            <input
-                                className="form-control"
-                                placeholder="Write a comment..."
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                            />
-                            <button className="btn btn-primary" onClick={handleAddComment}>
-                                &nbsp;➤&nbsp;
-                            </button>
-                        </div>
-
-                        {/* COMMENT LIST */}
-                        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                            {loadingComments ? (
-                                <p>Loading comments...</p>
-                            ) : (
-                                comments.map((comment) => (
-                                    <div key={comment.id} className="d-flex gap-2 mb-3 p-3 border rounded">
-
-                                        {/* PROFILE PIC */}
-                                        <img
-                                            src={comment.user?.smallerProfilePic || "/def_profile_icon.svg"}
-                                            style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
-                                        />
-
-                                        <div style={{ flex: 1 }}>
-                                            {/* NAME + TIME */}
-                                            <div className="d-flex justify-content-between">
-                                                <strong>{comment.user?.nickname}</strong>
-                                                <small>{timeAgo(comment.createdAt)}</small>
-                                            </div>
-
-                                            {/* USER RATING */}
-                                            {comment.userRating && (
-                                                <div style={{ fontSize: "0.8rem" }}>
-                                                    ⭐ {comment.userRating}/5
-                                                </div>
-                                            )}
-
-                                            {/* TEXT */}
-                                            {editingCommentId === comment.id ? (
-                                                <div>
-                                                    <input
-                                                        value={editText}
-                                                        onChange={(e) => setEditText(e.target.value)}
-                                                        className="form-control mb-2"
-                                                    />
-                                                    <button
-                                                        className="btn btn-sm btn-success"
-                                                        onClick={() => saveEdit(comment.id)}
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-secondary ms-2"
-                                                        onClick={() => setEditingCommentId(null)}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <p className="mb-1">{comment.text}</p>
-                                            )}
-
-                                            {/* ACTIONS */}
-                                            <div className="d-flex gap-3 align-items-center">
-                                                <button
-                                                    className={`btn btn-sm ${
-                                                        (comment.likedByUser ?? comment.isLikedByMe)
-                                                            ? 'btn-danger'
-                                                            : 'btn-outline-danger'
-                                                    }`}
-                                                    onClick={() => toggleLike(comment)}
-                                                >
-                                                    <IconThumbUp/> {comment.likeCount ?? 0}
-                                                </button>
-
-                                                {/* EDIT OWN */}
-                                                {(user?.email === comment.userId || user?.email === comment.user?.email) && editingCommentId !== comment.id && (
-                                                    <button
-                                                        className="btn btn-sm btn-outline-primary"
-                                                        onClick={() => startEdit(comment)}
-                                                    >
-                                                        <IconEdit/>
-                                                    </button>
-                                                )}
-
-                                                {/* DELETE OWN */}
-                                                {user?.email === comment.userId && (
-                                                    <button
-                                                        className="btn btn-sm btn-outline-secondary"
-                                                        onClick={() => handleDelete(comment.id)}
-                                                    >
-                                                        <IconTrash/>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
                         {/* 👤 AUTHOR */}
                         <h5>About the author</h5>
                         {author ? (
@@ -660,6 +553,115 @@ export function BookDetails() {
                             <p className="text-muted">Author not found</p>
                         )}
 
+                        <hr />
+
+                        <h5>Comments</h5>
+
+                        {/* ADD COMMENT */}
+                        <div className="d-flex gap-2 mb-3">
+                            <input
+                                className="form-control"
+                                placeholder="Write a comment..."
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                            />
+                            <button className="btn btn-primary" onClick={handleAddComment}>
+                                &nbsp;➤&nbsp;
+                            </button>
+                        </div>
+
+                        {/* COMMENT LIST */}
+                        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                            {loadingComments ? (
+                                <p>Loading comments...</p>
+                            ) : (
+                                comments.map((comment) => (
+                                    <div key={comment.id} className="d-flex gap-2 mb-3 p-3 border rounded">
+
+                                        {/* PROFILE PIC */}
+                                        <img
+                                            src={comment.user?.smallerProfilePic || "/def_profile_icon.svg"}
+                                            style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
+                                        />
+
+                                        <div style={{ flex: 1 }}>
+                                            {/* NAME + TIME */}
+                                            <div className="d-flex justify-content-between">
+                                                <strong>
+                                                    {(comment.user?.email || "unknown").split("@")[0]}
+                                                </strong>
+                                                <small>{timeAgo(comment.createdAt)}</small>
+                                            </div>
+
+                                            {/* USER RATING */}
+                                            {comment.userRating && (
+                                                <div style={{ fontSize: "0.8rem" }}>
+                                                    ⭐ {comment.userRating}/5
+                                                </div>
+                                            )}
+
+                                            {/* TEXT */}
+                                            {editingCommentId === comment.id ? (
+                                                <div>
+                                                    <input
+                                                        value={editText}
+                                                        onChange={(e) => setEditText(e.target.value)}
+                                                        className="form-control mb-2"
+                                                    />
+                                                    <button
+                                                        className="btn btn-sm btn-success"
+                                                        onClick={() => saveEdit(comment.id)}
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-sm btn-secondary ms-2"
+                                                        onClick={() => setEditingCommentId(null)}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <p className="mb-1">{comment.text}</p>
+                                            )}
+
+                                            {/* ACTIONS */}
+                                            <div className="d-flex gap-3 align-items-center">
+                                                <button
+                                                    className={`btn btn-sm ${(comment.likedByUser ?? comment.isLikedByMe)
+                                                        ? 'btn-danger'
+                                                        : 'btn-outline-danger'
+                                                        }`}
+                                                    onClick={() => toggleLike(comment)}
+                                                >
+                                                    <IconThumbUp /> {comment.likeCount ?? 0}
+                                                </button>
+
+                                                {/* EDIT OWN */}
+                                                {(user?.email === comment.userId || user?.email === comment.user?.email) && editingCommentId !== comment.id && (
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary"
+                                                        onClick={() => startEdit(comment)}
+                                                    >
+                                                        <IconEdit />
+                                                    </button>
+                                                )}
+
+                                                {/* DELETE OWN */}
+                                                {user?.email === comment.userId && (
+                                                    <button
+                                                        className="btn btn-sm btn-outline-secondary"
+                                                        onClick={() => handleDelete(comment.id)}
+                                                    >
+                                                        <IconTrash />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
 
                     </div>
                 </div>
