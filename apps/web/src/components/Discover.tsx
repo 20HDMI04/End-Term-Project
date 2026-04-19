@@ -8,6 +8,7 @@ import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import "./css/discover.css";
 import Session from "supertokens-auth-react/recipe/session";
 import { NotificationBell } from "./NotificationBell";
+import { useLocation } from "react-router-dom";
 
 export function Discover() {
     const api = useApi();
@@ -23,9 +24,34 @@ export function Discover() {
     const authorRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<HTMLDivElement>(null);
 
+    const location = useLocation();
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const genreFromUrl = params.get("genre");
+
+        if (genreFromUrl) {
+            setSelectedGenre(genreFromUrl);
+        } else {
+            setSelectedGenre(null);
+        }
+    }, [location.search]);
     const scrollToAuthors = () => {
         authorRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const genreFromUrl = params.get("genre");
+
+        if (genreFromUrl) {
+            setSelectedGenre(genreFromUrl);
+
+            setTimeout(() => {
+                scrollToBooks();
+            }, 100);
+        }
+    }, [location.search]);
 
     const scrollToBooks = () => {
         bookRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -202,7 +228,7 @@ export function Discover() {
                         <div className="sidebar-section">
                             <h5>Genres</h5>
                             <ul>
-                                {["Fantasy", "Romance", "Classics"].map(g => (
+                                {["Fantasy", "Romance", "Classics", "Mystery", "History"].map(g => (
                                     <li
                                         key={g}
                                         className={selectedGenre === g ? "active" : ""}
