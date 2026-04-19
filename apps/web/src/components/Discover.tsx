@@ -330,6 +330,21 @@ export function Discover() {
                             </>
                         )}
 
+                        {filteredBooks.length === 0 && (
+                            <div className="empty-state">
+                                <p>
+                                    We couldn’t find any books matching "<strong>{query}</strong>".
+                                </p>
+                                <button
+                                    className="btn btn-outline-secondary mt-2"
+                                    style={{ marginBottom: "20px", marginLeft: "20px" }}
+                                    onClick={() => setQuery("")}
+                                >
+                                    Clear search
+                                </button>
+                            </div>
+                        )}
+
                     </main>
                 </div>
 
