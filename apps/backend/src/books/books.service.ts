@@ -968,11 +968,7 @@ export class BooksService {
         ...res,
         isLikedByMe: res.favoritedBy.length > 0,
         comments: res.comments.map((comment) => ({
-          id: comment.id,
-          text: comment.text,
-          createdAt: comment.createdAt,
-          userId: comment.userId,
-          user: comment.user,
+          ...comment,
           isLikedByMe: likedCommentIds.has(comment.id),
           likeCount: comment._count?.votes || 0,
         })),

@@ -67,11 +67,7 @@ export class SocialService {
       const likedCommentIds = new Set(currentUserVotes.map((v) => v.commentId));
 
       return comments.map((comment) => ({
-        id: comment.id,
-        text: comment.text,
-        createdAt: comment.createdAt,
-        userId: comment.userId,
-        user: comment.user,
+        ...comment,
         likedByUser: likedCommentIds.has(comment.id),
         likeCount: comment._count?.votes ?? 0,
       }));

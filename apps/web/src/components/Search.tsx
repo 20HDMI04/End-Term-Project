@@ -230,7 +230,7 @@ export function Search() {
                     <div className="card-body p-2">
                       <h6 className="card-title">{book.title}</h6>
                       <p className="card-text">
-                        {book.author.name ?? "Unknown"}
+                        {book.author?.name ?? "Unknown"}
                       </p>
                     </div>
 
