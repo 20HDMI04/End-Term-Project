@@ -2,7 +2,7 @@
 import "bootstrap/dist/css/bootstrap.css";
 import { useEffect, useState, useRef } from "react";
 import { useApi } from "../context/apiContext";
-import { IconSun, IconMoon } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconPencil } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
 import "./css/home.css"
 import { signOut } from "supertokens-auth-react/recipe/session";
@@ -59,7 +59,7 @@ export function UserProfile() {
 
     const handleLogout = (): void => {
         const isDark = theme === "dark";
-        
+
         Swal.fire({
             title: "Biztosan kijelentkezel?",
             text: "A jelenlegi session megszűnik.",
@@ -88,7 +88,7 @@ export function UserProfile() {
                 // Set theme to light
                 localStorage.setItem("theme", "light");
                 document.documentElement.setAttribute("data-theme", "light");
-                
+
                 await signOut();
                 navigate("/auth");
             }
@@ -243,7 +243,7 @@ export function UserProfile() {
                             disabled={isUploadingPicture}
                         />
 
-                        
+
                         <h1 style={{
                             margin: "4px 0 16px 0",
                             fontSize: "1.5rem",
@@ -253,7 +253,7 @@ export function UserProfile() {
                         }}>
                             {user.nickname || user.email.split("@")[0]}
                         </h1>
-                        
+
                         <div style={{
                             backgroundColor: theme === "light" ? "var(--card-tx)" : "#2d2d2d",
                             padding: "16px",
@@ -336,10 +336,11 @@ export function UserProfile() {
                                             className="btn btn-sm btn-outline-primary"
                                             style={{
                                                 borderRadius: "6px",
-                                                fontSize: "0.8rem"
+                                                fontSize: "0.8rem",
+                                                backgroundColor: "transparent",
                                             }}
                                         >
-                                             Edit
+                                            <IconPencil/>
                                         </button>
                                     </div>
                                 )}
@@ -378,7 +379,7 @@ export function UserProfile() {
                                     {user.favoriteBooks?.length ?? 0}
                                 </p>
                             </div>
-                            
+
                             <div style={{
                                 backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
                                 padding: "12px",
@@ -394,7 +395,7 @@ export function UserProfile() {
                                     textTransform: "uppercase",
                                     letterSpacing: "0.3px"
                                 }}>
-                                     Liked Authors
+                                    Liked Authors
                                 </p>
                                 <p style={{
                                     fontSize: "1.5rem",
@@ -489,9 +490,9 @@ export function UserProfile() {
                         </div>
 
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "20px" }}>
-                            <button 
-                                onClick={refreshUser} 
-                                disabled={isLoading} 
+                            <button
+                                onClick={refreshUser}
+                                disabled={isLoading}
                                 className="btn btn-success"
                                 style={{
                                     borderRadius: "8px",
@@ -504,8 +505,8 @@ export function UserProfile() {
                             >
                                 {isLoading ? "⟳ Refreshing..." : "⟳ Refresh"}
                             </button>
-                            <button 
-                                onClick={handleLogout} 
+                            <button
+                                onClick={handleLogout}
                                 className="btn btn-danger"
                                 style={{
                                     borderRadius: "8px",
@@ -548,7 +549,7 @@ export function UserProfile() {
                                                             >
                                                                 {f.book.statistics?.averageRating != null
                                                                     ? f.book.statistics.averageRating.toFixed(2)
-                                                                    : "N/A"}                                                            </p>
+                                                                    : "N/A"}</p>
                                                         </div>
 
 
@@ -713,6 +714,6 @@ export function UserProfile() {
             <div className="footer2">
                 <p>Copyright© Readsy 2025</p>
             </div>
-        </div>
+        </div >
     );
 }
