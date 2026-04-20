@@ -19,6 +19,28 @@ body {
 
 .book-card {
     margin: auto;
+    position: relative;
+}
+
+.rating-main {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.rating-display {
+    margin: 0;
+    padding: 4px 22px 4px 10px;
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #f7f4dc;
+    line-height: 1;
 }
 
 .books-display-main {

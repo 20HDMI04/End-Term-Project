@@ -170,6 +170,8 @@ export function BooksPage() {
                                         display: "flex",
                                         alignItems: "center",
                                         gap: "4px",
+                                        zIndex: 10,
+                                        pointerEvents: "none",
                                     }}
                                 >
                                 </div>

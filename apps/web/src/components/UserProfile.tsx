@@ -17,6 +17,9 @@ export function UserProfile() {
     const { theme, toggleTheme } = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+    const [isEditingNickname, setIsEditingNickname] = useState(false);
+    const [nickname, setNickname] = useState("");
+    const [isSavingNickname, setIsSavingNickname] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
@@ -28,6 +31,7 @@ export function UserProfile() {
             try {
                 const fetchedUser = await api.getCurrentUser();
                 setUser(fetchedUser);
+                setNickname(fetchedUser.nickname || "");
             } catch (err) {
                 console.error("Error fetching current user:", err);
             } finally {
@@ -54,19 +58,43 @@ export function UserProfile() {
     }, []);
 
     const handleLogout = (): void => {
+        const isDark = theme === "dark";
+        
         Swal.fire({
             title: "Biztosan kijelentkezel?",
             text: "A jelenlegi session megszűnik.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Igen",
+            confirmButtonText: "Igen, kijelentkezem",
             cancelButtonText: "Mégse",
-            reverseButtons: true
+            reverseButtons: true,
+            background: isDark ? "#262626" : "#ffffff",
+            color: isDark ? "#ffffff" : "#000000",
+            confirmButtonColor: "#4E6B3A",
+            cancelButtonColor: isDark ? "#444444" : "#e0e0e0",
+            customClass: {
+                title: "swal-title",
+                htmlContainer: "swal-text",
+                confirmButton: "swal-confirm-btn",
+                cancelButton: "swal-cancel-btn",
+            },
+            iconColor: "#ff9800",
+            allowOutsideClick: true,
+            allowEscapeKey: true,
+            width: "auto",
+            padding: "2rem"
         }).then(async (result) => {
             if (result.isConfirmed) {
+                // Set theme to light
+                localStorage.setItem("theme", "light");
+                document.documentElement.setAttribute("data-theme", "light");
+                
                 await signOut();
                 navigate("/auth");
             }
+        }).catch(() => {
+            // Ensure modal is closed on error
+            Swal.close();
         });
     };
 
@@ -75,10 +103,32 @@ export function UserProfile() {
         try {
             const fetchedUser = await api.getCurrentUser();
             setUser(fetchedUser);
+            setNickname(fetchedUser.nickname || "");
         } catch (err) {
             console.error("Error fetching current user:", err);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleSaveNickname = async () => {
+        if (!nickname.trim()) {
+            alert("Nickname cannot be empty");
+            return;
+        }
+
+        setIsSavingNickname(true);
+        try {
+            await api.updateUserProfile(null, { nickname: nickname.trim() });
+            const fetchedUser = await api.getCurrentUser();
+            setUser(fetchedUser);
+            setNickname(fetchedUser.nickname || "");
+            setIsEditingNickname(false);
+        } catch (err) {
+            console.error("Error saving nickname:", err);
+            alert("Failed to save nickname. Please try again.");
+        } finally {
+            setIsSavingNickname(false);
         }
     };
 
@@ -169,7 +219,7 @@ export function UserProfile() {
                         <div style={{ position: "relative", width: "200px", height: "200px", margin: "0 auto" }}>
                             <img
                                 src={user.biggerProfilePic || "/def_profile_icon.svg"}
-                                alt={user.username}
+                                alt={user.username || (user.email.split("@")[0])}
                                 onClick={handleProfilePictureClick}
                                 style={{
                                     width: "200px",
@@ -193,23 +243,282 @@ export function UserProfile() {
                             disabled={isUploadingPicture}
                         />
 
-                        <h2 className="listing-h1-authors mt-3">{user.name || (user.email.split("@")[0])}</h2>
-                        <p>{user.email}</p>
+                        
+                        <h1 style={{
+                            margin: "4px 0 16px 0",
+                            fontSize: "1.5rem",
+                            color: "var(--text-color)",
+                            fontWeight: "400",
+                            fontStyle: "bold",
+                        }}>
+                            {user.nickname || user.email.split("@")[0]}
+                        </h1>
+                        
+                        <div style={{
+                            backgroundColor: theme === "light" ? "var(--card-tx)" : "#2d2d2d",
+                            padding: "16px",
+                            borderRadius: "10px",
+                            marginTop: "0px",
+                            marginBottom: "20px",
+                            border: theme === "light" ? "none" : "1px solid #444444",
+                            transition: "all 0.3s ease"
+                        }}>
+                            <p style={{
+                                margin: "8px 0",
+                                fontSize: "0.9rem",
+                                color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                wordBreak: "break-all"
+                            }}>
+                                {user.email}
+                            </p>
 
-                        <div className="mt-4" style={{ textAlign: "left", paddingLeft: "20px" }}>
-                            <p><strong>Favorite Books:</strong> {user.favoriteBooks?.length ?? 0}</p>
-                            <p><strong>Favorite Authors:</strong> {user.favoriteAuthors?.length ?? 0}</p>
-                            <p><strong>Comments:</strong> {user.comments?.length ?? 0}</p>
-                            <p><strong>Ratings:</strong> {user.ratings?.length ?? 0}</p>
-                            <p><strong>Have Read:</strong> {user.haveReadIt?.length ?? 0}</p>
+                            {/* NICKNAME SECTION */}
+                            <div style={{
+                                backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: theme === "light" ? "none" : "1px solid #444444",
+                                marginTop: "12px",
+                                transition: "all 0.3s ease"
+                            }}>
+                                {isEditingNickname ? (
+                                    <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                                        <input
+                                            type="text"
+                                            value={nickname}
+                                            onChange={(e) => setNickname(e.target.value)}
+                                            className="form-control"
+                                            placeholder="Enter nickname"
+                                            style={{ maxWidth: "200px" }}
+                                            disabled={isSavingNickname}
+                                        />
+                                        <button
+                                            onClick={handleSaveNickname}
+                                            disabled={isSavingNickname}
+                                            className="btn btn-sm btn-success"
+                                        >
+                                            {isSavingNickname ? "Saving..." : "Save"}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsEditingNickname(false);
+                                                setNickname(user.nickname || "");
+                                            }}
+                                            disabled={isSavingNickname}
+                                            className="btn btn-sm btn-secondary"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: "flex", gap: "12px", alignItems: "center", justifyContent: "space-between" }}>
+                                        <div>
+                                            <p style={{
+                                                margin: "0 0 4px 0",
+                                                fontSize: "0.85rem",
+                                                color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                                textTransform: "uppercase",
+                                                letterSpacing: "0.5px"
+                                            }}>
+                                                Display Name
+                                            </p>
+                                            <p style={{
+                                                margin: "0",
+                                                fontSize: "1rem",
+                                                color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                                fontWeight: "500"
+                                            }}>
+                                                {user.nickname || "Not set"}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsEditingNickname(true)}
+                                            className="btn btn-sm btn-outline-primary"
+                                            style={{
+                                                borderRadius: "6px",
+                                                fontSize: "0.8rem"
+                                            }}
+                                        >
+                                             Edit
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <button onClick={refreshUser} disabled={isLoading} className="btn btn-success w-100 mt-3">
-                            {isLoading ? "Refreshing..." : "Refresh"}
-                        </button>
-                        <button onClick={handleLogout} className="btn btn-success w-100 mt-3">
-                            Logout
-                        </button>
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gap: "12px",
+                            marginBottom: "20px"
+                        }}>
+                            <div style={{
+                                backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: theme === "light" ? "none" : "1px solid #444444",
+                                textAlign: "center",
+                                transition: "all 0.3s ease"
+                            }}>
+                                <p style={{
+                                    fontSize: "0.8rem",
+                                    margin: "0 0 6px 0",
+                                    color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.3px"
+                                }}>
+                                    Liked Books
+                                </p>
+                                <p style={{
+                                    fontSize: "1.5rem",
+                                    fontWeight: "600",
+                                    margin: "0",
+                                    color: theme === "light" ? "var(--bg-color)" : "#8bc34a"
+                                }}>
+                                    {user.favoriteBooks?.length ?? 0}
+                                </p>
+                            </div>
+                            
+                            <div style={{
+                                backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: theme === "light" ? "none" : "1px solid #444444",
+                                textAlign: "center",
+                                transition: "all 0.3s ease"
+                            }}>
+                                <p style={{
+                                    fontSize: "0.8rem",
+                                    margin: "0 0 6px 0",
+                                    color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.3px"
+                                }}>
+                                     Liked Authors
+                                </p>
+                                <p style={{
+                                    fontSize: "1.5rem",
+                                    fontWeight: "600",
+                                    margin: "0",
+                                    color: theme === "light" ? "var(--bg-color)" : "#8bc34a"
+                                }}>
+                                    {user.favoriteAuthors?.length ?? 0}
+                                </p>
+                            </div>
+
+                            <div style={{
+                                backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: theme === "light" ? "none" : "1px solid #444444",
+                                textAlign: "center",
+                                transition: "all 0.3s ease"
+                            }}>
+                                <p style={{
+                                    fontSize: "0.8rem",
+                                    margin: "0 0 6px 0",
+                                    color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.3px"
+                                }}>
+                                    Comments
+                                </p>
+                                <p style={{
+                                    fontSize: "1.5rem",
+                                    fontWeight: "600",
+                                    margin: "0",
+                                    color: theme === "light" ? "var(--bg-color)" : "#8bc34a"
+                                }}>
+                                    {user.comments?.length ?? 0}
+                                </p>
+                            </div>
+
+                            <div style={{
+                                backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                border: theme === "light" ? "none" : "1px solid #444444",
+                                textAlign: "center",
+                                transition: "all 0.3s ease"
+                            }}>
+                                <p style={{
+                                    fontSize: "0.8rem",
+                                    margin: "0 0 6px 0",
+                                    color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.3px"
+                                }}>
+                                    Ratings
+                                </p>
+                                <p style={{
+                                    fontSize: "1.5rem",
+                                    fontWeight: "600",
+                                    margin: "0",
+                                    color: theme === "light" ? "var(--bg-color)" : "#8bc34a"
+                                }}>
+                                    {user.ratings?.length ?? 0}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style={{
+                            backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
+                            padding: "12px",
+                            borderRadius: "8px",
+                            border: theme === "light" ? "none" : "1px solid #444444",
+                            textAlign: "center",
+                            marginBottom: "20px"
+                        }}>
+                            <p style={{
+                                fontSize: "0.8rem",
+                                margin: "0 0 6px 0",
+                                color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.3px"
+                            }}>
+                                Have Read
+                            </p>
+                            <p style={{
+                                fontSize: "1.5rem",
+                                fontWeight: "600",
+                                margin: "0",
+                                color: theme === "light" ? "var(--bg-color)" : "#8bc34a"
+                            }}>
+                                {user.haveReadIt?.length ?? 0}
+                            </p>
+                        </div>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "20px" }}>
+                            <button 
+                                onClick={refreshUser} 
+                                disabled={isLoading} 
+                                className="btn btn-success"
+                                style={{
+                                    borderRadius: "8px",
+                                    padding: "10px 16px",
+                                    fontWeight: "500",
+                                    backgroundColor: isLoading ? "#999999" : "#4E6B3A",
+                                    borderColor: "#4E6B3A",
+                                    transition: "all 0.3s ease"
+                                }}
+                            >
+                                {isLoading ? "⟳ Refreshing..." : "⟳ Refresh"}
+                            </button>
+                            <button 
+                                onClick={handleLogout} 
+                                className="btn btn-danger"
+                                style={{
+                                    borderRadius: "8px",
+                                    padding: "10px 16px",
+                                    fontWeight: "500",
+                                    backgroundColor: "#dc3545",
+                                    borderColor: "#dc3545",
+                                    transition: "all 0.3s ease"
+                                }}
+                            >
+                                🚪 Logout
+                            </button>
+                        </div>
                     </div>
 
                     {/* RIGHT */}
@@ -321,7 +630,7 @@ export function UserProfile() {
                                                     style={{
                                                         margin: 0,
                                                         fontSize: "14px",
-                                                        fontWeight: 500,
+                                                        fontWeight: 400,
                                                         color: theme === "light" ? "#111" : "#eee",
                                                     }}
                                                 >

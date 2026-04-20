@@ -63,6 +63,7 @@ import { UserProfile } from "./components/UserProfile";
 import { AuthorsPage } from "./components/AuthorsPage";
 import { Genre } from "./components/Genres";
 import { AddBook } from "./components/AddBook";
+import "./components/css/auth.css";
 
 SuperTokens.init({
 	appInfo: {
