@@ -13,6 +13,7 @@ export function NotificationBell({ isAdmin }: NotificationBellProps) {
 	const [pendingCount, setPendingCount] = useState(0);
 	const [showPanel, setShowPanel] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
+	const [refreshTrigger, setRefreshTrigger] = useState(0);
 
 	// Fetch pending books count
 	useEffect(() => {
@@ -50,7 +51,11 @@ export function NotificationBell({ isAdmin }: NotificationBellProps) {
 		// Refresh every 30 seconds
 		const interval = setInterval(fetchPendingCount, 30000);
 		return () => clearInterval(interval);
-	}, [isAdmin]);
+	}, [isAdmin, refreshTrigger]);
+
+	const handleRefreshCount = () => {
+		setRefreshTrigger(prev => prev + 1);
+	};
 
 	if (!isAdmin) return null;
 
@@ -69,8 +74,11 @@ export function NotificationBell({ isAdmin }: NotificationBellProps) {
 			</button>
 
 			{showPanel && (
-				<AdminPanel onClose={() => setShowPanel(false)} />
-			)}
+			<AdminPanel 
+				onClose={() => setShowPanel(false)}
+				onCountUpdate={handleRefreshCount}
+			/>
+		)}
 		</>
 	);
 }

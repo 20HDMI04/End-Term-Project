@@ -21,9 +21,10 @@ interface PendingBook {
 
 interface AdminPanelProps {
 	onClose: () => void;
+	onCountUpdate?: () => void;
 }
 
-export default function AdminPanel({ onClose }: AdminPanelProps) {
+export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) {
 	const { theme } = useTheme();
 	const [pendingBooks, setPendingBooks] = useState<PendingBook[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +81,8 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
 			if (response.ok) {
 				// Remove the book from the list
 				setPendingBooks(pendingBooks.filter((book) => book.id !== bookId));
+				// Refresh the notification count
+				onCountUpdate?.();
 			} else {
 				const errorData = await response.json().catch(() => ({}));
 				console.error("Approve error response:", response.status, errorData);
@@ -108,6 +111,8 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
 			if (response.ok) {
 				// Remove the book from the list
 				setPendingBooks(pendingBooks.filter((book) => book.id !== bookId));
+				// Refresh the notification count
+				onCountUpdate?.();
 			} else {
 				const errorData = await response.json().catch(() => ({}));
 				console.error("Decline error response:", response.status, errorData);

@@ -43,11 +43,6 @@ export class SocialService {
               smallerProfilePic: true,
             },
           },
-          votes: {
-            where: {
-              userId,
-            },
-          },
           _count: {
             select: {
               votes: true,
@@ -56,9 +51,28 @@ export class SocialService {
         },
       });
 
+      // Fetch votes for current user separately to avoid filtering issues
+      const currentUserVotes = await this.prisma.commentLike.findMany({
+        where: {
+          userId: userId,
+          comment: {
+            bookId: bookId,
+          },
+        },
+        select: {
+          commentId: true,
+        },
+      });
+
+      const likedCommentIds = new Set(currentUserVotes.map((v) => v.commentId));
+
       return comments.map((comment) => ({
-        ...comment,
-        likedByUser: comment.votes.length > 0,
+        id: comment.id,
+        text: comment.text,
+        createdAt: comment.createdAt,
+        userId: comment.userId,
+        user: comment.user,
+        likedByUser: likedCommentIds.has(comment.id),
         likeCount: comment._count?.votes ?? 0,
       }));
     } catch (error) {

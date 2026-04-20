@@ -937,9 +937,6 @@ export class BooksService {
           comments: {
             include: {
               user: true,
-              votes: {
-                where: { userId: userId },
-              },
               _count: {
                 select: { votes: true },
               },
@@ -951,13 +948,32 @@ export class BooksService {
         },
       });
 
+      // Fetch comment votes for current user separately
+      const commentVotes = await this.prisma.commentLike.findMany({
+        where: {
+          userId: userId,
+          comment: {
+            bookId: id,
+          },
+        },
+        select: {
+          commentId: true,
+        },
+      });
+
+      const likedCommentIds = new Set(commentVotes.map((v) => v.commentId));
+
       console.log('Book found:', res.favoritedBy);
       const formattedBook = {
         ...res,
         isLikedByMe: res.favoritedBy.length > 0,
         comments: res.comments.map((comment) => ({
-          ...comment,
-          isLikedByMe: comment.votes.length > 0,
+          id: comment.id,
+          text: comment.text,
+          createdAt: comment.createdAt,
+          userId: comment.userId,
+          user: comment.user,
+          isLikedByMe: likedCommentIds.has(comment.id),
           likeCount: comment._count?.votes || 0,
         })),
       };
