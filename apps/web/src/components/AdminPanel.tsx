@@ -160,36 +160,36 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
 
 									<div className="book-info">
 										<h3 className="book-title">{book.title}</h3>
-										<p className="book-author">
+										<p className="book-author" style={{color: "var(--text-color"}}>
 											by <strong>{book.author?.name || "Unknown"}</strong>
 										</p>
 
 										{book.originalPublicationYear && (
-											<p className="book-year">
+											<p className="book-year" style={{color: "var(--text-color"}}>
 												Published: {book.originalPublicationYear}
 											</p>
 										)}
 
 										{book.originalPublisher && (
-											<p className="book-publisher">
+											<p className="book-publisher" style={{color: "var(--text-color"}}>
 												Publisher: {book.originalPublisher}
 											</p>
 										)}
 
 										{book.pageNumber && (
-											<p className="book-pages">
+											<p className="book-pages" style={{color: "var(--text-color"}}>
 												Pages: {book.pageNumber}
 											</p>
 										)}
 
 										{book.description && (
-											<p className="book-description">
-												{book.description.substring(0, 150)}
+											<p className="book-description" style={{color: "var(--text-color"}}>
+												Description: {book.description.substring(0, 150)}
 												{book.description.length > 150 ? "..." : ""}
 											</p>
 										)}
 
-										<p className="book-submitted">
+										<p className="book-submitted" style={{color: "var(--text-color"}}>
 											Submitted: {new Date(book.createdAt).toLocaleDateString()}
 										</p>
 									</div>

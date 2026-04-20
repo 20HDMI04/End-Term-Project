@@ -258,7 +258,6 @@ nav {
     color: white;
     border: none;
     transition: background-color 0.7s;
-    color: white;
 }
 
 .authors-container-main {
@@ -293,6 +292,9 @@ nav {
 /* Hide scrollbar while keeping functionality */
 .authors-container::-webkit-scrollbar {
     display: none;
+}
+.book-info{
+    color: var(--text-color);
 }
 
 .rating-main {
