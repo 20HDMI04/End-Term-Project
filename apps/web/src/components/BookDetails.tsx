@@ -321,7 +321,12 @@ export function BookDetails() {
 
     if (!book) return <div className="container mt-5">Loading...</div>;
 
-    const author = getAuthor(book.authorId) ?? null;
+    const baseAuthor = getAuthor(book.authorId);
+
+    const author = {
+        ...(book.author || {}),
+        ...(baseAuthor || {}),
+    };
 
     return (
         <div className="home-container">
@@ -453,7 +458,7 @@ export function BookDetails() {
                     <div className=" book-page-text book-page-text col-md-9">
                         <h2>{book.title}</h2>
                         <h5 className="book-page-text">
-                            <a href={`/author/${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
+                            <a href={`/author/${book.authorId} || ${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
                                 {book.author.name || "Unknown Author"}
                             </a>
                         </h5>
@@ -515,15 +520,16 @@ export function BookDetails() {
 
                         {/* 👤 AUTHOR */}
                         <h5>About the author</h5>
-                        {author ? (
+                        {author?.name ? (
                             <div className="d-flex gap-3 align-items-start mt-3">
                                 <Link
-                                    to={`/author/${book.authorId}`}
+                                    to={`/author/${author?.id || book.authorId}`}
                                     style={{ textDecoration: "none", color: "inherit" }}
-                                    className="author-link-wrapper"
                                 >
                                     <img
-                                        src={author.smallerProfilePic || "/def_profile_icon.svg"}
+                                        src={author.smallerProfilePic || (theme === "light"
+                                            ? "/def_profile_icon.svg"
+                                            : "/def_profile_icon2.svg")}
                                         alt={author.name}
                                         style={{
                                             width: "70px",
@@ -535,13 +541,16 @@ export function BookDetails() {
                                 </Link>
 
                                 <div>
-                                    <h5 className="book-page-text">
-                                        <a href={`/author/${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
-                                            {book.author.name}
+                                    <h5>
+                                        <a
+                                            href={`/author/${author?.id || book.authorId}`}
+                                            style={{ textDecoration: "none", color: "inherit" }}
+                                        >
+                                            {author.name}
                                         </a>
                                     </h5>
 
-                                    <p className="book-page-text mb-1">
+                                    <p className="mb-1">
                                         {author.nationality ?? "Unknown nationality"}
                                         {author.birthDate && ` • ${new Date(author.birthDate).getFullYear()}`}
                                     </p>
@@ -552,7 +561,7 @@ export function BookDetails() {
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-muted">Author not found</p>
+                            <p className="text-muted">Author not available</p>
                         )}
 
                         <hr />
