@@ -31,6 +31,7 @@ export function BookDetails() {
     const [loadingComments, setLoadingComments] = useState(false);
     const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
     const [editText, setEditText] = useState("");
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -385,66 +386,67 @@ export function BookDetails() {
                     {/* 📌 LEFT SIDE - STICKY */}
                     <div
                         className="col-md-3"
-                        style={{
-                            position: "sticky",
-                            top: "80px", // navbar miatt
-                            height: "fit-content"
-                        }}
                     >
-                        <img
-                            src={book.biggerCoverPic || "/logo.svg"}
-                            className="book-page-text img-fluid rounded shadow"
-                            alt={book.title}
-                        />
-
-                        <button
-                            className={`btn w-100 mt-3 ${isFavorited ? 'btn-danger' : 'btn-success'}`}
-                            onClick={handleFavoriteClick}
-                            disabled={isLoading}
+                        <div
+                            style={{
+                                position: "sticky",
+                                top: "90px", // navbar + kis spacing
+                            }}
                         >
-                            {isLoading ? 'Loading...' : isFavorited ? '♡ Remove from Favorites' : 'Add to Favorites'}
-                        </button>
+                            <img
+                                src={book.biggerCoverPic || "/logo.svg"}
+                                className="book-page-text img-fluid rounded shadow"
+                                alt={book.title}
+                            />
 
-                        <button
-                            className={`btn w-100 mt-2 ${haveRead ? 'btn-danger' : 'btn-outline-primary'}`}
-                            onClick={handleHaveReadClick}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? 'Loading...' : haveRead ? '✓ Mark as Unread' : 'Mark as Read'}
-                        </button>
+                            <button
+                                className={`btn w-100 mt-3 ${isFavorited ? 'btn-danger' : 'btn-success'}`}
+                                onClick={handleFavoriteClick}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Loading...' : isFavorited ? '♡ Remove from Favorites' : 'Add to Favorites'}
+                            </button>
 
-                        {/* RATING UI */}
-                        <div className="mt-3 text-center">
-                            <div style={{ display: "flex", justifyContent: "center", gap: 4 }}>
-                                {Array.from({ length: 5 }).map((_, index) => {
-                                    const value = index + 1;
-                                    const filled = value <= (hoverRating || rating);
+                            <button
+                                className={`btn w-100 mt-2 ${haveRead ? 'btn-danger' : 'btn-outline-primary'}`}
+                                onClick={handleHaveReadClick}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Loading...' : haveRead ? '✓ Mark as Unread' : 'Mark as Read'}
+                            </button>
 
-                                    return (
-                                        <div
-                                            key={index}
-                                            style={{ cursor: "pointer" }}
-                                            onMouseEnter={() => setHoverRating(value)}
-                                            onMouseLeave={() => setHoverRating(0)}
-                                            onClick={() => submitRating(value)}
-                                        >
-                                            {filled ? (
-                                                <IconStarFilled size={26} color="#f5c542" />
-                                            ) : (
-                                                <IconStar size={26} color="#ddd" />
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                            {/* RATING UI */}
+                            <div className="mt-3 text-center">
+                                <div style={{ display: "flex", justifyContent: "center", gap: 4 }}>
+                                    {Array.from({ length: 5 }).map((_, index) => {
+                                        const value = index + 1;
+                                        const filled = value <= (hoverRating || rating);
+
+                                        return (
+                                            <div
+                                                key={index}
+                                                style={{ cursor: "pointer" }}
+                                                onMouseEnter={() => setHoverRating(value)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                                onClick={() => submitRating(value)}
+                                            >
+                                                {filled ? (
+                                                    <IconStarFilled size={26} color="#f5c542" />
+                                                ) : (
+                                                    <IconStar size={26} color="#ddd" />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {rating > 0 && (
+                                    <p className="mt-1">
+                                        <strong>{rating.toFixed(0)}</strong> / 5
+                                    </p>
+                                )}
                             </div>
-
-                            {rating > 0 && (
-                                <p className="mt-1">
-                                    <strong>{rating.toFixed(0)}</strong> / 5
-                                </p>
-                            )}
                         </div>
-
                     </div>
 
                     {/* RIGHT SIDE */}
@@ -602,24 +604,28 @@ export function BookDetails() {
 
                                             {/* TEXT */}
                                             {editingCommentId === comment.id ? (
-                                                <div>
+                                                <div className="mt-2">
                                                     <input
                                                         value={editText}
                                                         onChange={(e) => setEditText(e.target.value)}
                                                         className="form-control mb-2"
                                                     />
-                                                    <button
-                                                        className="btn btn-sm btn-success"
-                                                        onClick={() => saveEdit(comment.id)}
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-secondary ms-2"
-                                                        onClick={() => setEditingCommentId(null)}
-                                                    >
-                                                        Cancel
-                                                    </button>
+
+                                                    <div className="d-flex justify-content-end gap-2">
+                                                        <button
+                                                            className="btn btn-sm btn-outline-secondary px-3"
+                                                            onClick={() => setEditingCommentId(null)}
+                                                        >
+                                                            Cancel
+                                                        </button>
+
+                                                        <button
+                                                            className="btn btn-sm btn-success px-3"
+                                                            onClick={() => saveEdit(comment.id)}
+                                                        >
+                                                            Save
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <p className="mb-1">{comment.text}</p>
@@ -649,12 +655,31 @@ export function BookDetails() {
 
                                                 {/* DELETE OWN */}
                                                 {user?.email === comment.userId && (
-                                                    <button
-                                                        className="btn btn-sm btn-outline-secondary"
-                                                        onClick={() => handleDelete(comment.id)}
-                                                    >
-                                                        <IconTrash />
-                                                    </button>
+                                                    <>
+                                                        {confirmDeleteId === comment.id ? (
+                                                            <div className="d-flex gap-2">
+                                                                <button
+                                                                    className="btn btn-sm btn-danger"
+                                                                    onClick={() => handleDelete(comment.id)}
+                                                                >
+                                                                    Confirm
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-sm btn-outline-secondary"
+                                                                    onClick={() => setConfirmDeleteId(null)}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                className="btn btn-sm btn-outline-secondary"
+                                                                onClick={() => setConfirmDeleteId(comment.id)}
+                                                            >
+                                                                <IconTrash />
+                                                            </button>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         </div>
