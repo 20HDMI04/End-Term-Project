@@ -435,7 +435,7 @@ export function Home() {
 
 		<div className="footer2">
 			<p>Copyright© Readsy 2025. All rights reserved.</p>
-			<p className="Privacy">Privacy & Policy</p>
+			<a className="Link" href="https://20hdmi04.github.io/ReadsyTermlySite/"><p className="Privacy">Privacy & Policy</p></a>
 		</div>
 	</div>
 );

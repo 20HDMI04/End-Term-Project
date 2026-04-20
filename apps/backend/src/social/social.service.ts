@@ -26,9 +26,9 @@ export class SocialService {
      * @throws InternalServerErrorException - If there is an error while retrieving comments from the database.
    * @returns A list of comments associated with the given book ID. Each comment includes the text of the comment, the creation date, and user information (nickname, email, smaller profile picture).
    */
-  async findComments(bookId: string) {
+  async findComments(bookId: string, userId: string) {
     try {
-      return await this.prisma.comment.findMany({
+      const comments = await this.prisma.comment.findMany({
         where: {
           bookId: bookId,
         },
@@ -42,13 +42,25 @@ export class SocialService {
               email: true,
               smallerProfilePic: true,
             },
-            omit: {
-              smallerProfilePicKey: true,
-              biggerProfilePicKey: true,
+          },
+          votes: {
+            where: {
+              userId,
+            },
+          },
+          _count: {
+            select: {
+              votes: true,
             },
           },
         },
       });
+
+      return comments.map((comment) => ({
+        ...comment,
+        likedByUser: comment.votes.length > 0,
+        likeCount: comment._count?.votes ?? 0,
+      }));
     } catch (error) {
       console.error('Error finding comments:', error);
       throw new InternalServerErrorException('Failed to find comments.');
