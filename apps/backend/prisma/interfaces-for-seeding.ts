@@ -22,6 +22,7 @@ export interface AuthorDetails {
   birth_date?: string;
   photos?: number[];
 }
+//csinálj kommenteket János <3
 
 export interface BookOverall {
   key: string;
