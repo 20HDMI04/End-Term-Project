@@ -588,7 +588,7 @@ export function BookDetails() {
                                             {/* NAME + TIME */}
                                             <div className="d-flex justify-content-between">
                                                 <span>
-                                                    {comment.user?.nickname || (comment.user?.email || "unknown").split("@")[0]}
+                                                    <strong>{comment.user?.nickname || (comment.user?.email || "unknown").split("@")[0]}</strong>
                                                 </span>
                                                 <small>{timeAgo(comment.createdAt)}</small>
                                             </div>
