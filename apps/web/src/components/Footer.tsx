@@ -55,54 +55,55 @@ export function Footer() {
 					<div className="footer-column">
 						<h3>Company</h3>
 						<ul>
-							<li><a href="#about">About</a></li>
-							<li><a href="#careers">Careers</a></li>
-							<li><a href="#contact">Contact</a></li>
-							<li><a href="#press">Press Kit</a></li>
-						</ul>
-					</div>
+						<li><a href="#about" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>About</a></li>
+						<li><a href="#careers" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Careers</a></li>
+						<li><a href="#contact" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Contact</a></li>
+						<li><a href="#press" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Press Kit</a></li>
+					</ul>
+				</div>
 
-					{/* Legal Column */}
-					<div className="footer-column">
-						<h3>Legal</h3>
-						<ul>
-							<li><a href="/privacy">Privacy Policy</a></li>
-							<li><a href="/terms">Terms of Service</a></li>
-							<li><a href="/cookies">Cookie Policy</a></li>
-						</ul>
-					</div>
+				{/* Legal Column */}
+				<div className="footer-column">
+					<h3>Legal</h3>
+					<ul>
+						<li><a href="https://20hdmi04.github.io/ReadsyTermlySite/" style={{ cursor: 'pointer' }}>Privacy Policy</a></li>
+						<li><a href="/terms" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Terms of Service</a></li>
+						<li><a href="/cookies" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Cookie Policy</a></li>
+					</ul>
+				</div>
 
-					{/* Live Stats Column */}
-					<div className="footer-column footer-stats">
-						<h3>Live Stats</h3>
-						<div className="stats-number">142,000+</div>
-						<p className="stats-label">Curated volume currently available in the public archive.</p>
-					</div>
+				{/* Live Stats Column */}
+				<div className="footer-column footer-stats">
+					<h3>Live Stats</h3>
+					<div className="stats-number">1+</div>
+					<p className="stats-label">Curated volume currently available in the public archive.</p>
 				</div>
 			</div>
+		</div>
 
-			{/* Bottom Copyright Section */}
+		{/* Bottom Copyright Section */}
 			<div className="footer-bottom">
 				<p className="footer-copyright">© 2024 Readsy. Cultivating the digital library.</p>
 				<p className="footer-credit">DESIGNED WITH INTENTION.</p>
 			</div>
 
-		{/* Under Construction Modal */}
-		{showConstructionModal && (
-			<div className="construction-modal-overlay" onClick={closeModal}>
-				<div className="construction-modal-content" onClick={(e) => e.stopPropagation()}>
-					<img 
+			{/* Under Construction Modal */}
+			{showConstructionModal && (
+				<div className="construction-modal-overlay" onClick={closeModal}>
+					<div className="construction-modal-content" onClick={(e) => e.stopPropagation()}>
+						<img 
 						src="/underconstruction.jpg" 
-						alt="Under Construction" 
-						style={{ width: '100%', height: 'auto' }}
-						onError={(e) => {
-							console.error('Image failed to load:', e);
-							(e.target as HTMLImageElement).style.backgroundColor = '#FFD700';
-						}}
-					/>
-					<button className="construction-modal-close" onClick={closeModal}>✕</button>
+							alt="Under Construction" 
+							style={{ width: '100%', height: 'auto' }}
+							onError={(e) => {
+								console.error('Image failed to load:', e);
+								(e.target as HTMLImageElement).style.backgroundColor = '#FFD700';
+							}}
+						/>
+						<button className="construction-modal-close" onClick={closeModal}>✕</button>
+					</div>
 				</div>
-			</div>
-		)}		</footer>
+			)}
+		</footer>
 	);
 }

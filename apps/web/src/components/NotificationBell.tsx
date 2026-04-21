@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { IconBell } from "@tabler/icons-react";
-import { useTheme } from "../context/darkmodeContext";
 import AdminPanel from "./AdminPanel";
 import "./css/NotificationBell.css";
 
@@ -9,10 +8,8 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ isAdmin }: NotificationBellProps) {
-	const { theme } = useTheme();
 	const [pendingCount, setPendingCount] = useState(0);
 	const [showPanel, setShowPanel] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 	const [refreshTrigger, setRefreshTrigger] = useState(0);
 
 	// Fetch pending books count
@@ -21,7 +18,6 @@ export function NotificationBell({ isAdmin }: NotificationBellProps) {
 
 		const fetchPendingCount = async () => {
 			try {
-				setIsLoading(true);
 				const response = await fetch(
 					"http://localhost:3002/books/pending/list?page=1&limit=1",
 					{
@@ -41,8 +37,6 @@ export function NotificationBell({ isAdmin }: NotificationBellProps) {
 				}
 			} catch (error) {
 				console.error("Error fetching pending books:", error);
-			} finally {
-				setIsLoading(false);
 			}
 		};
 

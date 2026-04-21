@@ -50,6 +50,9 @@ export function AddBook() {
         genreNames: [] as string[]
     });
 
+    // Helper function to get theme-based colors
+    const getDropdownColor = () => theme === "dark" ? "#1e3a8a" : "#6c8f5e";
+
     // Fetch authors for selection
     useEffect(() => {
         async function fetchAuthors() {
@@ -348,7 +351,7 @@ export function AddBook() {
                                     />
                                     {formData.chosenAuthor && (
                                         <div style={{
-                                            backgroundColor: "#6c8f5e",
+                                            backgroundColor: getDropdownColor(),
                                             color: "white",
                                             padding: "10px 12px",
                                             borderRadius: "5px",
@@ -398,9 +401,9 @@ export function AddBook() {
                                                         color: "white",
                                                         borderRadius: "4px",
                                                         marginBottom: "4px",
-                                                        backgroundColor: "#6c8f5e",
+                                                        backgroundColor: getDropdownColor(),
                                                         transition: "background-color 0.2s",
-                                                        border: "1px solid #6c8f5e"
+                                                        border: `1px solid ${getDropdownColor()}`
                                                     }}
                                                     onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "0.8"}
                                                     onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "1"}
@@ -447,7 +450,7 @@ export function AddBook() {
                                                 <div
                                                     key={genre}
                                                     style={{
-                                                        backgroundColor: "#6c8f5e",
+                                                        backgroundColor: getDropdownColor(),
                                                         color: "white",
                                                         padding: "6px 12px",
                                                         borderRadius: "20px",
@@ -500,9 +503,9 @@ export function AddBook() {
                                                         color: "white",
                                                         borderRadius: "4px",
                                                         marginBottom: "4px",
-                                                        backgroundColor: "#6c8f5e",
+                                                        backgroundColor: getDropdownColor(),
                                                         transition: "background-color 0.2s",
-                                                        border: "1px solid #6c8f5e"
+                                                        border: `1px solid ${getDropdownColor()}`
                                                     }}
                                                     onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "0.8"}
                                                     onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "1"}

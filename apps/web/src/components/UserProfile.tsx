@@ -24,6 +24,7 @@ export function UserProfile() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const [isAdmin, setIsAdmin] = useState(false);
+    const [showConstructionModal, setShowConstructionModal] = useState(false);
 
 
     useEffect(() => {
@@ -352,7 +353,7 @@ export function UserProfile() {
                                                 backgroundColor: "transparent",
                                             }}
                                         >
-                                            <IconPencil/>
+                                            <IconPencil />
                                         </button>
                                     </div>
                                 )}
@@ -708,8 +709,9 @@ export function UserProfile() {
                         </div>
 
                         {/* Add a Book Section */}
-                        <h1 className="listing-h1-books mt-5">Add a New Book</h1>
-                        <div className="books-container mt-4">
+
+                        <div className="books-container mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <h1 className="listing-h1-books mt-5">Add a New Book</h1>
                             <div className="card p-4" style={{ maxWidth: "600px" }}>
                                 <h5>Create a New Book</h5>
                                 <p className="text-muted">Share a book you've discovered with the community.</p>
@@ -717,7 +719,29 @@ export function UserProfile() {
                                     + Add Book
                                 </a>
                             </div>
+                            <h1 className="listing-h1-books mt-5">Add a New Author</h1>
+                            <div className="card p-4" style={{ maxWidth: "600px" }}>
+                                <h5>Create a New Author</h5>
+                                <p className="text-muted">Add a new author to the community database.</p>
+                                <button className="btn btn-success w-100" onClick={() => setShowConstructionModal(true)}>
+                                    + Add Author
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Under Construction Modal */}
+                        {showConstructionModal && (
+                            <div className="construction-modal-overlay" onClick={() => setShowConstructionModal(false)}>
+                                <div className="construction-modal-content" onClick={(e) => e.stopPropagation()}>
+                                    <img
+                                        src="/underconstruction.jpg"
+                                        alt="Under Construction"
+                                        style={{ width: '100%', height: 'auto' }}
+                                    />
+                                    <button className="construction-modal-close" onClick={() => setShowConstructionModal(false)}>✕</button>
+                                </div>
+                            </div>
+                        )}
 
                     </div>
                 </div>
