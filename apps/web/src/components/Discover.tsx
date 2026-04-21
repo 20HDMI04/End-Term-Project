@@ -9,6 +9,7 @@ import "./css/discover.css";
 import Session from "supertokens-auth-react/recipe/session";
 import { NotificationBell } from "./NotificationBell";
 import { useLocation } from "react-router-dom";
+import { Footer } from "./Footer";
 
 export function Discover() {
     const api = useApi();
@@ -348,11 +349,7 @@ export function Discover() {
                     </main>
                 </div>
 
-                {/* Footer */}
-                <div className="footer2">
-                    <p>Copyright© Readsy 2025. All rights reserved.</p>
-                    <p className="Privacy">Privacy & Policy</p>
-                </div>
+                <Footer />
             </div>
         </div>
 

@@ -9,6 +9,7 @@ import { useTheme } from "../context/darkmodeContext";
 import { Link } from "react-router-dom";
 import Session from "supertokens-auth-react/recipe/session";
 import { NotificationBell } from "./NotificationBell";
+import { Footer } from "./Footer";
 
 export function BookDetails() {
     const { id } = useParams();
@@ -703,10 +704,7 @@ export function BookDetails() {
 
             <div className="gap"></div>
 
-            <div className="footer2">
-                <p>Copyright© Readsy 2025. All rights reserved.</p>
-                <p className="Privacy">Privacy & Policy</p>
-            </div>
+            <Footer />
         </div>
     );
 }

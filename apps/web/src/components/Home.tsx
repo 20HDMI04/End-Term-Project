@@ -8,6 +8,7 @@ import { useTheme } from "../context/darkmodeContext";
 import { Link } from "react-router-dom";
 import Session from "supertokens-auth-react/recipe/session";
 import { NotificationBell } from "./NotificationBell";
+import { Footer } from "./Footer";
 
 export function Home() {
 	const api = useApi();
@@ -423,20 +424,7 @@ export function Home() {
 			<div>{/* Explore genres */}</div>
 			<div>{/* Popular Authors */}</div>
 
-		{/* Footer */}
-		<footer className="footer">
-			<div className="contributors-list-a-tab-closer-to-the-middle">
-				<h2 className="contact-h1">Contact us</h2>
-				<a className="link" href="https://github.com/20HDMI04">Balogh János Péter</a>
-				<a className="link" href="https://github.com/Cs3k0">Szalontai Csekő Krisztián</a>
-				<a className="link" href="https://github.com/LepkefingLeo">Hegedűs Péter</a>
-			</div>
-		</footer>
-
-		<div className="footer2">
-			<p>Copyright© Readsy 2025. All rights reserved.</p>
-			<a className="Link" href="https://20hdmi04.github.io/ReadsyTermlySite/"><p className="Privacy">Privacy & Policy</p></a>
-		</div>
+		<Footer />
 	</div>
 );
 }

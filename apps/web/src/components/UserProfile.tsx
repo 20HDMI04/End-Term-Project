@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { NotificationBell } from "./NotificationBell";
 import Session from "supertokens-auth-react/recipe/session";
+import { Footer } from "./Footer";
 
 export function UserProfile() {
     const api = useApi();
@@ -61,12 +62,12 @@ export function UserProfile() {
         const isDark = theme === "dark";
 
         Swal.fire({
-            title: "Biztosan kijelentkezel?",
-            text: "A jelenlegi session megszűnik.",
+            title: "Are you sure you want to logout?",
+            text: "Your current session will end.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonText: "Igen, kijelentkezem",
-            cancelButtonText: "Mégse",
+            confirmButtonText: "Yes, logout",
+            cancelButtonText: "Cancel",
             reverseButtons: true,
             background: isDark ? "#262626" : "#ffffff",
             color: isDark ? "#ffffff" : "#000000",
@@ -263,14 +264,25 @@ export function UserProfile() {
                             border: theme === "light" ? "none" : "1px solid #444444",
                             transition: "all 0.3s ease"
                         }}>
-                            <p style={{
-                                margin: "8px 0",
-                                fontSize: "0.9rem",
-                                color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
-                                wordBreak: "break-all"
-                            }}>
-                                {user.email}
-                            </p>
+                            <div>
+                                <p style={{
+                                    margin: "0 0 4px 0",
+                                    fontSize: "0.85rem",
+                                    color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.5px"
+                                }}>
+                                    EMAIL
+                                </p>
+                                <p style={{
+                                    margin: "0 0 12px 0",
+                                    fontSize: "0.95rem",
+                                    color: theme === "light" ? "var(--bg-color)" : "var(--text-color)",
+                                    wordBreak: "break-all"
+                                }}>
+                                    {user.email}
+                                </p>
+                            </div>
 
                             {/* NICKNAME SECTION */}
                             <div style={{
@@ -711,9 +723,7 @@ export function UserProfile() {
                 </div>
             </div>
 
-            <div className="footer2">
-                <p>Copyright© Readsy 2025</p>
-            </div>
+            <Footer />
         </div >
     );
 }

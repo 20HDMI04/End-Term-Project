@@ -112,18 +112,32 @@ export function AddBook() {
     const filteredGenres = AVAILABLE_GENRES.filter(genre =>
         genre.toLowerCase().includes(genreSearch.toLowerCase()) &&
         !formData.genreNames.includes(genre)
-    );
+    ).sort((a, b) => a.localeCompare(b));
 
-    const filteredAuthors = authors.filter(author =>
-        author.name.toLowerCase().includes(authorSearch.toLowerCase()) &&
-        author.id !== formData.chosenAuthor
-    );
+    const filteredAuthors = authors
+        .filter(author =>
+            author.name.toLowerCase().includes(authorSearch.toLowerCase()) &&
+            author.id !== formData.chosenAuthor
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     const getAuthorName = (id: string) => authors.find(a => a.id === id)?.name || "Unknown";
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        const maxFileSize = 5 * 1024 * 1024; // 5MB
+        
         if (file) {
+            if (file.size > maxFileSize) {
+                Swal.fire(
+                    "File Too Large",
+                    `The image is too large. Maximum file size is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+                    "error"
+                );
+                e.target.value = "";
+                return;
+            }
+            
             setCoverImage(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -213,9 +227,17 @@ export function AddBook() {
             });
         } catch (err) {
             console.error("Error adding book:", err);
+            let errorMessage = "Failed to add book. Please try again.";
+            
+            if ((err as any)?.status === 413 || (err as Error).message.includes("413")) {
+                errorMessage = "The book cover image is too large. Maximum file size is 5MB. Please choose a smaller image.";
+            } else if ((err as Error).message) {
+                errorMessage = (err as Error).message;
+            }
+            
             Swal.fire(
                 "Error",
-                (err as Error).message || "Failed to add book. Please try again.",
+                errorMessage,
                 "error"
             );
         } finally {
@@ -323,7 +345,6 @@ export function AddBook() {
                                         placeholder="Search authors..."
                                         value={authorSearch}
                                         onChange={(e) => setAuthorSearch(e.target.value)}
-                                        style={{ backgroundColor: "var(--secondary-bg)", color: "var(--text-color)" }}
                                     />
                                     {formData.chosenAuthor && (
                                         <div style={{
@@ -357,11 +378,12 @@ export function AddBook() {
                                     )}
                                     {authorSearch && filteredAuthors.length > 0 && (
                                         <div style={{
-                                            backgroundColor: "var(--secondary-bg)",
+                                            backgroundColor: "var(--bg-color)",
                                             borderRadius: "5px",
                                             maxHeight: "200px",
                                             overflowY: "auto",
-                                            padding: "8px"
+                                            padding: "8px",
+                                            border: "1px solid var(--ndfooter-bg)"
                                         }}>
                                             {filteredAuthors.map(author => (
                                                 <div
@@ -373,12 +395,12 @@ export function AddBook() {
                                                     style={{
                                                         padding: "8px 12px",
                                                         cursor: "pointer",
-                                                        color: "var(--text-color)",
+                                                        color: "white",
                                                         borderRadius: "4px",
                                                         marginBottom: "4px",
-                                                        backgroundColor: "var(--accent-bg)",
+                                                        backgroundColor: "#6c8f5e",
                                                         transition: "background-color 0.2s",
-                                                        border: "1px solid var(--border-color, #ddd)"
+                                                        border: "1px solid #6c8f5e"
                                                     }}
                                                     onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "0.8"}
                                                     onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "1"}
@@ -418,7 +440,6 @@ export function AddBook() {
                                         placeholder="Search genres..."
                                         value={genreSearch}
                                         onChange={(e) => setGenreSearch(e.target.value)}
-                                        style={{ backgroundColor: "var(--secondary-bg)", color: "var(--text-color)" }}
                                     />
                                     {formData.genreNames.length > 0 && (
                                         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
@@ -459,11 +480,12 @@ export function AddBook() {
                                     )}
                                     {genreSearch && filteredGenres.length > 0 && (
                                         <div style={{
-                                            backgroundColor: "var(--secondary-bg)",
+                                            backgroundColor: "var(--bg-color)",
                                             borderRadius: "5px",
                                             maxHeight: "200px",
                                             overflowY: "auto",
-                                            padding: "8px"
+                                            padding: "8px",
+                                            border: "1px solid var(--ndfooter-bg)"
                                         }}>
                                             {filteredGenres.map(genre => (
                                                 <div
@@ -475,12 +497,12 @@ export function AddBook() {
                                                     style={{
                                                         padding: "8px 12px",
                                                         cursor: "pointer",
-                                                        color: "var(--text-color)",
+                                                        color: "white",
                                                         borderRadius: "4px",
                                                         marginBottom: "4px",
-                                                        backgroundColor: "var(--accent-bg)",
+                                                        backgroundColor: "#6c8f5e",
                                                         transition: "background-color 0.2s",
-                                                        border: "1px solid var(--border-color, #ddd)"
+                                                        border: "1px solid #6c8f5e"
                                                     }}
                                                     onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "0.8"}
                                                     onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => e.currentTarget.style.opacity = "1"}
@@ -525,6 +547,9 @@ export function AddBook() {
                                 <div className="mb-3">
                                     <label className="form-label" style={{ color: "var(--text-color)" }}>
                                         <strong>Book Cover Image</strong>
+                                        <span style={{ fontSize: "0.85rem", color: "var(--text-color)", marginLeft: "8px" }}>
+                                            (Max 5MB)
+                                        </span>
                                     </label>
                                     <div style={{
                                         backgroundColor: "var(--secondary-bg)",
