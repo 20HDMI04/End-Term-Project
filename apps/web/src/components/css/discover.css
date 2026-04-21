@@ -1,10 +1,11 @@
+/* === MEGLÉVŐ VÁLTOZÓK MARADNAK === */
 :root {
     --bg-color: #f7f4dc;
     --text-color: #516523;
     --header-bg: #485B1F;
     --accent-bg: #3746183f;
     --card-bg: #ffffff;
-    --card-shadow: rgba(0,0,0,0.1);
+    --card-shadow: rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] {
@@ -13,47 +14,100 @@
     --header-bg: #324252;
     --accent-bg: #3242524c;
     --card-bg: #2b3a4a;
-    --card-shadow: rgba(0,0,0,0.4);
+    --card-shadow: rgba(0, 0, 0, 0.4);
 }
 
-.search-bar-on-discoverpage {
-    margin: 20px 20px 20px 15px;
-    width: 15%;
-}
-
+/* 🔥 OLD SEARCH BAR KILL */
+.search-bar-on-discoverpage,
 .search-bar-on-the-left {
-    display: flex;
-    justify-content: flex-start;
-    margin: 20px 50px 30px 20px;
+    display: none;
 }
 
-.search-bar input {
-    max-width: 500px;
-    padding: 12px 16px;
+/* === ÚJ LAYOUT === */
+.discover-layout {
+    display: flex;
+    gap: 30px;
+    padding: 20px 40px;
+}
+
+/* === SIDEBAR === */
+.discover-sidebar {
+    width: 260px;
+    background: var(--accent-bg);
+    padding: 25px 20px;
+    border-radius: 16px;
+    height: fit-content;
+    position: sticky;
+    top: 90px;
+    backdrop-filter: blur(10px);
+
+    /* 🔥 EZ A LÉNYEG */
+    margin-left: -20px;
+    padding-right: 40px;
+}
+
+.sidebar-search {
+    width: 100%;
+    padding: 10px 15px;
     border-radius: 25px;
     border: none;
     outline: none;
-    font-size: 16px;
+    margin-bottom: 20px;
 }
 
-p {
+.sidebar-section {
+    margin-top: 20px;
+}
+
+.sidebar-section h5 {
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.sidebar-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-section li {
+    padding: 6px 0;
+    cursor: pointer;
+    transition: 0.2s;
     color: var(--text-color);
 }
 
-.space {
-    padding-top: 350px;
+.sidebar-section li:hover {
+    opacity: 0.7;
 }
 
-.authors-grid {
+/* === MAIN === */
+.discover-main {
+    flex: 1;
+}
+
+.h1-discover {
+    padding-left: 0;
+}
+
+.section-title {
+    font-family: "Modern No. 20";
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+.author-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 20px;
 }
 
 .author-card {
     text-align: center;
     cursor: pointer;
-    transition: 0.2s;
+    transition: 0.25s;
+    text-decoration: none;
 }
 
 .author-card img {
@@ -69,39 +123,169 @@ p {
     transform: scale(1.07);
 }
 
-.books-grid {
+.book-grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 12px;
-    padding: 0 10px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
 }
 
-.h1-discover {
-    font-family: "Modern No. 20";
+.book-card {
+    text-align: center;
+    text-decoration: none;
     color: var(--text-color);
-    margin-bottom: 0;
-    padding-left: 280px;
-    padding-bottom: 30px;
+    height: 100%;
+}
+
+.book-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--card-shadow);
+    transition: 0.25s;
+}
+
+.book-card:hover img {
+    transform: scale(1.05);
 }
 
 .search-results {
-    padding: 15px;
-    margin-bottom: 20px;
-    padding-left: 50px;
+    margin-bottom: 30px;
 }
 
-@media (max-width: 1200px) {
-    .books-grid { grid-template-columns: repeat(6, 1fr); }
+p {
+    color: var(--text-color);
 }
 
-@media (max-width: 992px) {
-    .books-grid { grid-template-columns: repeat(4, 1fr); }
+.space {
+    padding-top: 150px;
 }
 
-@media (max-width: 768px) {
-    .books-grid { grid-template-columns: repeat(3, 1fr); }
-}
+/* === RESPONSIVE === */
 
+/* TABLET */
 @media (max-width: 576px) {
-    .books-grid { grid-template-columns: repeat(2, 1fr); }
+    .discover-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sidebar-section ul {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-section li {
+        padding: 6px 10px;
+        background: var(--card-bg);
+        border-radius: 20px;
+    }
+}
+
+/* MOBILE */
+@media (max-width: 576px) {
+    .author-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .book-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.discover-sidebar {
+    width: 260px;
+    background: var(--accent-bg);
+    padding: 25px 20px;
+    border-radius: 16px;
+    height: 850px;
+    position: sticky;
+    top: 90px;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-search {
+    width: 95%;
+    padding: 10px 15px;
+    border-radius: 25px;
+    border: none;
+    margin-bottom: 20px;
+}
+
+.sidebar-section li {
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidebar-section li:hover {
+    background: var(--card-bg);
+    transform: translateX(5px);
+}
+
+.sidebar-section li.active {
+    background: var(--header-bg);
+    color: white;
+}
+
+.categories {
+    max-width: 940px;
+    /* bootstrap lg container */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 15px;
+}
+
+.categories-title {
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-family: "Modern No. 20";
+    color: var(--text-color);
+}
+
+/* GRID */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px;
+}
+
+/* TILE */
+.category-tile {
+    position: relative;
+    height: 100px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6c8c5a, #4e6b3c);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* overlay (sötétítés a szöveg miatt) */
+.category-tile .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+/* szöveg */
+.category-tile span {
+    position: relative;
+    color: white;
+    font-weight: 600;
+    z-index: 1;
+}
+
+/* hover effekt */
+.category-tile:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }

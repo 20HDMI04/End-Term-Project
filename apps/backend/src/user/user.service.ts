@@ -97,9 +97,17 @@ export class UserService {
         'Nickname is required for first-time update',
       );
     }
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { email: email },
-    });
+    let user;
+    try {
+      user = await this.prisma.user.findUniqueOrThrow({
+        where: { email: email },
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2025') {
+        throw new NotFoundException('User not found.');
+      }
+      throw error;
+    }
     const imageTitle = user.email.split('@')[0];
 
     if (

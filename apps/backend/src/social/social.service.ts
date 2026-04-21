@@ -26,9 +26,9 @@ export class SocialService {
      * @throws InternalServerErrorException - If there is an error while retrieving comments from the database.
    * @returns A list of comments associated with the given book ID. Each comment includes the text of the comment, the creation date, and user information (nickname, email, smaller profile picture).
    */
-  async findComments(bookId: string) {
+  async findComments(bookId: string, userId: string) {
     try {
-      return await this.prisma.comment.findMany({
+      const comments = await this.prisma.comment.findMany({
         where: {
           bookId: bookId,
         },
@@ -42,13 +42,35 @@ export class SocialService {
               email: true,
               smallerProfilePic: true,
             },
-            omit: {
-              smallerProfilePicKey: true,
-              biggerProfilePicKey: true,
+          },
+          _count: {
+            select: {
+              votes: true,
             },
           },
         },
       });
+
+      // Fetch votes for current user separately to avoid filtering issues
+      const currentUserVotes = await this.prisma.commentLike.findMany({
+        where: {
+          userId: userId,
+          comment: {
+            bookId: bookId,
+          },
+        },
+        select: {
+          commentId: true,
+        },
+      });
+
+      const likedCommentIds = new Set(currentUserVotes.map((v) => v.commentId));
+
+      return comments.map((comment) => ({
+        ...comment,
+        likedByUser: likedCommentIds.has(comment.id),
+        likeCount: comment._count?.votes ?? 0,
+      }));
     } catch (error) {
       console.error('Error finding comments:', error);
       throw new InternalServerErrorException('Failed to find comments.');
@@ -326,6 +348,57 @@ export class SocialService {
       console.error('Error creating haveReadIt record:', error);
       throw new InternalServerErrorException(
         'Failed to create haveReadIt record.',
+      );
+    }
+  }
+
+  /**
+   * @summary Remove a book from have read
+   * @description Removes a record indicating that a user has read a specific book. This method is used to unmark books as read.
+   * @param bookId - The ID of the book to remove from have read.
+   * @param userId - The ID of the user who has read the book.
+   * @returns A promise resolving when the record is deleted.
+   * @throws NotFoundException - If the record does not exist.
+   * @throws InternalServerErrorException - If there is an error while deleting the record.
+   */
+  async removeHaveReadTheBook(bookId: string, userId: string) {
+    try {
+      await this.prisma.book.findUniqueOrThrow({
+        where: {
+          id: bookId,
+        },
+      });
+
+      const haveReadIt = await this.prisma.haveReadIt.deleteMany({
+        where: {
+          bookId: bookId,
+          userId: userId,
+        },
+      });
+
+      if (haveReadIt.count > 0) {
+        await this.prisma.bookStatistics.update({
+          where: {
+            bookId: bookId,
+          },
+          data: {
+            readersCount: {
+              decrement: 1,
+            },
+          },
+        });
+      }
+
+      return haveReadIt;
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException('Book not found.');
+        }
+      }
+      console.error('Error deleting haveReadIt record:', error);
+      throw new InternalServerErrorException(
+        'Failed to delete haveReadIt record.',
       );
     }
   }

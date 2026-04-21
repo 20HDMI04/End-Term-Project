@@ -6,6 +6,8 @@ import { useApi } from "../context/apiContext";
 import type { AuthorSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
 
 export function AuthorsPage() {
     const api = useApi();
@@ -13,6 +15,7 @@ export function AuthorsPage() {
     const [authors, setAuthors] = useState<any[]>([]);
     const { theme, toggleTheme } = useTheme();
     const [user, setUser] = useState<any>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Adatok betöltése
     useEffect(() => {
@@ -45,6 +48,22 @@ export function AuthorsPage() {
         }
         fetchUser();
     }, [api]);
+
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
 
     const handleAuthorImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
         const currentTheme = e.currentTarget.getAttribute('data-theme');
@@ -80,6 +99,7 @@ export function AuthorsPage() {
                         </ul>
 
                         <div className="navbar-right">
+                            <NotificationBell isAdmin={isAdmin} />
                             <button
                                 className="Darkmode-changer"
                                 onClick={toggleTheme}

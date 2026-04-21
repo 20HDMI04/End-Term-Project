@@ -18,6 +18,7 @@ export interface User {
  id: string;
  name: string;
  photo: string;
+ nickname?: string;
 }
 
 export interface MainPageData {

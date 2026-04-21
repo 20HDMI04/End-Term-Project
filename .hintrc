@@ -10,6 +10,15 @@
       }
     ],
     "no-inline-styles": "off",
-    "axe/structure": "off"
-  }
+    "axe/structure": "off",
+    "axe/forms": "off",
+    "button-type": "off",
+    "axe/name-role-value": "off"
+  },
+  "browserslist": [
+    "defaults",
+    "not ie 11",
+    "not ios_saf <= 18.6",
+    "not safari <= 18.6"
+  ]
 }

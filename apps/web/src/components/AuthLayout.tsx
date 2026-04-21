@@ -1,4 +1,9 @@
+import { useTheme } from "../context/darkmodeContext";
+
 const AuthLayout = () => {
+	const { theme } = useTheme();
+	const isDark = theme === "dark";
+
 	return (
 		<div
 			className="auth-page-wrapper"
@@ -7,7 +12,7 @@ const AuthLayout = () => {
 				flexDirection: "column",
 				alignItems: "center",
 				minHeight: "100vh",
-				backgroundColor: "#f4f7f6",
+				backgroundColor: isDark ? "#1a1a1a" : "#f4f7f6",
 				paddingTop: "50px",
 			}}
 		>

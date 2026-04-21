@@ -228,14 +228,15 @@ nav {
     text-decoration: none;
     text-align: center;
     color: white;
+    display: grid;
     justify-content: center;
+    align-items: center;
 }
 
 /* Books Row */
 .books-container-main {
-    margin-top: 60px;
-    margin-left: 20px;
-    margin-right: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
     align-content: center;
     justify-content: center;
 }
@@ -257,17 +258,20 @@ nav {
     color: white;
     border: none;
     transition: background-color 0.7s;
-    color: white;
 }
 
 .authors-container-main {
     background-color: var(--accent-bg);
     transition: background-color 0.7s;
-    margin-top: 80px;
-    margin-left: 20px;
-    margin-right: 20px;
+    padding-left: 15px;
+    padding-right: 20px;
     min-height: 350px;
     align-content: center;
+}
+
+.paddingForAuthors {
+    padding-top: 80px;
+    margin-top: 40px;
 }
 
 .books-container {
@@ -289,25 +293,31 @@ nav {
 .authors-container::-webkit-scrollbar {
     display: none;
 }
+.book-info{
+    color: var(--text-color);
+}
 
 .rating-main {
     position: absolute;
     top: 8px;
-    left: 80px;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    right: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 8px;
     z-index: 10;
+    pointer-events: none;
 }
 
 .rating-display {
+    margin: 0;
+    padding: 4px 22px 4px 10px;
+    display: flex;
+    align-items: center;
+
+    font-weight: 700;
+    font-size: 0.85rem;
+
     color: #f7f4dc;
-    margin: 0px;
-    min-width: 60px;
-    padding-left: 6px;
+    line-height: 1;
 }
 
 .books-display-main {
@@ -349,10 +359,9 @@ nav {
 
 /* Footer */
 .footer {
-    display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 50px 40px;
+    padding: 50px 40px 25px 40px;
     background-color: var(--header-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
@@ -369,7 +378,11 @@ nav {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: "Modern No. 20";
     color: white;
-    max-height: 10px;    
+    max-height: 10px;
+    
+    p {
+        color: white;
+    }
 }
 
 .link {
@@ -529,4 +542,129 @@ nav {
     .navbar-right {
         gap: 10px;
     }
+}
+
+/* ================================================================
+   SWEETALERT2 STYLING - Logout Dialog
+   ================================================================ */
+
+/* SweetAlert2 Container */
+.swal2-container {
+    z-index: 1060 !important;
+}
+
+/* SweetAlert2 Popup */
+.swal2-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* SweetAlert2 Backdrop - Critical Fix */
+.swal2-backdrop-show {
+    background: rgba(0, 0, 0, 0.4) !important;
+    z-index: 1059 !important;
+}
+
+.swal2-shown {
+    overflow: visible !important;
+}
+
+.swal2-shown body {
+    overflow: visible !important;
+}
+
+/* Light Mode - SweetAlert2 */
+[data-theme="light"] .swal2-popup {
+    background-color: #ffffff !important;
+}
+
+[data-theme="light"] .swal-title {
+    color: #333333 !important;
+    font-weight: 400 !important;
+    font-size: 1.5rem !important;
+}
+
+[data-theme="light"] .swal-text {
+    color: #666666 !important;
+    font-size: 1rem !important;
+}
+
+/* Dark Mode - SweetAlert2 */
+[data-theme="dark"] .swal2-popup {
+    background-color: #262626 !important;
+}
+
+[data-theme="dark"] .swal-title {
+    color: #ffffff !important;
+    font-weight: 400 !important;
+    font-size: 1.5rem !important;
+}
+
+[data-theme="dark"] .swal-text {
+    color: #b0b0b0 !important;
+    font-size: 1rem !important;
+}
+
+/* SweetAlert2 Buttons */
+.swal-confirm-btn {
+    background-color: #4E6B3A !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 10px 24px !important;
+    font-weight: 400 !important;
+    font-size: 1rem !important;
+    min-width: 120px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(78, 107, 58, 0.3) !important;
+    cursor: pointer !important;
+}
+
+.swal-confirm-btn:hover {
+    background-color: #5a7d44 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(78, 107, 58, 0.4) !important;
+}
+
+.swal-confirm-btn:active {
+    background-color: #3d5028 !important;
+    transform: translateY(0) !important;
+}
+
+/* Cancel Button */
+.swal-cancel-btn {
+    background-color: transparent !important;
+    border: 2px solid #e0e0e0 !important;
+    border-radius: 6px !important;
+    padding: 8px 20px !important;
+    font-weight: 400 !important;
+    font-size: 1rem !important;
+    min-width: 120px !important;
+    transition: all 0.3s ease !important;
+    color: #333333 !important;
+    cursor: pointer !important;
+}
+
+.swal-cancel-btn:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #999999 !important;
+}
+
+[data-theme="dark"] .swal-cancel-btn {
+    border-color: #444444 !important;
+    color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .swal-cancel-btn:hover {
+    background-color: #333333 !important;
+    border-color: #555555 !important;
+}
+
+/* SweetAlert2 Icon */
+.swal2-icon.swal2-warning {
+    border-color: #ff9800 !important;
+}
+
+.swal2-icon.swal2-warning [class^='swal2-icon-content'] {
+    color: #ff9800 !important;
 }

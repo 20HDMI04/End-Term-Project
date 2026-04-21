@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
+import Session from "supertokens-auth-react/recipe/session";
+import { NotificationBell } from "./NotificationBell";
 
 export function BooksPage() {
     const api = useApi();
@@ -14,6 +16,7 @@ export function BooksPage() {
     const [authorList, setAuthorList] = useState<AuthorSection[]>();
     const { theme, toggleTheme } = useTheme();
     const [user, setUser] = useState<any>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         async function fetchBooks() {
@@ -44,6 +47,22 @@ export function BooksPage() {
         fetchUser();
     }, [api]);
 
+    // Check if user is admin
+    useEffect(() => {
+        const checkAdminRole = async () => {
+            try {
+                if (await Session.doesSessionExist()) {
+                    const payload = await Session.getAccessTokenPayloadSecurely();
+                    const roles = payload.roles?.roles || payload.roles || [];
+                    setIsAdmin(roles.includes('admin'));
+                }
+            } catch (err) {
+                console.error('Error checking admin role:', err);
+            }
+        };
+        checkAdminRole();
+    }, []);
+
     return (
         <div className="home-container">
             {/* Navbar */}
@@ -69,6 +88,7 @@ export function BooksPage() {
                         </ul>
 
                         <div className="navbar-right">
+                            <NotificationBell isAdmin={isAdmin} />
                             <button
                                 className="Darkmode-changer"
                                 onClick={toggleTheme}
@@ -150,6 +170,8 @@ export function BooksPage() {
                                         display: "flex",
                                         alignItems: "center",
                                         gap: "4px",
+                                        zIndex: 10,
+                                        pointerEvents: "none",
                                     }}
                                 >
                                 </div>
