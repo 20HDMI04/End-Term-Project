@@ -170,12 +170,14 @@ export class AuthorsService {
    * @returns a paginated list of authors with metadata
    * @throws InternalServerErrorException if there is a database error during retrieval
    */
-  async findAll(query: PaginationDto, admin: boolean, currentUserId: string) {
+  async findAll(query: PaginationDto, admin: boolean, currentUserId: string, pendingOnly: boolean = false) {
     const { page = 1, limit = 10, search, sortBy, sortOrder = 'asc' } = query;
     const skip = (page - 1) * limit;
 
     const whereCondition: any = {};
-    if (!admin) {
+    if (pendingOnly) {
+      whereCondition.approveStatus = false;
+    } else if (!admin) {
       whereCondition.approveStatus = true;
     }
 
@@ -240,7 +242,12 @@ export class AuthorsService {
 
       return {
         data: mappedData,
-        meta: { total, page, lastPage: Math.ceil(total / limit) },
+        pagination: {
+          total,
+          page,
+          lastPage: Math.ceil(total / limit),
+          totalPages: Math.ceil(total / limit),
+        },
       };
     } catch (error) {
       throw new InternalServerErrorException('Database error during get All.');
@@ -587,19 +594,7 @@ export class AuthorsService {
    * @throws InternalServerErrorException if there is an error during the database update operation.
    */
   async disapprove(id: string) {
-    const author = await this.prisma.author.findUnique({ where: { id } });
-    if (!author) throw new NotFoundException('Author not found.');
-
-    try {
-      return await this.prisma.author.update({
-        where: { id },
-        data: { approveStatus: false },
-      });
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'An error occurred during disapproval (author).',
-      );
-    }
+    return await this.remove(id);
   }
 
   /**

@@ -63,6 +63,7 @@ import { UserProfile } from "./components/UserProfile";
 import { AuthorsPage } from "./components/AuthorsPage";
 import { Genre } from "./components/Genres";
 import { AddBook } from "./components/AddBook";
+import { AddAuthor } from "./components/AddAuthor";
 import "./components/css/auth.css";
 
 SuperTokens.init({
@@ -217,6 +218,17 @@ export default function App() {
 							element={
 								<SessionAuth>
 									<AddBook />
+								</SessionAuth>
+							}
+						/>
+
+						{/* ADD AUTHOR - To add a new author to the system */}
+						{/* File: src/components/AddAuthor.tsx */}
+						<Route
+							path="/add-author"
+							element={
+								<SessionAuth>
+									<AddAuthor />
 								</SessionAuth>
 							}
 						/>

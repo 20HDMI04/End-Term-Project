@@ -12,31 +12,37 @@ export function NotificationBell({ isAdmin }: NotificationBellProps) {
 	const [showPanel, setShowPanel] = useState(false);
 	const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-	// Fetch pending books count
+	// Fetch pending books + authors count
 	useEffect(() => {
 		if (!isAdmin) return;
 
 		const fetchPendingCount = async () => {
 			try {
-				const response = await fetch(
-					"http://localhost:3002/books/pending/list?page=1&limit=1",
-					{
+				const [booksRes, authorsRes] = await Promise.all([
+					fetch("http://localhost:3002/books/pending/list?page=1&limit=1", {
 						method: "GET",
 						credentials: "include",
-						headers: {
-							"Content-Type": "application/json",
-						},
-					}
-				);
+						headers: { "Content-Type": "application/json" },
+					}),
+					fetch("http://localhost:3002/authors/pending-approvals?page=1&limit=1", {
+						method: "GET",
+						credentials: "include",
+						headers: { "Content-Type": "application/json" },
+					}),
+				]);
 
-				if (response.ok) {
-					const data = await response.json();
-					setPendingCount(data.pagination?.total || 0);
-				} else {
-					console.error("Failed to fetch pending books count");
+				let total = 0;
+				if (booksRes.ok) {
+					const booksData = await booksRes.json();
+					total += booksData.pagination?.total || 0;
 				}
+				if (authorsRes.ok) {
+					const authorsData = await authorsRes.json();
+					total += authorsData.pagination?.total || authorsData.meta?.total || 0;
+				}
+				setPendingCount(total);
 			} catch (error) {
-				console.error("Error fetching pending books:", error);
+				console.error("Error fetching pending count:", error);
 			}
 		};
 
