@@ -530,7 +530,7 @@ export function UserProfile() {
                                     transition: "all 0.3s ease"
                                 }}
                             >
-                                🚪 Logout
+                                Logout
                             </button>
                         </div>
                     </div>
@@ -723,9 +723,9 @@ export function UserProfile() {
                             <div className="card p-4" style={{ maxWidth: "600px" }}>
                                 <h5>Create a New Author</h5>
                                 <p className="text-muted">Add a new author to the community database.</p>
-                                <button className="btn btn-success w-100" onClick={() => setShowConstructionModal(true)}>
+                                <a href="/add-author" className="btn btn-success w-100">
                                     + Add Author
-                                </button>
+                                </a>
                             </div>
                         </div>
 

@@ -25,6 +25,7 @@ interface ApiContextType {
     likeComment: (commentId: string) => Promise<void>;
     unlikeComment: (commentId: string) => Promise<void>;
     updateNickname: (nickname: string) => Promise<any>;
+    createAuthor: (file: File | null, authorData: any) => Promise<any>;
 }
 
 const ApiContext = createContext<ApiContextType>(null as any);
@@ -407,6 +408,35 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
         return text ? JSON.parse(text) : { success: true };
     }
 
+    // Create a new author
+    async function createAuthor(file: File | null, authorData: any): Promise<any> {
+        try {
+            const formData = new FormData();
+            if (file) {
+                formData.append("file", file);
+            }
+            formData.append("name", authorData.name);
+            if (authorData.bio) formData.append("bio", authorData.bio);
+            if (authorData.birthDate) formData.append("birthDate", authorData.birthDate);
+            if (authorData.nationality) formData.append("nationality", authorData.nationality);
+            if (authorData.topWorks) formData.append("topWorks", authorData.topWorks);
+            if (authorData.subjects) formData.append("subjects", authorData.subjects);
+            if (authorData.openLibraryId) formData.append("openLibraryId", authorData.openLibraryId);
+
+            const res = await fetch("http://localhost:3002/authors", {
+                method: "POST",
+                credentials: "include",
+                body: formData
+            });
+            const text = await res.text();
+            if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+            return text ? JSON.parse(text) : { success: true };
+        } catch (err) {
+            console.error("Error creating author:", err);
+            throw err;
+        }
+    }
+
     // Dislike comment
     const updateNickname = async (nickname: string) => {
     const res = await fetch("/api/user/nickname", {
@@ -447,8 +477,7 @@ export const ApiProvider = ({ children }: { children: React.ReactNode }) => {
             deleteComment,
             likeComment,
             unlikeComment,
-            updateNickname,
-        }}>
+            updateNickname,            createAuthor,        }}>
             {children}
         </ApiContext.Provider>
     );
