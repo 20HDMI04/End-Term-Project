@@ -221,9 +221,9 @@ export function AddBook() {
             );
 
             Swal.fire(
-                "Pending Approval",
-                "Your book has been submitted successfully and is awaiting admin approval. You will be notified once it has been reviewed.",
-                "info"
+                "Waiting for Approval",
+                "Your book submission has been received and is pending admin review.",
+                "success"
             ).then(() => {
                 console.log(formData.chosenAuthor);
                 navigate("/user/me");

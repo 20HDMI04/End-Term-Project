@@ -79,7 +79,7 @@ export function AddAuthor() {
             title: "Add New Author?",
             html: `
                 <div style="text-align: left;">
-                    ${profileImagePreview ? `<div style="margin-bottom: 15px; text-align: center;"><img src="${profileImagePreview}" alt="Preview" style="max-width: 120px; max-height: 150px; border-radius: 50%;"/></div>` : ''}
+                    ${profileImagePreview ? `<div style="margin-bottom: 15px; text-align: center;"><img src="${profileImagePreview}" alt="Preview" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/></div>` : ''}
                     <p><strong>Name:</strong> ${formData.name}</p>
                     ${formData.nationality ? `<p><strong>Nationality:</strong> ${formData.nationality}</p>` : ''}
                     ${formData.birthDate ? `<p><strong>Birth Date:</strong> ${formData.birthDate}</p>` : ''}
@@ -277,20 +277,6 @@ export function AddAuthor() {
                                 </div>
 
                                 {/* Open Library ID */}
-                                <div className="mb-3">
-                                    <label className="form-label" style={{ color: "var(--text-color)" }}>
-                                        Open Library ID
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="openLibraryId"
-                                        value={formData.openLibraryId}
-                                        onChange={handleChange}
-                                        placeholder="e.g., OL26320A"
-                                    />
-                                </div>
-
                                 {/* Profile Image */}
                                 <div className="mb-3">
                                     <label className="form-label" style={{ color: "var(--text-color)" }}>
@@ -311,8 +297,9 @@ export function AddAuthor() {
                                                     src={profileImagePreview}
                                                     alt="Preview"
                                                     style={{
-                                                        maxWidth: "120px",
-                                                        maxHeight: "150px",
+                                                        width: "100px",
+                                                        height: "100px",
+                                                        objectFit: "cover",
                                                         borderRadius: "50%",
                                                         marginBottom: "10px"
                                                     }}

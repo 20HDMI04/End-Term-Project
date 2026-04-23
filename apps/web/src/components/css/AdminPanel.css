@@ -80,10 +80,25 @@
 	transition: color 0.2s, border-color 0.2s;
 }
 
+.admin-tab-btn:hover:not(.active) {
+	color: #6c8f5e;
+	border-bottom-color: #6c8f5e;
+}
+
 .admin-tab-btn.active {
 	border-bottom-color: #6c8f5e;
 	color: #6c8f5e;
 	font-weight: 600;
+}
+
+.dark .admin-tab-btn:hover:not(.active) {
+	color: #7dd3fc;
+	border-bottom-color: #7dd3fc;
+}
+
+.dark .admin-tab-btn.active {
+	border-bottom-color: #7dd3fc;
+	color: #7dd3fc;
 }
 
 .tab-badge {
