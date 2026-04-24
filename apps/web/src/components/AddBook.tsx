@@ -35,6 +35,7 @@ export function AddBook() {
     const api = useApi();
     const [isLoading, setIsLoading] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
     const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
@@ -70,6 +71,10 @@ export function AddBook() {
             }
         }
         fetchAuthors();
+    }, [api]);
+
+    useEffect(() => {
+        api.getCurrentUser().then(setUser).catch(() => {});
     }, [api]);
 
     // Check if user is admin
@@ -290,7 +295,11 @@ export function AddBook() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />

@@ -15,6 +15,7 @@ export function AddAuthor() {
     const api = useApi();
     const [isLoading, setIsLoading] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -41,6 +42,10 @@ export function AddAuthor() {
         };
         checkAdminRole();
     }, []);
+
+    useEffect(() => {
+        api.getCurrentUser().then(setUser).catch(() => {});
+    }, [api]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -161,7 +166,11 @@ export function AddAuthor() {
                             </button>
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
