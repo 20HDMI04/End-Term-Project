@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "bootstrap/dist/css/bootstrap.css";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useApi } from "../context/apiContext";
 import type { AuthorSection, BookSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon } from "@tabler/icons-react";
@@ -13,6 +13,7 @@ import { NotificationBell } from "./NotificationBell";
 export function AuthorDetails() {
     const { id } = useParams();
     const api = useApi();
+    const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
 
     const [author, setAuthor] = useState<any>(null);
@@ -172,6 +173,7 @@ export function AuthorDetails() {
 
             {/* CONTENT */}
             <div className="container mt-4">
+                <button onClick={() => navigate(-1)} className="btn btn-outline-secondary mb-3" style={{ display: "flex", alignItems: "center", gap: "6px" }}>← Vissza</button>
                 <div className="row">
 
                     {/* LEFT SIDE */}

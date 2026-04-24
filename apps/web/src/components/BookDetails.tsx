@@ -6,7 +6,7 @@ import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon, IconStar, IconStarFilled, IconTrash, IconEdit, IconThumbUp } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Session from "supertokens-auth-react/recipe/session";
 import { NotificationBell } from "./NotificationBell";
 import { Footer } from "./Footer";
@@ -14,6 +14,7 @@ import { Footer } from "./Footer";
 export function BookDetails() {
     const { id } = useParams();
     const api = useApi();
+    const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
     const [book, setBook] = useState<Book | null>(null);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
@@ -387,6 +388,7 @@ export function BookDetails() {
             </nav>
 
             <div className="container mt-4">
+                <button onClick={() => navigate(-1)} className="btn btn-outline-secondary mb-3" style={{ display: "flex", alignItems: "center", gap: "6px" }}>← Vissza</button>
                 <div className="book-page-text row">
 
                     {/* 📌 LEFT SIDE - STICKY */}

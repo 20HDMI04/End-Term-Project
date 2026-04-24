@@ -302,6 +302,7 @@ export function AddBook() {
 
             {/* MAIN CONTENT */}
             <div className="container mt-5">
+                <button onClick={() => navigate(-1)} className="btn btn-outline-secondary mb-3" style={{ display: "flex", alignItems: "center", gap: "6px" }}>← Vissza</button>
                 <div className="row justify-content-center">
                     <div className="col-md-8">
                         <div className="card p-4" style={{ backgroundColor: "var(--accent-bg)" }}>
