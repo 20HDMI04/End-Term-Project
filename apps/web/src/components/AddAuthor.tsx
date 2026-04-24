@@ -15,6 +15,7 @@ export function AddAuthor() {
     const api = useApi();
     const [isLoading, setIsLoading] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -41,6 +42,10 @@ export function AddAuthor() {
         };
         checkAdminRole();
     }, []);
+
+    useEffect(() => {
+        api.getCurrentUser().then(setUser).catch(() => {});
+    }, [api]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -79,7 +84,7 @@ export function AddAuthor() {
             title: "Add New Author?",
             html: `
                 <div style="text-align: left;">
-                    ${profileImagePreview ? `<div style="margin-bottom: 15px; text-align: center;"><img src="${profileImagePreview}" alt="Preview" style="max-width: 120px; max-height: 150px; border-radius: 50%;"/></div>` : ''}
+                    ${profileImagePreview ? `<div style="margin-bottom: 15px; text-align: center;"><img src="${profileImagePreview}" alt="Preview" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;"/></div>` : ''}
                     <p><strong>Name:</strong> ${formData.name}</p>
                     ${formData.nationality ? `<p><strong>Nationality:</strong> ${formData.nationality}</p>` : ''}
                     ${formData.birthDate ? `<p><strong>Birth Date:</strong> ${formData.birthDate}</p>` : ''}
@@ -161,7 +166,11 @@ export function AddAuthor() {
                             </button>
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -173,6 +182,7 @@ export function AddAuthor() {
 
             {/* MAIN CONTENT */}
             <div className="container mt-5">
+                <button onClick={() => navigate(-1)} className="btn btn-outline-secondary mb-3" style={{ display: "flex", alignItems: "center", gap: "6px" }}>← Vissza</button>
                 <div className="row justify-content-center">
                     <div className="col-md-8">
                         <div className="card p-4" style={{ backgroundColor: "var(--accent-bg)" }}>
@@ -277,20 +287,6 @@ export function AddAuthor() {
                                 </div>
 
                                 {/* Open Library ID */}
-                                <div className="mb-3">
-                                    <label className="form-label" style={{ color: "var(--text-color)" }}>
-                                        Open Library ID
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        name="openLibraryId"
-                                        value={formData.openLibraryId}
-                                        onChange={handleChange}
-                                        placeholder="e.g., OL26320A"
-                                    />
-                                </div>
-
                                 {/* Profile Image */}
                                 <div className="mb-3">
                                     <label className="form-label" style={{ color: "var(--text-color)" }}>
@@ -311,8 +307,9 @@ export function AddAuthor() {
                                                     src={profileImagePreview}
                                                     alt="Preview"
                                                     style={{
-                                                        maxWidth: "120px",
-                                                        maxHeight: "150px",
+                                                        width: "100px",
+                                                        height: "100px",
+                                                        objectFit: "cover",
                                                         borderRadius: "50%",
                                                         marginBottom: "10px"
                                                     }}

@@ -35,6 +35,7 @@ export function AddBook() {
     const api = useApi();
     const [isLoading, setIsLoading] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
     const [authors, setAuthors] = useState<{ id: string; name: string }[]>([]);
@@ -70,6 +71,10 @@ export function AddBook() {
             }
         }
         fetchAuthors();
+    }, [api]);
+
+    useEffect(() => {
+        api.getCurrentUser().then(setUser).catch(() => {});
     }, [api]);
 
     // Check if user is admin
@@ -221,9 +226,9 @@ export function AddBook() {
             );
 
             Swal.fire(
-                "Pending Approval",
-                "Your book has been submitted successfully and is awaiting admin approval. You will be notified once it has been reviewed.",
-                "info"
+                "Waiting for Approval",
+                "Your book submission has been received and is pending admin review.",
+                "success"
             ).then(() => {
                 console.log(formData.chosenAuthor);
                 navigate("/user/me");
@@ -290,7 +295,11 @@ export function AddBook() {
 
                             <a href="/user/me">
                                 <img
-                                    src={theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg"}
+                                    src={
+                                        user?.smallerProfilePic ||
+                                        user?.biggerProfilePic ||
+                                        (theme === "light" ? "/def_profile_icon.svg" : "/def_profile_icon2.svg")
+                                    }
                                     alt="profile"
                                     className="profile-pic"
                                 />
@@ -302,6 +311,7 @@ export function AddBook() {
 
             {/* MAIN CONTENT */}
             <div className="container mt-5">
+                <button onClick={() => navigate(-1)} className="btn btn-outline-secondary mb-3" style={{ display: "flex", alignItems: "center", gap: "6px" }}>← Vissza</button>
                 <div className="row justify-content-center">
                     <div className="col-md-8">
                         <div className="card p-4" style={{ backgroundColor: "var(--accent-bg)" }}>

@@ -115,7 +115,11 @@ export function UserProfile() {
 
     const handleSaveNickname = async () => {
         if (!nickname.trim()) {
-            alert("Nickname cannot be empty");
+            Swal.fire("Érvénytelen becenév", "A becenév nem lehet üres.", "warning");
+            return;
+        }
+        if (nickname.trim().length < 3) {
+            Swal.fire("Túl rövid", "A becenévnek legalább 3 karakternek kell lennie.", "warning");
             return;
         }
 
@@ -128,7 +132,7 @@ export function UserProfile() {
             setIsEditingNickname(false);
         } catch (err) {
             console.error("Error saving nickname:", err);
-            alert("Failed to save nickname. Please try again.");
+            Swal.fire("Hiba", "Nem sikerült menteni a becenevet. Kérjük, próbáld újra.", "error");
         } finally {
             setIsSavingNickname(false);
         }
@@ -586,7 +590,7 @@ export function UserProfile() {
 
                                 </div>
                             ) : (
-                                <p className="text-muted">No favorite books yet.</p>
+                                <p>No favorite books yet.</p>
                             )}
                         </div>
 

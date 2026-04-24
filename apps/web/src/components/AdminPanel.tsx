@@ -198,8 +198,8 @@ isAuthorsLoading ? (
 <div className="books-list">
 {pendingAuthors.map((author) => (
 <div key={author.id} className="book-approval-card">
-<div className="book-cover">
-<img src={author.biggerProfilePic || "/def_profile_icon.svg"} alt={author.name} onError={(e) => { e.currentTarget.src = "/def_profile_icon.svg"; }} style={{ borderRadius: "50%" }} />
+<div className="book-cover" style={{ width: "100px", height: "100px", background: "none", borderRadius: "50%" }}>
+<img src={author.biggerProfilePic || "/def_profile_icon.svg"} alt={author.name} onError={(e) => { e.currentTarget.src = "/def_profile_icon.svg"; }} style={{ borderRadius: "50%", width: "100px", height: "100px", objectFit: "cover" }} />
 </div>
 <div className="book-info">
 <h3 className="book-title">{author.name}</h3>
@@ -225,16 +225,16 @@ isAuthorsLoading ? (
 
 {activeTab === "books" && !isBooksLoading && pendingBooks.length > 0 && booksTotalPages > 1 && (
 <div className="admin-panel-footer">
-<button disabled={booksPage === 1} onClick={() => setBooksPage(booksPage - 1)}>‹ Previous</button>
+<button disabled={booksPage === 1} onClick={() => setBooksPage(booksPage - 1)}>ï¿½ Previous</button>
 <span className="page-info">Page {booksPage} of {booksTotalPages}</span>
-<button disabled={booksPage === booksTotalPages} onClick={() => setBooksPage(booksPage + 1)}>Next ›</button>
+<button disabled={booksPage === booksTotalPages} onClick={() => setBooksPage(booksPage + 1)}>Next ï¿½</button>
 </div>
 )}
 {activeTab === "authors" && !isAuthorsLoading && pendingAuthors.length > 0 && authorsTotalPages > 1 && (
 <div className="admin-panel-footer">
-<button disabled={authorsPage === 1} onClick={() => setAuthorsPage(authorsPage - 1)}>‹ Previous</button>
+<button disabled={authorsPage === 1} onClick={() => setAuthorsPage(authorsPage - 1)}>ï¿½ Previous</button>
 <span className="page-info">Page {authorsPage} of {authorsTotalPages}</span>
-<button disabled={authorsPage === authorsTotalPages} onClick={() => setAuthorsPage(authorsPage + 1)}>Next ›</button>
+<button disabled={authorsPage === authorsTotalPages} onClick={() => setAuthorsPage(authorsPage + 1)}>Next ï¿½</button>
 </div>
 )}
 </div>

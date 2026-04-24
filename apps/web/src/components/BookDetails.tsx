@@ -6,7 +6,7 @@ import { useApi } from "../context/apiContext";
 import type { BookSection, Book, AuthorSection } from "./interfaces/interfaces";
 import { IconSun, IconMoon, IconStar, IconStarFilled, IconTrash, IconEdit, IconThumbUp } from '@tabler/icons-react';
 import { useTheme } from "../context/darkmodeContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Session from "supertokens-auth-react/recipe/session";
 import { NotificationBell } from "./NotificationBell";
 import { Footer } from "./Footer";
@@ -14,6 +14,7 @@ import { Footer } from "./Footer";
 export function BookDetails() {
     const { id } = useParams();
     const api = useApi();
+    const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
     const [book, setBook] = useState<Book | null>(null);
     const [authorList, setAuthorList] = useState<AuthorSection[] | undefined>(undefined);
@@ -387,6 +388,7 @@ export function BookDetails() {
             </nav>
 
             <div className="container mt-4">
+                <button onClick={() => navigate(-1)} className="btn btn-outline-secondary mb-3" style={{ display: "flex", alignItems: "center", gap: "6px" }}>← Vissza</button>
                 <div className="book-page-text row">
 
                     {/* 📌 LEFT SIDE - STICKY */}
@@ -403,6 +405,7 @@ export function BookDetails() {
                                 src={book.biggerCoverPic || "/logo.svg"}
                                 className="book-page-text img-fluid rounded shadow"
                                 alt={book.title}
+                                onError={(e) => { e.currentTarget.src = "/book.png"; }}
                             />
 
                             <button
@@ -459,7 +462,7 @@ export function BookDetails() {
                     <div className=" book-page-text book-page-text col-md-9">
                         <h2>{book.title}</h2>
                         <h5 className="book-page-text">
-                            <a href={`/author/${book.authorId} || ${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
+                            <a href={`/author/${author?.id || book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
                                 {book.author.name || "Unknown Author"}
                             </a>
                         </h5>
@@ -529,9 +532,10 @@ export function BookDetails() {
                                 >
                                     <img
                                         src={author.smallerProfilePic || (theme === "light"
-                                            ? "/def_profile_icon.svg"
-                                            : "/def_profile_icon2.svg")}
+                                            ? "/user.png"
+                                            : "/user2.png")}
                                         alt={author.name}
+                                        onError={(e) => { e.currentTarget.src = theme === "light" ? "/user.png" : "/user2.png"; }}
                                         style={{
                                             width: "70px",
                                             height: "70px",

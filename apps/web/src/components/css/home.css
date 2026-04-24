@@ -594,7 +594,8 @@ nav {
     background-color: #262626 !important;
 }
 
-[data-theme="dark"] .swal-title {
+[data-theme="dark"] .swal-title,
+[data-theme="dark"] .swal2-title {
     color: #ffffff !important;
     font-weight: 400 !important;
     font-size: 1.5rem !important;
@@ -603,6 +604,10 @@ nav {
 [data-theme="dark"] .swal-text {
     color: #b0b0b0 !important;
     font-size: 1rem !important;
+}
+
+[data-theme="dark"] .swal2-html-container {
+    color: #d0d0d0 !important;
 }
 
 /* SweetAlert2 Buttons */
@@ -660,6 +665,25 @@ nav {
     border-color: #555555 !important;
 }
 
+[data-theme="dark"] .swal2-confirm {
+    background-color: #7dd3fc !important;
+    color: #0f172a !important;
+}
+
+[data-theme="dark"] .swal2-confirm:hover {
+    background-color: #38bdf8 !important;
+}
+
+[data-theme="dark"] .swal2-cancel {
+    background-color: #334155 !important;
+    color: #e0e0e0 !important;
+    border-color: #475569 !important;
+}
+
+[data-theme="dark"] .swal2-cancel:hover {
+    background-color: #475569 !important;
+}
+
 /* SweetAlert2 Icon */
 .swal2-icon.swal2-warning {
     border-color: #ff9800 !important;
@@ -667,4 +691,81 @@ nav {
 
 .swal2-icon.swal2-warning [class^='swal2-icon-content'] {
     color: #ff9800 !important;
+}
+
+/* Dark mode: date input calendar picker icon */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Submit button hover matches btn-outline-primary hover */
+.btn.btn-success:hover,
+.btn.btn-success:focus {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+/* Back button (btn-outline-secondary) hover */
+:root[data-theme="light"] .btn.btn-outline-secondary:hover,
+:root[data-theme="light"] .btn.btn-outline-secondary:focus {
+    background-color: #4a7c3f !important;
+    border-color: #4a7c3f !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn.btn-outline-secondary:hover,
+[data-theme="dark"] .btn.btn-outline-secondary:focus {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+/* Light mode: green hover on favorite and mark-as-read buttons */
+[data-theme="light"] .btn.btn-success:hover,
+[data-theme="light"] .btn.btn-success:focus {
+    background-color: #4a7c3f !important;
+    border-color: #4a7c3f !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .btn.btn-outline-primary:hover,
+[data-theme="light"] .btn.btn-outline-primary:focus {
+    background-color: #4a7c3f !important;
+    border-color: #4a7c3f !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn.btn-success {
+    background-color: #3a6187 !important;
+    border-color: #3a6187 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn.btn-success:hover,
+[data-theme="dark"] .btn.btn-success:focus {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode: form inputs */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #3d4e63 !important;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #7dd3fc !important;
+    box-shadow: 0 0 0 0.2rem rgba(125, 211, 252, 0.3) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #6c8f5e !important;
+    box-shadow: 0 0 0 0.2rem rgba(108, 143, 94, 0.25) !important;
 }
