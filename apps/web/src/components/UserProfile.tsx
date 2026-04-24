@@ -590,7 +590,7 @@ export function UserProfile() {
 
                                 </div>
                             ) : (
-                                <p className="text-muted">No favorite books yet.</p>
+                                <p>No favorite books yet.</p>
                             )}
                         </div>
 
