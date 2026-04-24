@@ -234,9 +234,10 @@ export function AuthorDetails() {
                                     <div key={book.id} className="col-md-3 mb-4 text-center">
                                         <a href={`/book/${book.id}`}>
                                             <img
-                                                src={book.smallerCoverPic}
+                                                src={book.smallerCoverPic || "/book.png"}
                                                 className="img-fluid rounded shadow"
                                                 alt={book.title}
+                                                onError={(e) => { e.currentTarget.src = "/book.png"; }}
                                                 style={{
                                                     height: "220px",
                                                     objectFit: "cover"

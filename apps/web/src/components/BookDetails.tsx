@@ -405,6 +405,7 @@ export function BookDetails() {
                                 src={book.biggerCoverPic || "/logo.svg"}
                                 className="book-page-text img-fluid rounded shadow"
                                 alt={book.title}
+                                onError={(e) => { e.currentTarget.src = "/book.png"; }}
                             />
 
                             <button
@@ -531,9 +532,10 @@ export function BookDetails() {
                                 >
                                     <img
                                         src={author.smallerProfilePic || (theme === "light"
-                                            ? "/def_profile_icon.svg"
-                                            : "/def_profile_icon2.svg")}
+                                            ? "/user.png"
+                                            : "/user2.png")}
                                         alt={author.name}
+                                        onError={(e) => { e.currentTarget.src = theme === "light" ? "/user.png" : "/user2.png"; }}
                                         style={{
                                             width: "70px",
                                             height: "70px",
