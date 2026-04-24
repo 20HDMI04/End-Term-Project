@@ -455,7 +455,6 @@ export function BookDetails() {
                         </div>
                     </div>
 
-                    {/* RIGHT SIDE */}
                     <div className=" book-page-text book-page-text col-md-9">
                         <h2>{book.title}</h2>
                         <h5 className="book-page-text">
@@ -464,7 +463,6 @@ export function BookDetails() {
                             </a>
                         </h5>
 
-                        {/* ⭐ RATING */}
                         <div className="book-page-text d-flex align-items-center gap-2 mb-2">
                             <strong>
                                 ⭐{book.statistics?.averageRating?.toFixed(2) ?? "N/A"}
@@ -474,14 +472,12 @@ export function BookDetails() {
                             </span>
                         </div>
 
-                        {/* DESCRIPTION */}
                         <p className="book-page-text mt-3">
                             {book.description || "No description available."}
                         </p>
 
                         <hr />
 
-                        {/* 📚 GENRES */}
                         <h5>Genres</h5>
                         <div className="d-flex flex-wrap gap-2 mb-3">
                             {book.genres && book.genres.length > 0 ? (
@@ -489,7 +485,7 @@ export function BookDetails() {
                                     g.genre ? (
                                         <Link
                                             key={g.genreId}
-                                            to={`/genres/${g.genreId}`} // ide navigál a kattintás
+                                            to={`/genres/${g.genreId}`}
                                             className="book-genres"
                                             style={{
                                                 color: "white",
@@ -508,7 +504,6 @@ export function BookDetails() {
                             )}
                         </div>
 
-                        {/* 📊 BOOK META */}
                         <div className="book-page-text">
                             <p>
                                 <strong>{book.pageNumber ?? "?"}</strong> pages <br />
@@ -519,7 +514,6 @@ export function BookDetails() {
 
                         <hr />
 
-                        {/* 👤 AUTHOR */}
                         <h5>About the author</h5>
                         {author?.name ? (
                             <div className="d-flex gap-3 align-items-start mt-3">
@@ -569,7 +563,6 @@ export function BookDetails() {
 
                         <h5>Comments</h5>
 
-                        {/* ADD COMMENT */}
                         <div className="d-flex gap-2 mb-3">
                             <input
                                 className="form-control"
@@ -582,7 +575,6 @@ export function BookDetails() {
                             </button>
                         </div>
 
-                        {/* COMMENT LIST */}
                         <div style={{ maxHeight: "400px", overflowY: "auto" }}>
                             {loadingComments ? (
                                 <p>Loading comments...</p>
@@ -590,14 +582,12 @@ export function BookDetails() {
                                 comments.map((comment) => (
                                     <div key={comment.id} className="d-flex gap-2 mb-3 p-3 border rounded">
 
-                                        {/* PROFILE PIC */}
                                         <img
                                             src={comment.user?.smallerProfilePic || "/def_profile_icon.svg"}
                                             style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
                                         />
 
                                         <div style={{ flex: 1 }}>
-                                            {/* NAME + TIME */}
                                             <div className="d-flex justify-content-between">
                                                 <span>
                                                     <strong>{comment.user?.nickname || (comment.user?.email || "unknown").split("@")[0]}</strong>
@@ -605,14 +595,12 @@ export function BookDetails() {
                                                 <small>{timeAgo(comment.createdAt)}</small>
                                             </div>
 
-                                            {/* USER RATING */}
                                             {comment.userRating && (
                                                 <div style={{ fontSize: "0.8rem" }}>
                                                     ⭐ {comment.userRating}/5
                                                 </div>
                                             )}
 
-                                            {/* TEXT */}
                                             {editingCommentId === comment.id ? (
                                                 <div className="mt-2">
                                                     <input
@@ -641,7 +629,6 @@ export function BookDetails() {
                                                 <p className="mb-1">{comment.text}</p>
                                             )}
 
-                                            {/* ACTIONS */}
                                             <div className="d-flex gap-3 align-items-center">
                                                 <button
                                                     className={`btn btn-sm ${(comment.likedByUser ?? comment.isLikedByMe)
@@ -653,7 +640,6 @@ export function BookDetails() {
                                                     <IconThumbUp /> {comment.likeCount ?? 0}
                                                 </button>
 
-                                                {/* EDIT OWN */}
                                                 {(user?.email === comment.userId || user?.email === comment.user?.email) && editingCommentId !== comment.id && (
                                                     <button
                                                         className="btn btn-sm btn-outline-primary"
@@ -663,7 +649,6 @@ export function BookDetails() {
                                                     </button>
                                                 )}
 
-                                                {/* DELETE OWN */}
                                                 {user?.email === comment.userId && (
                                                     <>
                                                         {confirmDeleteId === comment.id ? (

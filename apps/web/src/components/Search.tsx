@@ -21,7 +21,6 @@ export function Search() {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Betöltjük az adatokat
   useEffect(() => {
     async function fetchData() {
       const data = await api.getData();
@@ -50,7 +49,6 @@ export function Search() {
     fetchUser();
   }, [api]);
 
-  // Admin check
   useEffect(() => {
     const checkAdminRole = async () => {
       try {
@@ -66,7 +64,6 @@ export function Search() {
     checkAdminRole();
   }, []);
 
-  // Author név
   function getAuthorName(authorId: string | undefined): string {
     if (!authorList) return "Unknown author";
     for (const section of authorList) {
@@ -74,9 +71,8 @@ export function Search() {
       if (author) return author.name;
     }
     return "Unknown author";
-  } 
+  }
 
-  // 🔎 SZŰRÉS
   const filteredBooks = booksList.filter((book) => {
     const titleMatch = book.title.toLowerCase().includes(query.toLowerCase());
     const authorMatch = getAuthorName(book.authorId).toLowerCase().includes(query.toLowerCase());
@@ -90,7 +86,6 @@ export function Search() {
   return (
     <div className="home-container mt-4">
 
-      {/* NAVBAR */}
       <nav className="navbar navbar-expand-lg">
         <div className="container-fluid">
           <img
@@ -144,7 +139,6 @@ export function Search() {
         </div>
       </nav>
 
-      {/* SEARCH BAR */}
       <div
         className='search-bar-bg'
         style={{
@@ -162,7 +156,6 @@ export function Search() {
         </div>
       </div>
 
-      {/* 🎯 GENRE KATEGÓRIÁK */}
       {query.trim() === "" && (
         <div className="categories">
           <h5 className="categories-title">Categories</h5>
@@ -193,9 +186,8 @@ export function Search() {
         </div>
       )}
 
-      {/* 📚 TALÁLATOK */}
       {query.trim() !== "" && (
-        <div className="row g-3" style={{marginLeft: "300px", marginRight: "250px"}}>
+        <div className="row g-3" style={{ marginLeft: "300px", marginRight: "250px" }}>
           {filteredBooks.map((book) => (
             <div key={book.id} className="book-col">
               <Link to={`/book/${book.id}`} style={{ textDecoration: "none", color: "inherit" }}>
@@ -247,7 +239,7 @@ export function Search() {
               </p>
               <button
                 className="btn btn-outline-secondary mt-2"
-                style={{marginBottom: "20px", marginLeft: "20px"}}
+                style={{ marginBottom: "20px", marginLeft: "20px" }}
                 onClick={() => setQuery("")}
               >
                 Clear search

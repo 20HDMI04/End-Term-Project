@@ -20,7 +20,6 @@ export function Footer() {
 	return (
 		<footer className="footer-container" data-theme={theme}>
 			<div className="footer-content">
-				{/* Left Section - Logo and Social */}
 				<div className="footer-left">
 					<div className="footer-logo">
 						<img src="/readsy_logo.png" alt="Readsy" />
@@ -29,18 +28,16 @@ export function Footer() {
 						<a href="https://github.com/20HDMI04/End-Term-Project/wiki" target="_blank" rel="noopener noreferrer" title="GitHub">
 							<IconBrandGithub size={20} />
 						</a>
-					<a href="#" onClick={handleConstructionClick} title="Facebook" style={{ cursor: 'pointer' }}>
-						<IconBrandFacebook size={20} />
-					</a>
-					<a href="#" onClick={handleConstructionClick} title="X" style={{ cursor: 'pointer' }}>
-						<IconBrandX size={20} />
-					</a>
-				</div>
+						<a href="#" onClick={handleConstructionClick} title="Facebook" style={{ cursor: 'pointer' }}>
+							<IconBrandFacebook size={20} />
+						</a>
+						<a href="#" onClick={handleConstructionClick} title="X" style={{ cursor: 'pointer' }}>
+							<IconBrandX size={20} />
+						</a>
+					</div>
 				</div>
 
-				{/* Right Section - Four Columns */}
 				<div className="footer-columns">
-					{/* Navigation Column */}
 					<div className="footer-column">
 						<h3>Navigation</h3>
 						<ul>
@@ -51,49 +48,45 @@ export function Footer() {
 						</ul>
 					</div>
 
-					{/* Company Column */}
 					<div className="footer-column">
 						<h3>Company</h3>
 						<ul>
-						<li><a href="#about" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>About</a></li>
-						<li><a href="#careers" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Careers</a></li>
-						<li><a href="#contact" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Contact</a></li>
-						<li><a href="#press" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Press Kit</a></li>
-					</ul>
-				</div>
+							<li><a href="#about" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>About</a></li>
+							<li><a href="#careers" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Careers</a></li>
+							<li><a href="#contact" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Contact</a></li>
+							<li><a href="#press" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Press Kit</a></li>
+						</ul>
+					</div>
 
-				{/* Legal Column */}
-				<div className="footer-column">
-					<h3>Legal</h3>
-					<ul>
-						<li><a href="https://20hdmi04.github.io/ReadsyTermlySite/" style={{ cursor: 'pointer' }}>Privacy Policy</a></li>
-						<li><a href="/terms" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Terms of Service</a></li>
-						<li><a href="/cookies" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Cookie Policy</a></li>
-					</ul>
-				</div>
+					<div className="footer-column">
+						<h3>Legal</h3>
+						<ul>
+							<li><a href="https://20hdmi04.github.io/ReadsyTermlySite/" style={{ cursor: 'pointer' }}>Privacy Policy</a></li>
+							<li><a href="/terms" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Terms of Service</a></li>
+							<li><a href="/cookies" onClick={handleConstructionClick} style={{ cursor: 'pointer' }}>Cookie Policy</a></li>
+						</ul>
+					</div>
 
-				{/* Live Stats Column */}
-				<div className="footer-column footer-stats">
-					<h3>Live Stats</h3>
-					<div className="stats-number">1+</div>
-					<p className="stats-label">Curated volume currently available in the public archive.</p>
+					<div className="footer-column footer-stats">
+						<h3>Live Stats</h3>
+						<div className="stats-number">1+</div>
+						<p className="stats-label">Curated volume currently available in the public archive.</p>
+					</div>
 				</div>
 			</div>
-		</div>
 
-		{/* Bottom Copyright Section */}
+
 			<div className="footer-bottom">
 				<p className="footer-copyright">© 2024 Readsy. Cultivating the digital library.</p>
 				<p className="footer-credit">DESIGNED WITH INTENTION.</p>
 			</div>
 
-			{/* Under Construction Modal */}
 			{showConstructionModal && (
 				<div className="construction-modal-overlay" onClick={closeModal}>
 					<div className="construction-modal-content" onClick={(e) => e.stopPropagation()}>
-						<img 
-						src="/underconstruction.jpg" 
-							alt="Under Construction" 
+						<img
+							src="/underconstruction.jpg"
+							alt="Under Construction"
 							style={{ width: '100%', height: 'auto' }}
 							onError={(e) => {
 								console.error('Image failed to load:', e);

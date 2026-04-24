@@ -14,12 +14,11 @@
 .admin-panel-overlay.dark {
 	background-color: rgba(0, 0, 0, 0.7);
 }
-.book-info{
+
+.book-info {
 	color: var(--text-color);
 }
-.book-author{
-	
-}
+
 .admin-panel-modal {
 	background-color: var(--bg-color);
 	color: var(--text-color);
@@ -39,6 +38,7 @@
 		opacity: 0;
 		transform: translateY(-20px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);

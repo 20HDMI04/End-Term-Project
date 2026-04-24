@@ -26,7 +26,6 @@
     --button-add-bg: #3a6187dc;
 }
 
-/* Base Styles */
 html,
 body {
     background-color: var(--bg-color);
@@ -45,7 +44,6 @@ a:hover {
     transition: background-color 0.7s;
 }
 
-/* Navbar */
 .logo {
     font-size: 2em;
     font-weight: bold;
@@ -141,7 +139,6 @@ nav {
     color: inherit !important;
 }
 
-/* Header */
 .header {
     display: flex;
     align-items: center;
@@ -233,7 +230,6 @@ nav {
     align-items: center;
 }
 
-/* Books Row */
 .books-container-main {
     padding-left: 20px;
     padding-right: 20px;
@@ -279,7 +275,6 @@ nav {
     padding: 10px 0;
 }
 
-/* Hide scrollbar while keeping functionality */
 .books-container::-webkit-scrollbar {
     display: none;
 }
@@ -289,11 +284,11 @@ nav {
     padding: 10px 0;
 }
 
-/* Hide scrollbar while keeping functionality */
 .authors-container::-webkit-scrollbar {
     display: none;
 }
-.book-info{
+
+.book-info {
     color: var(--text-color);
 }
 
@@ -301,7 +296,7 @@ nav {
     position: absolute;
     top: 8px;
     right: 8px;
-    background: rgba(0,0,0,0.4);
+    background: rgba(0, 0, 0, 0.4);
     border-radius: 8px;
     z-index: 10;
     pointer-events: none;
@@ -357,7 +352,6 @@ nav {
     border: 2px solid var(--author-border-c);
 }
 
-/* Footer */
 .footer {
     align-items: center;
     justify-content: space-between;
@@ -379,7 +373,7 @@ nav {
     font-family: "Modern No. 20";
     color: white;
     max-height: 10px;
-    
+
     p {
         color: white;
     }
@@ -408,7 +402,6 @@ nav {
         width: 120px;
     }
 
-    /* Responsive containers */
     .books-container {
         margin: 0 10px;
         padding: 10px 0;
@@ -435,7 +428,6 @@ nav {
         left: 50px;
     }
 
-    /* Navbar adjustments */
     .navbar-nav {
         gap: 20px;
         margin-left: 10%;
@@ -480,7 +472,6 @@ nav {
     }
 }
 
-/* Mobile optimizations */
 @media (max-width: 576px) {
     .books-container {
         margin: 0 10px;
@@ -544,22 +535,15 @@ nav {
     }
 }
 
-/* ================================================================
-   SWEETALERT2 STYLING - Logout Dialog
-   ================================================================ */
-
-/* SweetAlert2 Container */
 .swal2-container {
     z-index: 1060 !important;
 }
 
-/* SweetAlert2 Popup */
 .swal2-popup {
     border-radius: 12px !important;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* SweetAlert2 Backdrop - Critical Fix */
 .swal2-backdrop-show {
     background: rgba(0, 0, 0, 0.4) !important;
     z-index: 1059 !important;
@@ -573,7 +557,6 @@ nav {
     overflow: visible !important;
 }
 
-/* Light Mode - SweetAlert2 */
 [data-theme="light"] .swal2-popup {
     background-color: #ffffff !important;
 }
@@ -589,7 +572,6 @@ nav {
     font-size: 1rem !important;
 }
 
-/* Dark Mode - SweetAlert2 */
 [data-theme="dark"] .swal2-popup {
     background-color: #262626 !important;
 }
@@ -605,7 +587,6 @@ nav {
     font-size: 1rem !important;
 }
 
-/* SweetAlert2 Buttons */
 .swal-confirm-btn {
     background-color: #4E6B3A !important;
     color: #ffffff !important;
@@ -631,7 +612,6 @@ nav {
     transform: translateY(0) !important;
 }
 
-/* Cancel Button */
 .swal-cancel-btn {
     background-color: transparent !important;
     border: 2px solid #e0e0e0 !important;
@@ -660,7 +640,6 @@ nav {
     border-color: #555555 !important;
 }
 
-/* SweetAlert2 Icon */
 .swal2-icon.swal2-warning {
     border-color: #ff9800 !important;
 }

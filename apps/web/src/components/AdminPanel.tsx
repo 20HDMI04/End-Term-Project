@@ -32,7 +32,6 @@ export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) 
 	const [totalPages, setTotalPages] = useState(1);
 	const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
-	// Fetch pending books
 	useEffect(() => {
 		const fetchPendingBooks = async () => {
 			try {
@@ -66,7 +65,6 @@ export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) 
 		fetchPendingBooks();
 	}, [page]);
 
-	// Approve book
 	const handleApprove = async (bookId: string) => {
 		try {
 			setActionInProgress(bookId);
@@ -79,9 +77,7 @@ export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) 
 			);
 
 			if (response.ok) {
-				// Remove the book from the list
 				setPendingBooks(pendingBooks.filter((book) => book.id !== bookId));
-				// Refresh the notification count
 				onCountUpdate?.();
 			} else {
 				const errorData = await response.json().catch(() => ({}));
@@ -96,7 +92,6 @@ export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) 
 		}
 	};
 
-	// Decline/Disapprove book
 	const handleDecline = async (bookId: string) => {
 		try {
 			setActionInProgress(bookId);
@@ -109,9 +104,7 @@ export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) 
 			);
 
 			if (response.ok) {
-				// Remove the book from the list
 				setPendingBooks(pendingBooks.filter((book) => book.id !== bookId));
-				// Refresh the notification count
 				onCountUpdate?.();
 			} else {
 				const errorData = await response.json().catch(() => ({}));
@@ -165,36 +158,36 @@ export default function AdminPanel({ onClose, onCountUpdate }: AdminPanelProps) 
 
 									<div className="book-info">
 										<h3 className="book-title">{book.title}</h3>
-										<p className="book-author" style={{color: "var(--text-color"}}>
+										<p className="book-author" style={{ color: "var(--text-color" }}>
 											by <strong>{book.author?.name || "Unknown"}</strong>
 										</p>
 
 										{book.originalPublicationYear && (
-											<p className="book-year" style={{color: "var(--text-color"}}>
+											<p className="book-year" style={{ color: "var(--text-color" }}>
 												Published: {book.originalPublicationYear}
 											</p>
 										)}
 
 										{book.originalPublisher && (
-											<p className="book-publisher" style={{color: "var(--text-color"}}>
+											<p className="book-publisher" style={{ color: "var(--text-color" }}>
 												Publisher: {book.originalPublisher}
 											</p>
 										)}
 
 										{book.pageNumber && (
-											<p className="book-pages" style={{color: "var(--text-color"}}>
+											<p className="book-pages" style={{ color: "var(--text-color" }}>
 												Pages: {book.pageNumber}
 											</p>
 										)}
 
 										{book.description && (
-											<p className="book-description" style={{color: "var(--text-color"}}>
+											<p className="book-description" style={{ color: "var(--text-color" }}>
 												Description: {book.description.substring(0, 150)}
 												{book.description.length > 150 ? "..." : ""}
 											</p>
 										)}
 
-										<p className="book-submitted" style={{color: "var(--text-color"}}>
+										<p className="book-submitted" style={{ color: "var(--text-color" }}>
 											Submitted: {new Date(book.createdAt).toLocaleDateString()}
 										</p>
 									</div>

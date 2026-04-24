@@ -1,4 +1,3 @@
-/* === MEGLÉVŐ VÁLTOZÓK MARADNAK === */
 :root {
     --bg-color: #f7f4dc;
     --text-color: #516523;
@@ -17,20 +16,17 @@
     --card-shadow: rgba(0, 0, 0, 0.4);
 }
 
-/* 🔥 OLD SEARCH BAR KILL */
 .search-bar-on-discoverpage,
 .search-bar-on-the-left {
     display: none;
 }
 
-/* === ÚJ LAYOUT === */
 .discover-layout {
     display: flex;
     gap: 30px;
     padding: 20px 40px;
 }
 
-/* === SIDEBAR === */
 .discover-sidebar {
     width: 260px;
     background: var(--accent-bg);
@@ -40,8 +36,6 @@
     position: sticky;
     top: 90px;
     backdrop-filter: blur(10px);
-
-    /* 🔥 EZ A LÉNYEG */
     margin-left: -20px;
     padding-right: 40px;
 }
@@ -82,7 +76,6 @@
     opacity: 0.7;
 }
 
-/* === MAIN === */
 .discover-main {
     flex: 1;
 }
@@ -161,9 +154,6 @@ p {
     padding-top: 150px;
 }
 
-/* === RESPONSIVE === */
-
-/* TABLET */
 @media (max-width: 576px) {
     .discover-sidebar {
         display: flex;
@@ -184,7 +174,6 @@ p {
     }
 }
 
-/* MOBILE */
 @media (max-width: 576px) {
     .author-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -233,7 +222,6 @@ p {
 
 .categories {
     max-width: 940px;
-    /* bootstrap lg container */
     margin-left: auto;
     margin-right: auto;
     padding: 0 15px;
@@ -246,14 +234,12 @@ p {
     color: var(--text-color);
 }
 
-/* GRID */
 .categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 15px;
 }
 
-/* TILE */
 .category-tile {
     position: relative;
     height: 100px;
@@ -269,14 +255,12 @@ p {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* overlay (sötétítés a szöveg miatt) */
 .category-tile .overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
 }
 
-/* szöveg */
 .category-tile span {
     position: relative;
     color: white;
@@ -284,7 +268,6 @@ p {
     z-index: 1;
 }
 
-/* hover effekt */
 .category-tile:hover {
     transform: scale(1.05);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);

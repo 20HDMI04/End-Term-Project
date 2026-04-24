@@ -20,6 +20,7 @@
 		opacity: 0;
 		transform: translateY(20px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -139,7 +140,6 @@
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Mobile responsiveness */
 @media (max-width: 640px) {
 	.dashboard-card {
 		padding: 2rem 1.5rem;

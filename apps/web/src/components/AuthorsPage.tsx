@@ -17,13 +17,11 @@ export function AuthorsPage() {
     const [user, setUser] = useState<any>(null);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    // Adatok betöltése
     useEffect(() => {
         async function fetchAuthors() {
             const data = await api.getData();
             setAuthorList(data.authors);
 
-            // flatten és unique
             const allAuthors = data.authors
                 .flatMap((section: AuthorSection) => section.data)
                 .filter((value: any, index: number, self: any[]) =>
@@ -49,7 +47,6 @@ export function AuthorsPage() {
         fetchUser();
     }, [api]);
 
-    // Check if user is admin
     useEffect(() => {
         const checkAdminRole = async () => {
             try {
@@ -76,7 +73,6 @@ export function AuthorsPage() {
 
     return (
         <div className="home-container">
-            {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -131,7 +127,6 @@ export function AuthorsPage() {
                 </div>
             </nav>
 
-            {/* CONTENT */}
             <div className="container mt-4">
                 <h1 className="listing-h1-books">All Authors</h1><br />
                 <div className="row g-3">

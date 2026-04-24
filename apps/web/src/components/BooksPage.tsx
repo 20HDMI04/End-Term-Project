@@ -65,7 +65,6 @@ export function BooksPage() {
 
     return (
         <div className="home-container">
-            {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -120,9 +119,8 @@ export function BooksPage() {
                 </div>
             </nav>
 
-            {/* CONTENT */}
             <div className="container mt-4">
-                <h1 className="listing-h1-books" style={{marginBottom: "10px"}}>All Books</h1>
+                <h1 className="listing-h1-books" style={{ marginBottom: "10px" }}>All Books</h1>
 
                 <div className="d-flex flex-wrap justify-start gap-4">
                     {books.map((book) => (

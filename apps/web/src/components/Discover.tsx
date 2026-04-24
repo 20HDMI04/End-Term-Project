@@ -204,7 +204,6 @@ export function Discover() {
 
                 <div className="discover-layout">
 
-                    {/* SIDEBAR */}
                     <aside className="discover-sidebar">
 
                         <input
@@ -248,7 +247,6 @@ export function Discover() {
 
                     </aside>
 
-                    {/* MAIN */}
                     <main className="discover-main">
 
                         {query ? (

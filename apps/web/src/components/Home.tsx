@@ -19,34 +19,26 @@ export function Home() {
 	const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 	const [isAdmin, setIsAdmin] = useState(false);
 
-	// Calculate how many items to show based on screen width
 	const getItemsToShow = (type: 'books' | 'authors') => {
 		if (windowWidth < 576) {
-			// Mobile
 			return type === 'books' ? 2 : 2;
 		} else if (windowWidth < 768) {
-			// Small tablet
 			return type === 'books' ? 3 : 3;
 		} else if (windowWidth < 1024) {
-			// Tablet
 			return type === 'books' ? 4 : 4;
 		} else if (windowWidth < 1100) {
-			// Desktop
 			return type === 'books' ? 6 : 6;
 		} else if (windowWidth < 1200) {
-			// Large desktop
 			return type === 'books' ? 7 : 7;
 		}
 		else if (windowWidth < 1400) {
 			return type === 'books' ? 8 : 8;
 		} else {
-			// Large desktop
 			return type === 'books' ? 9 : 9;
 		}
 
 	};
 
-	// Track window resize
 	useEffect(() => {
 		const handleResize = () => setWindowWidth(window.innerWidth);
 		window.addEventListener('resize', handleResize);
@@ -57,7 +49,6 @@ export function Home() {
 		e.currentTarget.src = "/book.png";
 	};
 
-	// Adatok betöltése
 	useEffect(() => {
 		async function Books() {
 			const consoleData = await api.getData();
@@ -67,7 +58,6 @@ export function Home() {
 		Books();
 	}, [api]);
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const [user, setUser] = useState<any>(null);
 
 	useEffect(() => {
@@ -82,7 +72,6 @@ export function Home() {
 		fetchUser();
 	}, [api]);
 
-	// Check if user is admin
 	useEffect(() => {
 		const checkAdminRole = async () => {
 			try {
@@ -101,7 +90,6 @@ export function Home() {
 	return (
 		<div className="home-container">
 
-			{/* Navbar */}
 			<nav className="navbar navbar-expand-lg">
 				<div className="container-fluid">
 					<img
@@ -154,7 +142,6 @@ export function Home() {
 				</div>
 			</nav>
 
-			{/* Header */}
 			<header className="header">
 				<div className="header-content">
 					<h1>
@@ -172,8 +159,6 @@ export function Home() {
 				</div>
 			</header>
 
-
-			{/* Popular Books Section */}
 			<div className="books-container-main">
 				<div className="d-flex align-items-center justify-content-between" style={{ margin: "0 20px", marginTop: "20px" }}>
 					<h1 className="listing-h1-books">Popular Books</h1>
@@ -250,7 +235,6 @@ export function Home() {
 				</div>
 			</div>
 
-			{/* Other Book Sections */}
 			{booksList
 				?.filter((section) => section.title !== "Popular Books")
 				.map((section, sectionIndex) => (
@@ -350,7 +334,6 @@ export function Home() {
 					</div>
 				))}
 
-			{/* Authors Section */}
 			<div className="paddingForAuthors">
 				{authorList?.map((section: AuthorSection, sectionIndex) => (
 					<div key={sectionIndex} className="authors-container-main">
@@ -420,11 +403,7 @@ export function Home() {
 					</div>
 				))}
 			</div>
-
-			<div>{/* Explore genres */}</div>
-			<div>{/* Popular Authors */}</div>
-
-		<Footer />
-	</div>
-);
+			<Footer />
+		</div>
+	);
 }

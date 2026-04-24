@@ -160,12 +160,9 @@ export function UserProfile() {
 
     if (!user) return <div className="container mt-5 text-dark">Loading...</div>;
 
-    // ⭐ HELPER: saját rating kikeresése
-
     return (
         <div className="home-container">
 
-            {/* NAVBAR */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -216,7 +213,6 @@ export function UserProfile() {
             <div className="container mt-4">
                 <div className="row">
 
-                    {/* LEFT */}
                     <div className="col-md-3 text-center" style={{ position: "sticky", top: "80px" }}>
                         <div style={{ position: "relative", width: "200px", height: "200px", margin: "0 auto" }}>
                             <img
@@ -285,7 +281,6 @@ export function UserProfile() {
                                 </p>
                             </div>
 
-                            {/* NICKNAME SECTION */}
                             <div style={{
                                 backgroundColor: theme === "light" ? "var(--card-tx)" : "#262626",
                                 padding: "12px",
@@ -535,10 +530,8 @@ export function UserProfile() {
                         </div>
                     </div>
 
-                    {/* RIGHT */}
                     <div className="col-md-9">
 
-                        {/* FAVORITE BOOKS */}
                         <h1 className="listing-h1-books">Favorite Books</h1>
 
                         <div className="books-container mt-4">
@@ -590,7 +583,6 @@ export function UserProfile() {
                             )}
                         </div>
 
-                        {/* AUTHORS + READ BOOKS */}
                         <h1 className="listing-h1-authors">Favorite Authors</h1>
 
                         <div className="authors-container mt-5">
@@ -665,8 +657,6 @@ export function UserProfile() {
                             {user.haveReadIt?.length ? (
                                 <div className="d-flex flex-wrap gap-3">
                                     {user.haveReadIt.map((h: any) => {
-                                        //const myRating = getMyRating(h.book.id);
-
                                         return (
                                             <a key={h.book.id} href={`/book/${h.book.id}`} style={{ textDecoration: "none" }}>
                                                 <div className="books-display-main">
@@ -708,8 +698,6 @@ export function UserProfile() {
                             )}
                         </div>
 
-                        {/* Add a Book Section */}
-
                         <div className="books-container mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <h1 className="listing-h1-books mt-5">Add a New Book</h1>
                             <div className="card p-4" style={{ maxWidth: "600px" }}>
@@ -729,7 +717,6 @@ export function UserProfile() {
                             </div>
                         </div>
 
-                        {/* Under Construction Modal */}
                         {showConstructionModal && (
                             <div className="construction-modal-overlay" onClick={() => setShowConstructionModal(false)}>
                                 <div className="construction-modal-content" onClick={(e) => e.stopPropagation()}>

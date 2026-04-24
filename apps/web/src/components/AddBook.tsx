@@ -50,10 +50,8 @@ export function AddBook() {
         genreNames: [] as string[]
     });
 
-    // Helper function to get theme-based colors
     const getDropdownColor = () => theme === "dark" ? "#1e3a8a" : "#6c8f5e";
 
-    // Fetch authors for selection
     useEffect(() => {
         async function fetchAuthors() {
             try {
@@ -72,7 +70,6 @@ export function AddBook() {
         fetchAuthors();
     }, [api]);
 
-    // Check if user is admin
     useEffect(() => {
         const checkAdminRole = async () => {
             try {
@@ -128,8 +125,8 @@ export function AddBook() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        const maxFileSize = 5 * 1024 * 1024; // 5MB
-        
+        const maxFileSize = 5 * 1024 * 1024;
+
         if (file) {
             if (file.size > maxFileSize) {
                 Swal.fire(
@@ -140,7 +137,7 @@ export function AddBook() {
                 e.target.value = "";
                 return;
             }
-            
+
             setCoverImage(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -178,7 +175,6 @@ export function AddBook() {
             return;
         }
 
-        // Show confirmation popup
         const selectedAuthorName = getAuthorName(formData.chosenAuthor);
         const result = await Swal.fire({
             title: "Add New Book?",
@@ -205,7 +201,6 @@ export function AddBook() {
 
         setIsLoading(true);
         try {
-            // Call API to create book
             await api.createBook(
                 coverImage,
                 {
@@ -217,7 +212,7 @@ export function AddBook() {
                     latestPublicationYear: formData.publicationYear ? parseInt(formData.publicationYear) : null,
                     genreNames: formData.genreNames
                 }
-                
+
             );
 
             Swal.fire(
@@ -231,13 +226,13 @@ export function AddBook() {
         } catch (err) {
             console.error("Error adding book:", err);
             let errorMessage = "Failed to add book. Please try again.";
-            
+
             if ((err as any)?.status === 413 || (err as Error).message.includes("413")) {
                 errorMessage = "The book cover image is too large. Maximum file size is 5MB. Please choose a smaller image.";
             } else if ((err as Error).message) {
                 errorMessage = (err as Error).message;
             }
-            
+
             Swal.fire(
                 "Error",
                 errorMessage,
@@ -250,7 +245,6 @@ export function AddBook() {
 
     return (
         <div className="home-container">
-            {/* NAVBAR */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -300,7 +294,6 @@ export function AddBook() {
                 </div>
             </nav>
 
-            {/* MAIN CONTENT */}
             <div className="container mt-5">
                 <div className="row justify-content-center">
                     <div className="col-md-8">

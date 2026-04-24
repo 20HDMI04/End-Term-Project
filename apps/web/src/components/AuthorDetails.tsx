@@ -120,7 +120,6 @@ export function AuthorDetails() {
 
     return (
         <div className="home-container">
-            {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
                     <img
@@ -170,11 +169,9 @@ export function AuthorDetails() {
                 </div>
             </nav>
 
-            {/* CONTENT */}
             <div className="container mt-4">
                 <div className="row">
 
-                    {/* LEFT SIDE */}
                     <div className="col-md-3" style={{ position: "sticky", top: "80px" }}>
                         <div className="card-text-center">
                             <img
@@ -208,7 +205,6 @@ export function AuthorDetails() {
                         </button>
                     </div>
 
-                    {/* RIGHT SIDE */}
                     <div className="author-page-text col-md-9">
                         <h2>{author.name}</h2>
 

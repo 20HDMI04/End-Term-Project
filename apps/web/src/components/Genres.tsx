@@ -24,15 +24,12 @@ export function Genre() {
     const [genres, setGenres] = useState<Genre[]>([]);
     const [isAdmin, setIsAdmin] = useState(false);
 
-
-    // 🎯 NULL = ALL GENRES (clean solution)
     const selectedGenre = id ?? null;
 
     useEffect(() => {
         async function fetchData() {
             const data = await api.getData();
 
-            // 📚 all books
             const allBooks = data.books
                 .flatMap((section: BookSection) => section.data)
                 .filter(
@@ -42,7 +39,6 @@ export function Genre() {
 
             setBooks(allBooks);
 
-            // 🎯 unique genres + ABC sort
             const allGenres: Genre[] = Array.from(
                 new Map(
                     allBooks
@@ -75,7 +71,6 @@ export function Genre() {
         fetchUser();
     }, [api]);
 
-    // Check if user is admin
     useEffect(() => {
         const checkAdminRole = async () => {
             try {
@@ -91,7 +86,6 @@ export function Genre() {
         checkAdminRole();
     }, []);
 
-    // 🎯 FILTER LOGIC
     const filteredBooks =
         !selectedGenre
             ? books
@@ -102,7 +96,6 @@ export function Genre() {
     return (
         <div className="home-container">
 
-            {/* Navbar */}
             <nav className="navbar navbar-expand-lg">
                 <div className="container-fluid">
 
@@ -159,12 +152,10 @@ export function Genre() {
                 </div>
             </nav>
 
-            {/* Content */}
             <div className="container mt-4">
 
                 <h1 className="listing-h1-books">Browse Genres</h1><br />
 
-                {/* 🎯 DROPDOWN (FIXED ALL LOGIC) */}
                 <div className="mb-4" style={{ maxWidth: "250px" }}>
                     <select
                         className="form-select"
@@ -189,7 +180,6 @@ export function Genre() {
                     </select>
                 </div>
 
-                {/* 📚 BOOK GRID */}
                 <div className="d-flex flex-wrap justify-content-center gap-4">
                     {filteredBooks.map(book => (
                         <Link
@@ -216,7 +206,6 @@ export function Genre() {
                     ))}
                 </div>
 
-                {/* EMPTY STATE */}
                 {filteredBooks.length === 0 && (
                     <p className="text-center mt-4">No books found.</p>
                 )}

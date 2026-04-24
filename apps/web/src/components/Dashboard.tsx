@@ -146,7 +146,6 @@ export default function Dashboard() {
 					</div>
 				</div>
 			</div>
-			{/* Book Creator for testing purposes */}
 
 			<button onClick={updateUserFirstTime}>Update First Time Flag</button>
 		</>
