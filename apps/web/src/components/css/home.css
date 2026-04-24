@@ -705,6 +705,21 @@ nav {
     border-color: #0d6efd !important;
 }
 
+/* Back button (btn-outline-secondary) hover */
+:root[data-theme="light"] .btn.btn-outline-secondary:hover,
+:root[data-theme="light"] .btn.btn-outline-secondary:focus {
+    background-color: #4a7c3f !important;
+    border-color: #4a7c3f !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn.btn-outline-secondary:hover,
+[data-theme="dark"] .btn.btn-outline-secondary:focus {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
 /* Light mode: green hover on favorite and mark-as-read buttons */
 [data-theme="light"] .btn.btn-success:hover,
 [data-theme="light"] .btn.btn-success:focus {
