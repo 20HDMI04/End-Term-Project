@@ -459,7 +459,7 @@ export function BookDetails() {
                     <div className=" book-page-text book-page-text col-md-9">
                         <h2>{book.title}</h2>
                         <h5 className="book-page-text">
-                            <a href={`/author/${book.authorId} || ${book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
+                            <a href={`/author/${author?.id || book.authorId}`} style={{ textDecoration: "none", color: "inherit" }}>
                                 {book.author.name || "Unknown Author"}
                             </a>
                         </h5>
